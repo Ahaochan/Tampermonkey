@@ -1,10 +1,9 @@
 #Tampermonkey油猴脚本集合
-[TOC]
 
 #脚本集合
 慕课网-找回路径课程：https://greasyfork.org/zh-CN/scripts/28115
 
-#坑
+#遇到的坑
 ##1、函数在页面中点击执行
 在脚本中定义函数`function abc(){ alert("helloWorld"); }`,注入onclick事件`<a id="a" onclick="abc();">HelloWorld</a>`。
 爆出函数未定义的错误Function is not defined。
