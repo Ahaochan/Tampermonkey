@@ -15,4 +15,3 @@ unsafeWindow.abc = function(msg) {
 }
 document.getElementById("a").onclick = "window.abc('helloWorld')";
 ```
-
