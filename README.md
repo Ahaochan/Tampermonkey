@@ -1,14 +1,14 @@
-#TampermonkeyÓÍºï½Å±¾¼¯ºÏ
+ï»¿#Tampermonkeyæ²¹çŒ´è„šæœ¬é›†åˆ
 
-#½Å±¾¼¯ºÏ
-Ä½¿ÎÍø-ÕÒ»ØÂ·¾¶¿Î³Ì£ºhttps://greasyfork.org/zh-CN/scripts/28115
+#è„šæœ¬é›†åˆ
+æ…•è¯¾ç½‘-æ‰¾å›è·¯å¾„è¯¾ç¨‹ï¼šhttps://greasyfork.org/zh-CN/scripts/28115
 
-#Óöµ½µÄ¿Ó
-##1¡¢º¯ÊıÔÚÒ³ÃæÖĞµã»÷Ö´ĞĞ
-ÔÚ½Å±¾ÖĞ¶¨Òåº¯Êı`function abc(){ alert("helloWorld"); }`,×¢ÈëonclickÊÂ¼ş`<a id="a" onclick="abc();">HelloWorld</a>`¡£
-±¬³öº¯ÊıÎ´¶¨ÒåµÄ´íÎóFunction is not defined¡£
-ÔÚ[mozillazine](http://forums.mozillazine.org/viewtopic.php?p=2007224)ÁË½âµ½TampermonkeyµÄjs½Å±¾ÊÇÔÚsandboxÖĞµÄ£¬ÔÚhtmlÖĞ·ÃÎÊ²»µ½¡£
-Ê¹ÓÃÏÂÃæµÄÀı×Ó¿ÉÒÔÍê³ÉÕâ¸ö¹¦ÄÜ
+#é‡åˆ°çš„å‘
+##1ã€å‡½æ•°åœ¨é¡µé¢ä¸­ç‚¹å‡»æ‰§è¡Œ
+åœ¨è„šæœ¬ä¸­å®šä¹‰å‡½æ•°`function abc(){ alert("helloWorld"); }`,æ³¨å…¥onclickäº‹ä»¶`<a id="a" onclick="abc();">HelloWorld</a>`ã€‚
+çˆ†å‡ºå‡½æ•°æœªå®šä¹‰çš„é”™è¯¯Function is not definedã€‚
+åœ¨[mozillazine](http://forums.mozillazine.org/viewtopic.php?p=2007224)äº†è§£åˆ°Tampermonkeyçš„jsè„šæœ¬æ˜¯åœ¨sandboxä¸­çš„ï¼Œåœ¨htmlä¸­è®¿é—®ä¸åˆ°ã€‚
+ä½¿ç”¨ä¸‹é¢çš„ä¾‹å­å¯ä»¥å®Œæˆè¿™ä¸ªåŠŸèƒ½
 ```
 unsafeWindow.abc = function(msg) {
   alert(msg);
