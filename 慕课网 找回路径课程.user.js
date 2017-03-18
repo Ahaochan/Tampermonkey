@@ -6,6 +6,7 @@
 // @author      Ahaochan
 // @match       *://*.imooc.com/course/program*
 // @grant        none
+// @require    http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
 
 
