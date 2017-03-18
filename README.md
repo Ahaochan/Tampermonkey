@@ -1,17 +1,22 @@
-﻿#Tampermonkey油猴脚本集合
+# wnacg
+![01.gif](https://github.com/Ahaochan/wnacg/blob/master/image/01.gif)
+![02.gif](https://github.com/Ahaochan/wnacg/blob/master/image/02.gif)
+![03.gif](https://github.com/Ahaochan/wnacg/blob/master/image/03.gif)
 
-#脚本集合
-慕课网-找回路径课程：https://greasyfork.org/zh-CN/scripts/28115
+wnacg的漫画阅读软件app，需翻墙
 
-#遇到的坑
-##1、函数在页面中点击执行
-在脚本中定义函数`function abc(){ alert("helloWorld"); }`,注入onclick事件`<a id="a" onclick="abc();">HelloWorld</a>`。
-爆出函数未定义的错误Function is not defined。
-在[mozillazine](http://forums.mozillazine.org/viewtopic.php?p=2007224)了解到Tampermonkey的js脚本是在sandbox中的，在html中访问不到。
-使用下面的例子可以完成这个功能
+# build
 ```
-unsafeWindow.abc = function(msg) {
-  alert(msg);
-}
-document.getElementById("a").onclick = "window.abc('helloWorld')";
+git clone https://github.com/Ahaochan/Game2048
 ```
+
+# apk download
+
+
+#开发日志
+**v0.10**
+- 添加数据库缓存
+- 添加历史、收藏功能
+
+**v0.01**
+- 完成基本在线阅读功能
