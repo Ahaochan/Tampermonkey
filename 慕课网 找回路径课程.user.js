@@ -9,7 +9,7 @@
 // @require    http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
 
-$//(document).ready(function(){
+//$(document).ready(function(){
 	var coursesTitle = new Array(
 		/*  0: */"",
 		/*  1: */"",
