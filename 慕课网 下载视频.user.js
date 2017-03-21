@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.0
+// @version     0.1.1
 // @description 获取链接，数据来源：http://www.imooc.com/course/ajaxmediainfo/?mid=285&mode=flash。使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/285
 // @author      Ahaochan
 // @match       *://*.imooc.com/learn/*
@@ -46,9 +46,10 @@
 				url: [ response.data.result.mpath[0], response.data.result.mpath[1], response.data.result.mpath[2] ]
 			});
 			//添加单个下载链接
-			var $link = $("<a href='"+response.data.result.mpath[clarityType]+"' class='downLink' style='position:absolute;right:100px;top:0;' target='_blank'></a>");
-			$link.bind("DOMNodeInserted", function() { $(this).empty().text("下载"); } );//移除子标签
+			var $link = $("<a href='"+response.data.result.mpath[clarityType]+"' class='downLink' style='position:absolute;right:100px;top:0;' target='_blank'>下载</a>");
 			$this.after($link);
+			$link.bind("DOMNodeInserted", function() {	$(this).find("i").remove();} );//移除子标签
+			
             //添加全部下载链接
 			if (videoes.length == total) {
 				$("#downloadBox h4:first").after('共' + total + '个视频。已完成解析' + videoes.length + '个视频。<br/>');
@@ -59,8 +60,12 @@
 	//获取下载链接
 
 	function getTextLinks(){
-		var links = "";
-		for(var i in videoes) { links += "filename="+videoes[i].name+"&fileurl="+videoes[i].url[clarityType]+"\n"; }
-		return links;
+		var arr = [];
+		for(var i in videoes) {
+			//arr[i] = "filename="+videoes[i].name+"&fileurl="+videoes[i].url[clarityType];
+			arr[i] = videoes[i].url[clarityType];
+		}
+		arr.sort();
+		return arr.join("\n");
 	}
 //});
