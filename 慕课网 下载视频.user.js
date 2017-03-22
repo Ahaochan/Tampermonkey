@@ -6,7 +6,7 @@
 // @author      Ahaochan
 // @match       *://*.imooc.com/learn/*
 // @grant       none
-// @require     http://code.jquery.com/jquery-1.11.0.min.js
+// @require     http://code.jquery.com/jquery-1.11.0.min.js 
 // ==/UserScript==
 //$(document).ready(function(){
     //导出设置
