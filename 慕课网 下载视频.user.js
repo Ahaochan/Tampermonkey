@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.2
+// @version     0.1.3
 // @description 获取链接，数据来源：http://www.imooc.com/course/ajaxmediainfo/?mid=285&mode=flash。使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/285
 // @author      Ahaochan
 // @match       *://*.imooc.com/learn/*
@@ -18,7 +18,7 @@
 				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>下载清晰度 : </h4>"+
 				"<label for='lowClarity'   >Low   </label><input type='radio' id='lowClarity'    name='clarity' value='0' />"+
 				"<label for='middleClarity'>Middle</label><input type='radio' id='middleClarity' name='clarity' value='1' />"+
-				"<label for='heightClarity'>Height</label><input type='radio' id='heightClarity' name='clarity' value='2' checked='checked' />"+
+				"<label for='highClarity'  >High  </label><input type='radio' id='highClarity'   name='clarity' value='2' checked='checked' />"+
 			"</div>"+
 			"<div>"+
 				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>导出格式 : </h4>"+
@@ -64,7 +64,7 @@
             //添加全部下载链接
 			if (videoes.length == total) {
 				$("#downloadBox").append('共' + total + '个视频。已完成解析' + videoes.length + '个视频。<br/>');
-				$("#downloadBox").append($("<textarea style='width:100%;border:2px solid red;padding: 5px;height: 100px;'>"+getTextLinks(clarityType,outTextType)+"</textarea>"));//全部链接
+				$("#downloadBox").append($("<textarea style='width:100%;border:2px solid red;padding:5px;height:100px;'>"+getTextLinks(clarityType,outTextType)+"</textarea>"));//全部链接
 				videoes.sort(function(a,b){
 					if(a.name>b.name)	return 1;
 					else if(a.name<b.name) return -1;
