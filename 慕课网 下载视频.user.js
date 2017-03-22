@@ -1,27 +1,27 @@
-// ==UserScript==
-// @name        Ä½¿ÎÍø ÏÂÔØÊÓÆµ
+ï»¿// ==UserScript==
+// @name        æ…•è¯¾ç½‘ ä¸‹è½½è§†é¢‘
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.1.2
-// @description »ñÈ¡Á´½Ó£¬Êı¾İÀ´Ô´£ºhttp://www.imooc.com/course/ajaxmediainfo/?mid=285&mode=flash¡£Ê¹ÓÃ·½·¨£º½øÈëÈÎÒâ¿Î³Ìµã»÷ÏÂÔØ¼´¿É¡£Èçhttp://www.imooc.com/learn/285
+// @description è·å–é“¾æ¥ï¼Œæ•°æ®æ¥æºï¼šhttp://www.imooc.com/course/ajaxmediainfo/?mid=285&mode=flashã€‚ä½¿ç”¨æ–¹æ³•ï¼šè¿›å…¥ä»»æ„è¯¾ç¨‹ç‚¹å‡»ä¸‹è½½å³å¯ã€‚å¦‚http://www.imooc.com/learn/285
 // @author      Ahaochan
 // @match       *://*.imooc.com/learn/*
 // @grant       none
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
 //$(document).ready(function(){
-    //µ¼³öÉèÖÃ
+    //å¯¼å‡ºè®¾ç½®
 	var clarityType = 2;
 	var outTextType = "idm";
 	$("div.mod-tab-menu").after(
 		$("<div id='downloadBox' class='course-brief'>"+
 			"<div style='float:left;margin-right:70px;'>"+
-				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>ÏÂÔØÇåÎú¶È : </h4>"+
+				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>ä¸‹è½½æ¸…æ™°åº¦ : </h4>"+
 				"<label for='lowClarity'   >Low   </label><input type='radio' id='lowClarity'    name='clarity' value='0' />"+
 				"<label for='middleClarity'>Middle</label><input type='radio' id='middleClarity' name='clarity' value='1' />"+
 				"<label for='heightClarity'>Height</label><input type='radio' id='heightClarity' name='clarity' value='2' checked='checked' />"+
 			"</div>"+
 			"<div>"+
-				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>µ¼³ö¸ñÊ½ : </h4>"+
+				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>å¯¼å‡ºæ ¼å¼ : </h4>"+
 				"<label for='rawOutText' >raw</label><input type='radio' id='rawOutText'  name='outText' value='raw'/>"+
 				"<label for='idmOutText' >idm </label><input type='radio' id='idmOutText'  name='outText' value='idm' checked='checked' />"+
 				"<label for='xmlOutText' >xml </label><input type='radio' id='xmlOutText'  name='outText' value='xml' />"+
@@ -29,12 +29,12 @@
 			"</div>"+
 		"</div>")
 	);
-	$("input:radio").css("margin","auto 50px auto 3px");//ÉèÖÃµ¥Ñ¡¿ò
+	$("input:radio").css("margin","auto 50px auto 3px");//è®¾ç½®å•é€‰æ¡†
 	$("input:radio[name=clarity]").change(function() { clarityType = this.value; $("#downloadBox textarea").text(getTextLinks(clarityType,outTextType)); });
 	$("input:radio[name=outText]").change(function() { outTextType = this.value; $("#downloadBox textarea").text(getTextLinks(clarityType,outTextType)); });
-	//µ¼³öÉèÖÃ
+	//å¯¼å‡ºè®¾ç½®
 
-	//»ñÈ¡ÏÂÔØÁ´½Ó
+	//è·å–ä¸‹è½½é“¾æ¥
 	var videoes = [];
 	var selector = 'a.J-media-item';
 	var total = $(selector).length;
@@ -46,7 +46,7 @@
 		var pattern = /\(\d{2}:\d{2}\)/;
 		if (!pattern.test(name)) {
 			total--;
-            if (index == $(selector).length - 1 && !total) { console.log('Ã»ÓĞÊÓÆµ¿ÉÒÔÏÂÔØ£¡'); }
+            if (index == $(selector).length - 1 && !total) { console.log('æ²¡æœ‰è§†é¢‘å¯ä»¥ä¸‹è½½ï¼'); }
 			return;
 		}
 		name = name.replace(/\(\d{2}:\d{2}\)/, '').replace(/\s/g, '');
@@ -56,15 +56,15 @@
 				name: name,
 				url: [ response.data.result.mpath[0], response.data.result.mpath[1], response.data.result.mpath[2] ]
 			});
-			//Ìí¼Óµ¥¸öÏÂÔØÁ´½Ó
-			var $link = $("<a href='"+response.data.result.mpath[clarityType]+"' class='downLink' style='position:absolute;right:100px;top:0;' target='_blank'>ÏÂÔØ</a>");
+			//æ·»åŠ å•ä¸ªä¸‹è½½é“¾æ¥
+			var $link = $("<a href='"+response.data.result.mpath[clarityType]+"' class='downLink' style='position:absolute;right:100px;top:0;' target='_blank'>ä¸‹è½½</a>");
 			$this.after($link);
-			$link.bind("DOMNodeInserted", function() {	$(this).find("i").remove();} );//ÒÆ³ı×Ó±êÇ©
+			$link.bind("DOMNodeInserted", function() {	$(this).find("i").remove();} );//ç§»é™¤å­æ ‡ç­¾
 			
-            //Ìí¼ÓÈ«²¿ÏÂÔØÁ´½Ó
+            //æ·»åŠ å…¨éƒ¨ä¸‹è½½é“¾æ¥
 			if (videoes.length == total) {
-				$("#downloadBox").append('¹²' + total + '¸öÊÓÆµ¡£ÒÑÍê³É½âÎö' + videoes.length + '¸öÊÓÆµ¡£<br/>');
-				$("#downloadBox").append($("<textarea style='width:100%;border:2px solid red;padding: 5px;height: 100px;'>"+getTextLinks(clarityType,outTextType)+"</textarea>"));//È«²¿Á´½Ó
+				$("#downloadBox").append('å…±' + total + 'ä¸ªè§†é¢‘ã€‚å·²å®Œæˆè§£æ' + videoes.length + 'ä¸ªè§†é¢‘ã€‚<br/>');
+				$("#downloadBox").append($("<textarea style='width:100%;border:2px solid red;padding: 5px;height: 100px;'>"+getTextLinks(clarityType,outTextType)+"</textarea>"));//å…¨éƒ¨é“¾æ¥
 				videoes.sort(function(a,b){
 					if(a.name>b.name)	return 1;
 					else if(a.name<b.name) return -1;
@@ -73,7 +73,7 @@
 			}
 		});
 	});
-	//»ñÈ¡ÏÂÔØÁ´½Ó
+	//è·å–ä¸‹è½½é“¾æ¥
 
 	function getTextLinks(clarityType, outTextType){
 		if(outTextType === "json")	return JSON.stringify(videoes);
