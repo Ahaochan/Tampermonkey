@@ -17,3 +17,8 @@ unsafeWindow.abc = function(msg) {
 }
 document.getElementById("a").onclick = "window.abc('helloWorld')";
 ```
+
+## 2、跨域访问
+在http://m.imooc.com/video/14388中底部写死了mp4的url，判断依据是禁用js仍然在html源代码中发现了这个url。
+课程所在位置是http://www.imooc.com/learn/814。属于跨域访问的问题，使用[GM_xmlhttpRequest](https://wiki.greasespot.net/GM_xmlhttpRequest)可以解决。
+
