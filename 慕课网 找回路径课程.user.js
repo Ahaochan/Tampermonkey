@@ -4,7 +4,8 @@
 // @version     0.1.3
 // @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://www.imooc.com/course/program
 // @author      Ahaochan
-// @match       *://*.imooc.com/course/program*
+// @match       http://www.imooc.com/course/program*
+// @match       https://www.imooc.com/course/program*
 // @grant        none
 // @require    http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
