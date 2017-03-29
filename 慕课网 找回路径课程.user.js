@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.2
+// @version     0.1.3
 // @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://www.imooc.com/course/program
 // @author      Ahaochan
 // @match       *://*.imooc.com/course/program*
@@ -87,12 +87,13 @@
 	$("#footer").css("position","relative");
 		
 	//创建外层div
-	$("#programMain").append("<div class='plan' style='margin:-80px auto auto'></div>");
-	var $freePlan  = $("#programMain .plan:eq(1)");
+	var $freePlan  = $("<div class='plan'></div>");
+	$("#programMain .inner").after($freePlan);
+	$("#programMain .plan:eq(1)").css("margin","20px auto auto");
 	//创建外层div
 
 	//创建头部div
-	$freePlan.append("<div id='header'><div id='nav' class='page-container'></div></div>");
+	$freePlan.append("<div id='header'><div id='nav' class='page-container' style='background-color:black'></div></div>");
 	var $ul = $("<ul class='nav-item'><ul>");
 	for(var i in course){
 		var $a  = $("<a>"+course[i].name+"</a>").click({course:i}, function(event){ createBox(event.data.course); });
@@ -128,6 +129,6 @@
 					"</div>");
 			$freeBox.append($item);
 		}
-	};
+	}
 	//创建内容页
 //});
