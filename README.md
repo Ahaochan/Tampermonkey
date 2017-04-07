@@ -3,7 +3,7 @@
 
 # 脚本集合
 - 慕课网-找回路径课程：https://greasyfork.org/zh-CN/scripts/28115
-- 慕课网-下载视频：https://greasyfork.org/zh-CN/scripts/28327
+- 慕课网-下载视频(需先登录账号)：https://greasyfork.org/zh-CN/scripts/28327
 
 # 坑
 ## 1、函数在页面中点击执行
