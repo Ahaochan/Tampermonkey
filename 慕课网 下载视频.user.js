@@ -1,17 +1,20 @@
 ﻿// ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.1
+// @version     0.2.2
 // @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814
 // @author      Ahaochan
 // @match       http://www.imooc.com/learn/*
 // @match       https://www.imooc.com/learn/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
+// @require     http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
+
 (function () {
     'use strict';
+	
+	
 	/**--------------------------------获取下载链接---------------------------------------------*/
 	var videoes = [];
 	var $medias = $('.mod-chapters').find('a.J-media-item');
@@ -20,17 +23,11 @@
 	//添加提示标签
 	$('.course-menu').append($('<li><a href="javascript:void(0)"><span id="downTip">视频解析中...</span></a></li>'));
 	if(!isLogin){
-		$('#downTip').text('视频下载异常，点击进行登录，然后刷新此页面');
-		$('#downTip').on('click', function(){
-			window.open('/user/newlogin');
-		});
-		//跳转标签页自动刷新
-		var hiddenProperty = 'hidden' in document ? 'hidden' :    
-				'webkitHidden' in document ? 'webkitHidden' :    
-				'mozHidden' in document ? 'mozHidden' : null;
-		var visibilityChangeEvent = hiddenProperty.replace(/hidden/i, 'visibilitychange');
-		document.addEventListener(visibilityChangeEvent, function(){
-			location.reload();
+		$('#downTip').text('视频下载异常，点击进行登录');
+		$('#downTip').click(function(){
+            var clickEvent  = document.createEvent ('MouseEvents');
+            clickEvent.initEvent ('click', true, true);
+            document.getElementById('js-signin-btn').dispatchEvent (clickEvent);
 		});
 		return;
 	}
@@ -135,6 +132,8 @@
 		$('#downloadBox textarea').text(downloadTextArea);
 	}
 	/**--------------------------------导出设置-------------------------------------------------*/
+	
+	
 	/**--------------------------------格式化下载链接用以显示---------------------------------*/
 	function getTextLinks(clarityType, outTextType){
 		if(outTextType === 'json')	return JSON.stringify(videoes);
