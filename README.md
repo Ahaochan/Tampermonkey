@@ -22,3 +22,14 @@ document.getElementById("a").onclick = "window.abc('helloWorld')";
 在`http://m.imooc.com/video/14388`中底部写死了`mp4`的`url`，判断依据是禁用`js`仍然在`html`源代码中发现了这个`url`。
 课程所在位置是`http://www.imooc.com/learn/814`。属于跨域访问的问题，使用[GM_xmlhttpRequest](https://wiki.greasespot.net/GM_xmlhttpRequest)可以解决。
 
+## 3、模拟事件
+来自[stackoverflow](http://stackoverflow.com/questions/24025165/simulating-a-mousedown-click-mouseup-sequence-in-tampermonkey)，原生js实现的模拟点击事件.
+`trigger`对非`JQuery`绑定的事件无效。
+```
+$('#downTip').click(function(){
+	//$('#js-signin-btn').trigger('click');
+    var clickEvent  = document.createEvent ('MouseEvents');
+    clickEvent.initEvent ('click', true, true);
+    document.getElementById('js-signin-btn').dispatchEvent (clickEvent);
+});
+```
