@@ -9,7 +9,8 @@
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
-//$(document).ready(function(){
+(function () {
+    'use strict';
 	var coursesTitle = new Array(
 		/*  0: */"",
 		/*  1: */"",
@@ -131,4 +132,4 @@
 		}
 	}
 	//创建内容页
-//});
+})();
