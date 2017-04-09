@@ -1,135 +1,136 @@
 ﻿// ==UserScript==
-// @name        慕课网 找回路径课程
+// @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.3
-// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://www.imooc.com/course/program
+// @version     0.2.1
+// @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814
 // @author      Ahaochan
-// @match       http://www.imooc.com/course/program*
-// @match       https://www.imooc.com/course/program*
-// @grant        none
-// @require    http://code.jquery.com/jquery-1.11.0.min.js
+// @match       http://www.imooc.com/learn/*
+// @match       https://www.imooc.com/learn/*
+// @grant       GM_xmlhttpRequest
+// @grant       GM_setClipboard
+// @require     http://code.jquery.com/jquery-1.11.0.min.js 
 // ==/UserScript==
-
 //$(document).ready(function(){
-	var coursesTitle = new Array(
-		/*  0: */"",
-		/*  1: */"",
-		/*  2: */"",
-		/*  3: */"Web前端工程师成长第一阶段(基础篇)",
-		/*  4: */"",
-		/*  5: */"",
-		/*  6: */"",
-		/*  7: */"",
-		/*  8: */"",
-		/*  9: */"",
-		/* 10: */"",
-		/* 11: */"PHP开发工程师闯关记--初识PHP",
-		/* 12: */"",
-		/* 13: */"",
-		/* 14: */"",
-		/* 15: */"",
-		/* 16: */"",
-		/* 17: */"从0开始学习制作QQ侧滑菜单",
-		/* 18: */"模式宗师养成宝典之Java版",
-		/* 19: */"",
-		/* 20: */"jQuery源码探索之旅",
-		/* 21: */"电商网站全站开发攻略",
-		/* 22: */"响应式布局那些事",
-		/* 23: */"搞定Java加解密",
-		/* 24: */"Android加薪利器--自定义View",
-		/* 25: */"",
-		/* 26: */"前端经典案例集萃之“图片、信息展示”",
-		/* 27: */"从零开始学习ThinkPHP框架",
-		/* 28: */"高德开发者必由之路——JS API篇",
-		/* 29: */"高德开发者必由之路——Android SDK篇",
-		/* 30: */"",
-		/* 31: */"Java工程师",
-		/* 32: */"Web前端工程师",
-		/* 33: */"Android工程师",
-		/* 34: */"PHP工程师",
-		/* 35: */"前端经典案例集萃之 \"网页常用特效\"",
-		/* 36: */"Android加薪利器——断点续传",
-		/* 37: */"C语言学习攻略",
-		/* 38: */"Tony老师聊shell",
-		/* 39: */"Swift加薪利器-iOS动画特辑",
-		/* 40: */"Oracle数据库开发必备利器",
-		/* 41: */"",
-		/* 42: */"C++远征攻略",
-		/* 43: */"教你HTML5开发爱心鱼游戏",
-		/* 44: */"小慕感恩计划-实战Hot!!!",
-		/* 45: */"Linux运维工程师",
-		/* 46: */"iOS苹果表开发攻略",
-		/* 47: */"Cocos2d-x游戏开发快速入门",
-		/* 48: */"Hibernate开发宝典",
-		/* 49: */"Linux shell运维实战",
-		/* 50: */"Android-微信热门功能合集",
-		/* 51: */"搞定python基础",
-		/* 52: */"玩嗨Python进阶",
-		/* 53: */"PHP微信公众平台开发攻略",
-		/* 54: */"快速搞定PHP第三方登录",
-		/* 55: */"带你玩转Yii框架",
-		/* 56: */"探索Python世界",
-		/* 57: */"Android必备技能之基础组件",
-		/* 58: */"安卓特效合集豪华套餐",
-		/* 59: */"搞定Java SSM框架开发",
-		/* 60: */"SSH框架探幽"
-		);
-	var course = {
-		"route"    : { "name" : "路线", "id" : [45,34,33,32,31] },
-		"all"      : { "name" : "全部", "id" : [3,11,17,18,20,21,22,23,24,26,27,28,29,31,32,33,34,35,36,37,38,39,40,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60] },
-		"web_font" : { "name" : "前端", "id" : [43,35,28,26,22,20,3] },
-		"web_back" : { "name" : "后端", "id" : [60,59,56,55,54,53,52,51,49,48,42,40,37,38,23,18,27,11] },
-		"mobile"   : { "name" : "移动", "id" : [58,57,50,47,46,44,39,36,29,24,17] },
-		"station"  : { "name" : "整站", "id" : [21] }
-    };
-
-
-	//调整底部栏
-	$("#footer").css("position","relative");
-		
-	//创建外层div
-	var $freePlan  = $("<div class='plan'></div>");
-	$("#programMain .inner").after($freePlan);
-	$("#programMain .plan:eq(1)").css("margin","20px auto auto");
-	//创建外层div
-
-	//创建头部div
-	$freePlan.append("<div id='header'><div id='nav' class='page-container' style='background-color:black'></div></div>");
-	var $ul = $("<ul class='nav-item'><ul>");
-	for(var i in course){
-		var $a  = $("<a>"+course[i].name+"</a>").click({course:i}, function(event){ createBox(event.data.course); });
-		$ul.append($("<li></li>").append($a));
+    /** 导出设置 */
+	var clarityType = 2;
+	var outTextType = "idm";
+	$("div.mod-tab-menu").after(
+		$("<div id='downloadBox' class='course-brief'>"+
+			"<div style='float:left;margin-right:70px;'>"+
+				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>下载清晰度 : </h4>"+
+				"<label for='lowClarity'   >Low   </label><input type='radio' id='lowClarity'    name='clarity' value='0' />"+
+				"<label for='middleClarity'>Middle</label><input type='radio' id='middleClarity' name='clarity' value='1' />"+
+				"<label for='highClarity'  >High  </label><input type='radio' id='highClarity'   name='clarity' value='2' checked='checked' />"+
+			"</div>"+
+			"<div>"+
+				"<h4 style='font-weight:700;font-size: 16px;marginTop:10px'>导出格式 : </h4>"+
+				"<label for='rawOutText' >raw</label><input type='radio' id='rawOutText'  name='outText' value='raw'/>"+
+				"<label for='idmOutText' >idm </label><input type='radio' id='idmOutText'  name='outText' value='idm' checked='checked' />"+
+				"<label for='xmlOutText' >xml </label><input type='radio' id='xmlOutText'  name='outText' value='xml' />"+
+				"<label for='jsomOutText'>json</label><input type='radio' id='jsomOutText' name='outText' value='json'/><br/>"+
+			"</div>"+
+		"</div>")
+	);
+	$("input:radio").css("margin","auto 50px auto 3px");//设置单选框
+	$("input:radio[name=clarity]").change(function() {  clarityType = this.value; 	textAreaChange();	});
+	$("input:radio[name=outText]").change(function() {	outTextType = this.value;	textAreaChange();	});
+	function textAreaChange(){
+		var downloadTextArea = getTextLinks(clarityType,outTextType);
+		GM_setClipboard(downloadTextArea);
+		$("#downloadBox textarea").text(downloadTextArea);
 	}
-	$freePlan.find(".page-container")
-		.append("<div class='logo'><a href='/' target='_self' class='hide-text' title='首页'>慕课网</a></div>")
-		.append($ul);
-	//创建头部div
+	/** 导出设置 */
+
+	//获取下载链接
+	var videoes = [];
+	var selector = 'a.J-media-item';
+	var total = $(selector).length;
+	$(selector).each(function(index, element) {
+		var $this = $(this);
+		var vid = this.href.substring(this.href.lastIndexOf('/') + 1, this.href.length);
+		var name = this.innerText;
+		var pattern = /\(\d{2}:\d{2}\)/;
+		if (!pattern.test(name)) {
+			total--;
+            if (index == $(selector).length - 1 && !total) { console.log('没有视频可以下载！'); }
+			return;
+		}
 		
-		
-	//创建内容页
-	$freePlan.append("<div class='plan-box clearfix' id='plan-box'></div>");
-	var $freeBox = $freePlan.find("#plan-box");
-	createBox("route");
+		name = name.replace(/\(\d{2}:\d{2}\)/, '').replace(/\s/g, '');
+		//v2(vid, name, $(this));
+		v3(vid, name, $(this));
+	});
+	//获取下载链接
+
+	/** 旧版接口，只能解析v1,v2 */
+	function v2(vid, name, $this){
+		$.getJSON("/course/ajaxmediainfo/?mid=" + vid + "&mode=flash", function(response) {
+			var url = response.data.result.mpath[0];
+			parseVideo(vid, name, url, $this);
+		});
+	}
 	
-	function createBox(prop){
-		$freeBox.empty();
-		for(var i in course[prop].id){
-			var pid = course[prop].id[i];
-			var $item = $("<div class='plan-item-box'>"+
-						"<a href='http://www.imooc.com/course/programdetail/pid/"+pid+"' target='_blank'>"+
-							"<div class='plan-item js-planItem' style='height: 232px;'>"+
-								"<div class='bottom'>"+
-									"<div class='bottomh'>"+
-										"<h2>"+coursesTitle[pid]+"</h2>"+
-									"</div>"+
-								"</div>"+
-							"</div>"+
-						"</a>"+
-						"<div class='c-line'></div>"+
-						"<div class='d-line'></div>"+
-					"</div>");
-			$freeBox.append($item);
+	/** 新版接口，解析v1,v2,v3 */
+	function v3(vid, name, $this){
+		GM_xmlhttpRequest({
+			method: "GET",
+			url: "http://m.imooc.com/video/"+vid,
+			onload: function(response) {
+                var html = response.responseText;
+				var stratStr = "course.videoUrl=\"";
+                var endStr = "mp4";
+				var url = html.substring( html.indexOf(stratStr)+stratStr.length, html.indexOf(endStr)+endStr.length);
+				parseVideo(vid, name, url, $this);
+			}
+		});
+	}
+	
+	/** 处理数据 */
+	function parseVideo(vid, name, url, $this){
+		var urlL = url.replace("H.mp4","M.mp4").replace("M.mp4","L.mp4");
+		var urlM = url.replace("H.mp4","M.mp4").replace("L.mp4","M.mp4");
+		var urlH = url.replace("L.mp4","M.mp4").replace("M.mp4","H.mp4");
+		var video = {
+			vid: vid,
+			name: name,
+			url: [ urlL, urlM, urlH ]
+		};
+		videoes.push(video);
+		//添加单个下载链接
+		var $link = $("<a href='"+video.url[clarityType]+"' class='downLink' style='position:absolute;right:100px;top:0;' target='_blank'>下载</a>");
+		$this.after($link);
+		$link.bind("DOMNodeInserted", function() {	$(this).find("i").remove();} );//移除子标签
+		
+		//添加全部下载链接
+		if (videoes.length == total) {
+			$("#downloadBox").append('共' + total + '个视频。已完成解析' + videoes.length + '个视频。已复制到剪贴板<br/>');
+			$("#downloadBox").append($("<textarea style='width:100%;border:2px solid red;padding:5px;height:100px;'></textarea>"));//全部链接
+			videoes.sort(function(a,b){
+				if(a.name>b.name)	return 1;
+				else if(a.name<b.name) return -1;
+				else return 0;
+			});
+			textAreaChange();
 		}
 	}
-	//创建内容页
+	
+	/** 更新textarea */
+	function getTextLinks(clarityType, outTextType){
+		if(outTextType === "json")	return JSON.stringify(videoes);
+		else {
+			var str = "";
+			for(var i in videoes) {
+				if(outTextType === "xml"){
+					str += '\t<video>\n\t\t<url>' + videoes[i].url[clarityType] + '</url>\n\t\t<name>' + videoes[i].name + '</name>\n\t</video>\n';
+				} else if(outTextType === "raw"){
+					str += videoes[i].url[clarityType]+"\n";
+				} else {//idm
+					str += "filename="+videoes[i].name+"&fileurl="+videoes[i].url[clarityType]+"\n";
+				}
+			}
+			if(outTextType === "xml")   str = "<?xml version='1.0' encoding='utf-8' ?>\n<videoes>\n"+str+'</videoes>';
+			return str;
+		}
+	}
+	
 //});
