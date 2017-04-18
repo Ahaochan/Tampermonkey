@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.2
+// @version     0.2.3
 // @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814
 // @author      Ahaochan
 // @match       http://www.imooc.com/learn/*
@@ -43,7 +43,7 @@
 			}
 			return;
 		}
-		name = name.replace(/\s\s+|\(\d\d:\d\d\)/g, '');
+		name = name.replace(/\(\d{2}:\d{2}\)/, '').replace(/\s/g, '');
 		//v2(vid, name, $(this));
 		v3(vid, name, $(this));
 	});
