@@ -1,17 +1,17 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.3
-// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://www.imooc.com/course/program
+// @version     0.1.4
+// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com
 // @author      Ahaochan
-// @match       http://www.imooc.com/course/program*
-// @match       https://www.imooc.com/course/program*
+// @match       http://class.imooc.com*
+// @match       https://class.imooc.com*
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
 (function () {
     'use strict';
-	var coursesTitle = new Array(
+	var itemTitles = new Array(
 		/*  0: */"",
 		/*  1: */"",
 		/*  2: */"",
@@ -83,53 +83,41 @@
 		"station"  : { "name" : "整站", "id" : [21] }
     };
 
-
-	//调整底部栏
-	$("#footer").css("position","relative");
-		
-	//创建外层div
-	var $freePlan  = $("<div class='plan'></div>");
-	$("#programMain .inner").after($freePlan);
-	$("#programMain .plan:eq(1)").css("margin","20px auto auto");
-	//创建外层div
-
-	//创建头部div
-	$freePlan.append("<div id='header'><div id='nav' class='page-container' style='background-color:black'></div></div>");
-	var $ul = $("<ul class='nav-item'><ul>");
-	for(var i in course){
-		var $a  = $("<a>"+course[i].name+"</a>").click({course:i}, function(event){ createBox(event.data.course); });
-		$ul.append($("<li></li>").append($a));
-	}
-	$freePlan.find(".page-container")
-		.append("<div class='logo'><a href='/' target='_self' class='hide-text' title='首页'>慕课网</a></div>")
-		.append($ul);
-	//创建头部div
-		
-		
 	//创建内容页
-	$freePlan.append("<div class='plan-box clearfix' id='plan-box'></div>");
-	var $freeBox = $freePlan.find("#plan-box");
-	createBox("route");
-	
-	function createBox(prop){
-		$freeBox.empty();
-		for(var i in course[prop].id){
-			var pid = course[prop].id[i];
-			var $item = $("<div class='plan-item-box'>"+
-						"<a href='http://www.imooc.com/course/programdetail/pid/"+pid+"' target='_blank'>"+
-							"<div class='plan-item js-planItem' style='height: 232px;'>"+
-								"<div class='bottom'>"+
-									"<div class='bottomh'>"+
-										"<h2>"+coursesTitle[pid]+"</h2>"+
-									"</div>"+
-								"</div>"+
-							"</div>"+
-						"</a>"+
-						"<div class='c-line'></div>"+
-						"<div class='d-line'></div>"+
-					"</div>");
-			$freeBox.append($item);
-		}
-	}
-	//创建内容页
+    var $box = $('<div class="program-list-wrap clearfix"></div>');
+    $('.program-list').prepend($box);
+    
+    //获取图片数组
+    var imgs = [];
+    $('.program-list-head div').each(function(){
+        imgs.push($(this).css('background-image').replace('"',''));
+    });
+    
+    //创建头部div
+	$('.tab-nav a').removeAttr('href').removeAttr('data-type').find("span").each(function(i){
+        var key = Object.keys(course)[i];
+        $(this).text(course[key].name).parent()
+            .unbind('click')
+            .click(function freshBox(){
+                        $box.empty();
+                        for(var i in course[key].id){
+                            var pid = course[key].id[i];
+                            var $item = $('<a class="program-item" href="http://www.imooc.com/course/programdetail/pid/'+pid+'" target="_blank">'+
+                                                '<div class="shadow">'+
+                                                    '<div class="program-list-head">'+
+                                                        '<div class="" style="background-image:'+imgs[parseInt(Math.random()*imgs.length)]+';"></div>'+
+                                                    '</div>'+
+                                                    '<div class="program-list-cont">'+
+                                                        '<div class="program-list-tit">'+itemTitles[pid]+'</div>'+
+                                                    '</div>'+
+                                                '</div>'+
+                                                '<div class="c-line"></div>'+
+                                                '<div class="d-line"></div>'+
+                                            '</a>');
+                            $box.append($item);
+                        }
+                    }
+                );
+    });
+    $('.tab-nav a').first().click();
 })();
