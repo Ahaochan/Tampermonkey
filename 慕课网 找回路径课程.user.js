@@ -2,7 +2,7 @@
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.1.4
-// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com
+// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://class.imooc.com*
 // @match       https://class.imooc.com*
@@ -83,7 +83,7 @@
 		"station"  : { "name" : "整站", "id" : [21] }
     };
 
-	//创建内容页
+	//创建存储路径课程的内容div
     var $box = $('<div class="program-list-wrap clearfix"></div>');
     $('.program-list').prepend($box);
     
@@ -93,31 +93,35 @@
         imgs.push($(this).css('background-image').replace('"',''));
     });
     
-    //创建头部div
-	$('.tab-nav a').removeAttr('href').removeAttr('data-type').find("span").each(function(i){
-        var key = Object.keys(course)[i];
-        $(this).text(course[key].name).parent()
-            .unbind('click')
-            .click(function freshBox(){
-                        $box.empty();
-                        for(var i in course[key].id){
-                            var pid = course[key].id[i];
-                            var $item = $('<a class="program-item" href="http://www.imooc.com/course/programdetail/pid/'+pid+'" target="_blank">'+
-                                                '<div class="shadow">'+
-                                                    '<div class="program-list-head">'+
-                                                        '<div class="" style="background-image:'+imgs[parseInt(Math.random()*imgs.length)]+';"></div>'+
+    //创建导航div
+	$('.tab-nav a')
+        .removeAttr('href')
+        .removeAttr('data-type')//移除原本的点击事件依赖的属性
+        .find("span")
+        .each(function(i){{//获取a标签中的span标签，更改标题名
+            var key = Object.keys(course)[i];//获取course的第i个属性名
+            $(this).text(course[key].name).parent()
+                .unbind('click')
+                .click(function freshBox(){//重新绑定点击事件
+                            $box.empty();
+                            for(var i in course[key].id){
+                                var pid = course[key].id[i];
+                                var $item = $('<a class="program-item" href="http://www.imooc.com/course/programdetail/pid/'+pid+'" target="_blank">'+
+                                                    '<div class="shadow">'+
+                                                        '<div class="program-list-head">'+
+                                                            '<div class="" style="background-image:'+imgs[parseInt(Math.random()*imgs.length)]+';"></div>'+
+                                                        '</div>'+
+                                                        '<div class="program-list-cont">'+
+                                                            '<div class="program-list-tit">'+itemTitles[pid]+'</div>'+
+                                                        '</div>'+
                                                     '</div>'+
-                                                    '<div class="program-list-cont">'+
-                                                        '<div class="program-list-tit">'+itemTitles[pid]+'</div>'+
-                                                    '</div>'+
-                                                '</div>'+
-                                                '<div class="c-line"></div>'+
-                                                '<div class="d-line"></div>'+
-                                            '</a>');
-                            $box.append($item);
+                                                    '<div class="c-line"></div>'+
+                                                    '<div class="d-line"></div>'+
+                                                '</a>');
+                                $box.append($item);
+                            }
                         }
-                    }
-                );
-    });
+                    );
+        });
     $('.tab-nav a').first().click();
 })();
