@@ -1,8 +1,8 @@
 ﻿// ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.3
-// @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.2.4
+// @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814。慕课网修复了漏洞，现在只支持v2接口，请打开脚本查看最新视频的下载方法。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://www.imooc.com/learn/*
 // @match       https://www.imooc.com/learn/*
@@ -10,11 +10,14 @@
 // @grant       GM_setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
-
 (function () {
     'use strict';
-	
-	
+    // 最新视频下载方法
+    // 例如下载http://www.imooc.com/video/14351，点击F12，点击Network，筛选XHR，找到medium.hxk。复制神秘代码58c65fc3e520e5677f8b457a。
+    // 下载地址就是http://v3.mukewang.com/58c65fc3e520e5677f8b457a/H.mp4。
+    // 估计是通过http://www.imooc.com/course/14351/medium.m3u8?cdn=aliyun返回的数据，通过某种解密方式获得的神秘代码
+    // 思路在这，个人水平不够，修复不了，有能力希望能fork并pull request一下。。。
+    
 	/**--------------------------------获取下载链接---------------------------------------------*/
 	var videoes = [];
 	var $medias = $('.mod-chapters').find('a.J-media-item');
@@ -44,19 +47,19 @@
 			return;
 		}
 		name = name.replace(/\(\d{2}:\d{2}\)/, '').replace(/\s/g, '');
-		//v2(vid, name, $(this));
-		v3(vid, name, $(this));
+		v2(vid, name, $(this));
+		//v3(vid, name, $(this));
 	});
 	/**--------------------------------获取下载链接---------------------------------------------*/
 	/**--------------------------------视频下载解析接口-----------------------------------------*/
-	/** 旧版接口，只能解析v1,v2 */
+	/** v2接口，只能解析v1,v2 */
 	function v2(vid, name, item){
 		$.getJSON('/course/ajaxmediainfo/?mid=' + vid + '&mode=flash', function(response) {
 			var url = response.data.result.mpath[0];
 			parseVideo(vid, name, url, item);
 		});
 	}
-	/** 新版接口，解析v1,v2,v3 */
+	/** v3接口，解析v1,v2,v3（已废弃） */
 	function v3(vid, name, item){
 		GM_xmlhttpRequest({
 			method: 'GET',
