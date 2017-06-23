@@ -10,7 +10,6 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
-// @require     https://raw.githubusercontent.com/wendux/Ajax-hook/master/dist/wendu.ajaxhook.min.js
 // ==/UserScript==
 (function () {
     'use strict';
