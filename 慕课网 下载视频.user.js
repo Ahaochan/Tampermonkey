@@ -1,14 +1,16 @@
 ﻿// ==UserScript==
 // @name        慕课网 下载视频
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.4
+// @version     0.2.5
 // @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814。慕课网修复了漏洞，现在只支持v2接口，请打开脚本查看最新视频的下载方法。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://www.imooc.com/learn/*
 // @match       https://www.imooc.com/learn/*
+// @match       http://www.imooc.com/video/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
+// @require     https://raw.githubusercontent.com/wendux/Ajax-hook/master/dist/wendu.ajaxhook.min.js
 // ==/UserScript==
 (function () {
     'use strict';
@@ -47,11 +49,19 @@
 			return;
 		}
 		name = name.replace(/\(\d{2}:\d{2}\)/, '').replace(/\s/g, '');
-		v2(vid, name, $(this));
+        v1(vid, name, $(this));
+		//v2(vid, name, $(this));
 		//v3(vid, name, $(this));
 	});
 	/**--------------------------------获取下载链接---------------------------------------------*/
 	/**--------------------------------视频下载解析接口-----------------------------------------*/
+    /** v1接口，强制转换为v1接口 */
+	function v1(vid, name, item){
+		$.getJSON('/course/ajaxmediainfo/?mid=' + vid + '&mode=flash', function(response) {
+			var url = response.data.result.mpath[0].replace('http://v2', 'http://v1');
+			parseVideo(vid, name, url, item);
+		});
+	}
 	/** v2接口，只能解析v1,v2 */
 	function v2(vid, name, item){
 		$.getJSON('/course/ajaxmediainfo/?mid=' + vid + '&mode=flash', function(response) {
