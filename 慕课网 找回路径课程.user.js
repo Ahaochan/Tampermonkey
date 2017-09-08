@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.5
+// @version     0.1.6
 // @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://class.imooc.com*
@@ -9,7 +9,7 @@
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
-(function () {
+(function ($) {
     'use strict';
     var itemTitles = ["",
         /*  1: */"",
@@ -85,44 +85,59 @@
     };
 
     //创建存储路径课程的内容div
-    var $box = $('<div class="program-list-wrap clearfix"></div>');
-    $('.program-list').prepend($box);
+    var $box = $('<div class="plan-list-box clearfix"></div>'); // 装载课程的div, 复制自原有的课程div
+    $('.plan-list-wrap').prepend($box); // 添加到原有课程div之前
 
     //获取图片数组
     var imgs = [];
-    $('.program-list-head div').each(function () {
-        imgs.push($(this).css('background-image').replace('"', ''));
+    $('.img-box').each(function () {
+        var $this = $(this);
+        var img = {};
+        img['img-up'] = $this.find('.img-up:first').css('background-image').slice(5, -2);
+        img['img-mid'] = $this.find('.img-mid:first').css('background-image').slice(5, -2);
+        img['img-down'] = $this.find('.img-down:first').css('background-image').slice(5, -2);
+        imgs.push(img);
     });
 
-    //创建导航div
+    // 设置导航中的文字
+    $('.tab-nav a span').each(function (i) { // 获取a标签中的span标签，更改标题名
+        var $this = $(this);
+        var key = Object.keys(course)[i]; // 获取course的第i个属性名
+        $this.text(course[key].name); // 设置标题
+        $this.parent().attr('ahao-type', key); // 设置type, 用于在点击事件获取课程id
+    });
+
+    // 设置导航中的点击事件
     $('.tab-nav a')
-        .removeAttr('href')
-        .removeAttr('data-type')//移除原本的点击事件依赖的属性
-        .find("span")
-        .each(function (i) {//获取a标签中的span标签，更改标题名
-            var key = Object.keys(course)[i];//获取course的第i个属性名
-            $(this).text(course[key].name).parent()
-                .unbind('click')
-                .click(function freshBox() {//重新绑定点击事件
-                        $box.empty();
-                        for (var i in course[key].id) {
-                            var pid = course[key].id[i];
-                            var $item = $('<a class="program-item" href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
-                                '<div class="shadow">' +
-                                '<div class="program-list-head">' +
-                                '<div class="" style="background-image:' + imgs[parseInt(Math.random() * imgs.length)] + ';"></div>' +
-                                '</div>' +
-                                '<div class="program-list-cont">' +
-                                '<div class="program-list-tit">' + itemTitles[pid] + '</div>' +
-                                '</div>' +
-                                '</div>' +
-                                '<div class="c-line"></div>' +
-                                '<div class="d-line"></div>' +
-                                '</a>');
-                            $box.append($item);
-                        }
-                    }
-                );
+        .removeAttr('href') // 移除跳转链接
+        .off('click') // 移除jquery绑定的点击事件
+        .on('click', function () {
+            var $this = $(this);
+            $box.empty(); // 清空div中的内容, 用于重新加入div
+
+            // 设置nav被选中的class
+            $('.tab-nav a').attr('class', 'navitem');
+            $this.attr('class', 'navitem navitemall active');
+
+            var type = $this.attr('ahao-type'); // 获取之前设置的type
+            for (var i in course[type].id) { // 遍历course中的id数组
+                var pid = course[type].id[i];
+                var img = imgs[parseInt(Math.random() * imgs.length)]; // 随机获取一个图片
+                // 创建item, 复制自原有课程的div的a标签
+                var $item = $(
+                    '<a class="plan-item l" href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
+                    '<div class="img-box">' +
+                        '<div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
+                        '<div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
+                        '<div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
+                    '</div>' +
+                    '<div class="plan-item-desc-box">' +
+                        '<p class="plan-item-name">' + itemTitles[pid] + '</p>' +
+                    '</div>' +
+                    '</a>');
+                $box.append($item);
+            }
         })
+        // 初始化, 默认选择第一个
         .first().click();
-})();
+})(jQuery);
