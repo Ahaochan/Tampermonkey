@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.6
+// @version     0.1.7
 // @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://class.imooc.com*
@@ -100,15 +100,16 @@
     });
 
     // 设置导航中的文字
-    $('.tab-nav a span').each(function (i) { // 获取a标签中的span标签，更改标题名
+    var $nav_a = $('.tab-nav a');
+    $nav_a.each(function (i) { // 获取a标签中的span标签，更改标题名
         var $this = $(this);
         var key = Object.keys(course)[i]; // 获取course的第i个属性名
-        $this.text(course[key].name); // 设置标题
-        $this.parent().attr('ahao-type', key); // 设置type, 用于在点击事件获取课程id
+        $this.find('span:last').text(course[key].name); // 设置标题
+        $this.attr('ahao-type', key); // 设置type, 用于在点击事件获取课程id
     });
 
     // 设置导航中的点击事件
-    $('.tab-nav a')
+    $nav_a
         .removeAttr('href') // 移除跳转链接
         .off('click') // 移除jquery绑定的点击事件
         .on('click', function () {
@@ -127,12 +128,12 @@
                 var $item = $(
                     '<a class="plan-item l" href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
                     '<div class="img-box">' +
-                        '<div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
-                        '<div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
-                        '<div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
+                    '<div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
+                    '<div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
+                    '<div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
                     '</div>' +
                     '<div class="plan-item-desc-box">' +
-                        '<p class="plan-item-name">' + itemTitles[pid] + '</p>' +
+                    '<p class="plan-item-name">' + itemTitles[pid] + '</p>' +
                     '</div>' +
                     '</a>');
                 $box.append($item);
