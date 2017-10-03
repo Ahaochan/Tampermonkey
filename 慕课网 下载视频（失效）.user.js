@@ -1,12 +1,11 @@
 ﻿// ==UserScript==
-// @name        慕课网 下载视频
+// @name        慕课网 下载视频(失效)
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.6
-// @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814。慕课网修复了漏洞，现在只支持v2接口，请打开脚本查看最新视频的下载方法。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.2.7
+// @description 获取视频下载链接，使用方法：进入任意课程点击下载即可。如http://www.imooc.com/learn/814。慕课网已废弃v1和v2接口, 全面启用HLS, 此脚本失效, 详情看脚本内说明。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       http://www.imooc.com/learn/*
 // @match       https://www.imooc.com/learn/*
-// @match       http://www.imooc.com/video/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
@@ -15,9 +14,17 @@
     'use strict';
     // 最新视频下载方法
     // 例如下载http://www.imooc.com/video/14351，点击F12，点击Network，筛选XHR，找到medium.hxk。复制神秘代码58c65fc3e520e5677f8b457a。
-    // 下载地址就是http://v3.mukewang.com/58c65fc3e520e5677f8b457a/H.mp4。
+    // 下载地址就是http://v3.mukewang.com/584e2423b3fee3bb558b7896/H.mp4。
     // 估计是通过http://www.imooc.com/course/14351/medium.m3u8?cdn=aliyun返回的数据，通过某种解密方式获得的神秘代码
     // 思路在这，个人水平不够，修复不了，有能力希望能fork并pull request一下。。。
+
+    // 2017年10月3日
+    // 现在慕课网已经把http://v1.mukewang.com和http://v2.mukewang.com的DNS解析停掉了。
+    // 看来已经全面启用HLS传输视频流。可以看到http://m.imooc.com/course/3725/high.m3u8?cdn=aliyun应该就是获取m3u8文件的链接。
+    // 而且慕课网对m3u8文件进行了加密, 奇怪的是, 每次刷新的加密后m3u8文件字符串都不一样, 但是请求的ts文件是一样的url。不知道慕课网是怎么做到的。
+    // 上面的解决方案也只能解决一部分视频的下载。
+    // 还是本人技术不够, 所以放弃此脚本的维护。
+
 
     /**--------------------------------获取下载链接---------------------------------------------*/
     var videoes = [];
@@ -25,7 +32,10 @@
     var total = $medias.length;
     var len = total;
     //添加提示标签
-    $('.course-menu').append($('<li><a href="javascript:void(0)"><span id="downTip">视频解析中...</span></a></li>'));
+    $('.course-menu').append($('<li><a href="javascript:void(0)"><span id="downTip">慕课网下载脚本已失效</span></a></li>'));
+
+    return; // 中止此脚本运行
+
     if (!isLogin) {
         $('#downTip').text('视频下载异常，点击进行登录')
             .click(function () {
