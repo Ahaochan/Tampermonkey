@@ -5,6 +5,7 @@
 - 慕课网-找回路径课程：https://greasyfork.org/zh-CN/scripts/28115
 - 慕课网-下载视频（失效）：https://greasyfork.org/zh-CN/scripts/28327
 - 获取行政区划代码: https://greasyfork.org/zh-CN/scripts/31888
+- Pixiv-增强: https://greasyfork.org/zh-CN/scripts/34153
 
 # 坑
 ## 1、函数在页面中点击执行
