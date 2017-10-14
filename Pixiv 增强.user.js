@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        Pixiv ÔöÇ¿
+// @name        Pixiv å¢å¼º
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.1
-// @description ÆÁ±Î¹ã¸æ, ²é¿´ÈÈÃÅÍ¼Æ¬, ÊÕ²ØÊıËÑË÷, ÏÂÔØgif¡£github:https://github.com/Ahaochan/Tampermonkey£¬»¶Ó­starºÍfork¡£
+// @description å±è”½å¹¿å‘Š, æŸ¥çœ‹çƒ­é—¨å›¾ç‰‡, æ”¶è—æ•°æœç´¢, ä¸‹è½½gifã€‚github:https://github.com/Ahaochan/Tampermonkeyï¼Œæ¬¢è¿starå’Œforkã€‚
 // @author      Ahaochan
 // @match       *://*.pixiv.net*
 // @match       *://*.pixiv.net/**
@@ -13,33 +13,33 @@
     'use strict';
 
     (function () {
-        // É¾³ı¹ã¸æÄ£¿é
+        // åˆ é™¤å¹¿å‘Šæ¨¡å—
         $('._premium-lead-tag-search-bar').hide();
         $('.popular-introduction-overlay').hide();
     })();
 
 
     (function () {
-        // Ñ¡Ïî
+        // é€‰é¡¹
         $('.navigation-menu-right').append(
             '<div class="menu-group">' +
             '    <a class="menu-item js-click-trackable-later">' +
             '           <img class="_howto-icon" src="https://source.pixiv.net/www/images/knowhow/icon/howto-brush.svg?20171004">' +
-            '           <span class="label">ÊÕ²ØÈËÊı£º</span>' +
+            '           <span class="label">æ”¶è—äººæ•°ï¼š</span>' +
             '           <select id="ahao_favourite_num_select">' +
             '               <option value=""></option>' +
-            '               <option value="10000usersÈë¤ê">10000usersÈë¤ê</option>' +
-            '               <option value="5000usersÈë¤ê" > 5000usersÈë¤ê</option>' +
-            '               <option value="1000usersÈë¤ê" > 1000usersÈë¤ê</option>' +
-            '               <option value="500usersÈë¤ê"  >  500usersÈë¤ê</option>' +
-            '               <option value="300usersÈë¤ê"  >  300usersÈë¤ê</option>' +
-            '               <option value="100usersÈë¤ê"  >  100usersÈë¤ê</option>' +
-            '               <option value="50usersÈë¤ê"   >   50usersÈë¤ê</option>' +
+            '               <option value="10000userså…¥ã‚Š">10000userså…¥ã‚Š</option>' +
+            '               <option value="5000userså…¥ã‚Š" > 5000userså…¥ã‚Š</option>' +
+            '               <option value="1000userså…¥ã‚Š" > 1000userså…¥ã‚Š</option>' +
+            '               <option value="500userså…¥ã‚Š"  >  500userså…¥ã‚Š</option>' +
+            '               <option value="300userså…¥ã‚Š"  >  300userså…¥ã‚Š</option>' +
+            '               <option value="100userså…¥ã‚Š"  >  100userså…¥ã‚Š</option>' +
+            '               <option value="50userså…¥ã‚Š"   >   50userså…¥ã‚Š</option>' +
             '           </select>' +
             '   </a>' +
             '</div>');
 
-        // Èç¹ûÒÑ¾­ÓĞËÑË÷×Ö·û´®¾ÍÔÚ¸Ä±äÑ¡ÏîÊ±Ö±½ÓËÑË÷
+        // å¦‚æœå·²ç»æœ‰æœç´¢å­—ç¬¦ä¸²å°±åœ¨æ”¹å˜é€‰é¡¹æ—¶ç›´æ¥æœç´¢
         $('#ahao_favourite_num_select').on('change', function () {
             var $text = $('#suggest-input');
             if(!!$text.val()){
@@ -47,13 +47,13 @@
             }
         });
 
-        // ÔÚÌá½»ËÑË÷Ç°´¦ÀíËÑË÷¹Ø¼ü×Ö
+        // åœ¨æäº¤æœç´¢å‰å¤„ç†æœç´¢å…³é”®å­—
         $('#suggest-container').submit(function () {
             var $text = $('#suggest-input');
             var $favourite = $('#ahao_favourite_num_select');
-            // È¥³ı¾ÉµÄËÑË÷Ñ¡Ïî
-            $text.val($text.val().replace(/\d*usersÈë¤ê/, ''));
-            // Ìí¼ÓĞÂµÄËÑË÷Ñ¡Ïî
+            // å»é™¤æ—§çš„æœç´¢é€‰é¡¹
+            $text.val($text.val().replace(/\d*userså…¥ã‚Š/, ''));
+            // æ·»åŠ æ–°çš„æœç´¢é€‰é¡¹
             $text.val($text.val() + ' ' + $favourite.val());
         });
     })();
@@ -62,23 +62,23 @@
         if(window.location.href.indexOf('member_illust.php') === -1){
             return;
         }
-        // ÏÂÔØ¶¯Í¼
+        // ä¸‹è½½åŠ¨å›¾
         var hasGIF = !!$('div ._ugoku-illust-player-container');
         if(!hasGIF){
             return;
         }
 
-        // »ñÈ¡²ÎÊı
+        // è·å–å‚æ•°
         var param = $('.bookmark_modal_thumbnail')
             .attr('data-src')
             .match(/img-master\/img([\s\S]*?)_/)
             [1];
         var url = 'https://i.pximg.net/img-zip-ugoira/img'+param+'_ugoira600x600.zip';
 
-        // Ìí¼ÓÏÂÔØ°´Å¥
+        // æ·»åŠ ä¸‹è½½æŒ‰é’®
         $('div .bookmark-container').append(
             '<a href="'+url+'" class="_bookmark-toggle-button add-bookmark">' +
-            '   <span class="bookmark-icon"></span><span class="description">ÏÂÔØ¶¯Í¼</span>' +
+            '   <span class="bookmark-icon"></span><span class="description">ä¸‹è½½åŠ¨å›¾</span>' +
             '</a>');
     })();
 
