@@ -1,4 +1,4 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.1
@@ -83,5 +83,3 @@
     })();
 
 })(jQuery);
-
-
