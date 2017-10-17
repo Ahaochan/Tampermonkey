@@ -50,3 +50,38 @@ $('#downTip').click(function(){
     };
 })(XMLHttpRequest.prototype.open);
 ```
+
+## 5、Ajax跨域请求多图并压缩为Zip
+依赖[JSZip](https://github.com/Stuk/jszip)、[FileSaver](https://github.com/eligrey/FileSaver.js), 具体实现参考[Pixiv-增强]( https://greasyfork.org/zh-CN/scripts/34153)
+```js
+var zip = new JSZip();
+for (var i = 0; i < 16; i++) {
+    (function (index) {
+        var url = 'https://i.pximg.net/img-master/img' + param + '_p' + index + '_master1200.jpg';
+        GM_xmlhttpRequest({
+            method: 'GET',
+            headers: {referer: 'https://www.pixiv.net/'}, // pixiv加了防盗链referer
+            overrideMimeType: 'text/plain; charset=x-user-defined',
+            url: url,
+            onload: function (xhr) {
+                var r = xhr.responseText, data = new Uint8Array(r.length), i = 0;
+                while (i < r.length) {
+                    data[i] = r.charCodeAt(i);
+                    i++;
+                }
+                var blob = new Blob([data], {type: 'image/jpeg'}); // 转为Blob类型
+
+                zip.file('pic_' + index + '.jpg', blob, {binary: true}); // 压入zip中
+            }
+        });
+    })(i);
+}
+
+// 注意GM_xmlhttpRequest的ajax请求不是同步的
+$('按钮').click(function(){
+    zip.generateAsync({type: "blob", base64: true}).then(function (content) {
+        // see FileSaver.js'
+        saveAs(content, "pic.zip");
+    });
+});
+```
