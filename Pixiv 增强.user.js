@@ -9,11 +9,10 @@
 // @grant       GM_xmlhttpRequest
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
-// @require     https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js
+// @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
 // ==/UserScript==
 
 (function ($) {
-    // https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js
     'use strict';
 
     // 删除广告、查看热门图片
