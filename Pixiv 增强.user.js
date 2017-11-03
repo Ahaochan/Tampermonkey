@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.3
+// @version     0.0.4
 // @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师id、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
-// @match       *://*.pixiv.net*
-// @match       *://*.pixiv.net/**
+// @match       http://*.pixiv.net*
+// @match       https://*.pixiv.net*
 // @grant       GM_xmlhttpRequest
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
@@ -58,7 +58,7 @@
             // 去除旧的搜索选项
             $text.val($text.val().replace(/\d*users入り/, ''));
             // 去除多余空格
-            while($text.val().indexOf('  ')>-1){
+            while ($text.val().indexOf('  ') > -1) {
                 $text.val($text.val().replace('  ', ' '));
             }
             // 添加新的搜索选项
@@ -136,9 +136,9 @@
                                 zip.file('pic_' + index + '.jpg', blob, {binary: true});
 
                                 if (downloaded == num) {
-                                    $a.find('.description').text('下载完成');
+                                    $a.find('.description').text('下载多图(' + downloaded + '/' + num + ')');
                                 } else {
-                                    $a.find('.description').text('下载: ' + downloaded + '/' + num);
+                                    $a.find('.description').text('下载中: ' + downloaded + '/' + num);
                                 }
                             }
                         });
@@ -165,12 +165,12 @@
 
         // 1秒加载一次评论
         var timer = setInterval(function () {
-            var clickEvent  = document.createEvent ('MouseEvents');
-            clickEvent.initEvent ('click', true, true);
+            var clickEvent = document.createEvent('MouseEvents');
+            clickEvent.initEvent('click', true, true);
 
             var more = document.getElementsByClassName('more-comment')[0];
-            if(!!more){
-                more.dispatchEvent (clickEvent);
+            if (!!more) {
+                more.dispatchEvent(clickEvent);
             } else {
                 clearInterval(timer);
             }
