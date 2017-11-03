@@ -183,17 +183,12 @@
         }
 
         // 1秒加载一次评论
-        var once = false;
-        var timer = setInterval(function () {
-            var clickEvent = document.createEvent('MouseEvents');
-            clickEvent.initEvent('click', true, true);
-
+        var clickEvent = document.createEvent('MouseEvents');
+        clickEvent.initEvent('click', true, true);
+        setInterval(function () {
             var more = document.getElementsByClassName('_3aAuVt-')[0];
             if (!!more) {
-                once = true;
                 more.dispatchEvent(clickEvent);
-            } else if(once){
-                clearInterval(timer);
             }
         }, 1000);
     })();
