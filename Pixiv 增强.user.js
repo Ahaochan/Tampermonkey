@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.4
-// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师id、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.0.5
+// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师i、画师背景图链接、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
-// @match       http://www.pixiv.net/
-// @match       http://www.pixiv.net*
-// @match       https://www.pixiv.net*
+// @match       https://*.pixiv.net*
+// @match       https://*.pixiv.net/*
+// @connect     i.pximg.net
 // @grant       GM_xmlhttpRequest
+// @grant       GM_setClipboard
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
 // @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
@@ -100,7 +101,7 @@
 
                 // 添加下载按钮
                 var $a = $('<a class="_bookmark-toggle-button add-bookmark">' +
-                    '   <span class="bookmark-icon"></span><span class="description">下载中</span>' +
+                    '   <span class="bookmark-icon"></span><span class="description">下载失败</span>' +
                     '</a>')
                     .on('click', function () {
                         if (downloaded < num) {
@@ -149,13 +150,30 @@
         })();
     })();
 
-    // 显示画师id
+    // 显示画师id和背景图
     (function () {
         if (!(location.href.indexOf('member_illust.php') !== -1 ||
                 location.href.indexOf('member.php') !== -1  )) {
             return;
         }
-        $('a.user-name').after('<span>ID: ' + pixiv.context.userId + '</span>');
+        // 用户名
+        var $username = $('a.user-name');
+
+        // 显示画师id
+        var $id = $('<span>ID: ' + pixiv.context.userId + '</span>');
+        $id.on('click', function () {
+            var $this = $(this);
+            $this.text('ID已复制到剪贴板');
+            GM_setClipboard(pixiv.context.userId);
+            setTimeout(function () {
+                $this.text('ID: ' + pixiv.context.userId);
+            }, 2000);
+        });
+        $username.after($id);
+
+        // 显示画师背景图
+        var url = $('body').css('background-image').replace('url(','').replace(')','').replace(/\"/gi, "");
+        $username.after('<a target="_blank" href="'+url+' ">背景图</a>');
     })();
 
     // 自动加载评论
@@ -165,14 +183,16 @@
         }
 
         // 1秒加载一次评论
+        var once = false;
         var timer = setInterval(function () {
             var clickEvent = document.createEvent('MouseEvents');
             clickEvent.initEvent('click', true, true);
 
-            var more = document.getElementsByClassName('more-comment')[0];
+            var more = document.getElementsByClassName('_3aAuVt-')[0];
             if (!!more) {
+                once = true;
                 more.dispatchEvent(clickEvent);
-            } else {
+            } else if(once){
                 clearInterval(timer);
             }
         }, 1000);
