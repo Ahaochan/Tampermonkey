@@ -2,7 +2,7 @@
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.5
-// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师i、画师背景图链接、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师id、画师背景图链接、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       https://*.pixiv.net*
 // @match       https://*.pixiv.net/*
