@@ -4,8 +4,9 @@
 // @version     0.0.4
 // @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师id、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
-// @match       http://*.pixiv.net*
-// @match       https://*.pixiv.net*
+// @match       http://www.pixiv.net/
+// @match       http://www.pixiv.net*
+// @match       https://www.pixiv.net*
 // @grant       GM_xmlhttpRequest
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
