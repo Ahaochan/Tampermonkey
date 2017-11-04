@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.5
-// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 下载gif、多图, 显示画师id、画师背景图链接、自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.0.6
+// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 替换大图, 下载gif、多图, 显示画师id、画师背景图链接, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       https://*.pixiv.net*
 // @match       https://*.pixiv.net/*
@@ -79,73 +79,97 @@
             .match(/img-master\/img([\s\S]*?)_/)
             [1];
 
+        // 单图、多图、gif图三种模式
+        var moreMode = !!$('a.read-more').length;
+        var gifMode = !!$('div ._ugoku-illust-player-container').length;
+        var singleMode = !moreMode && !gifMode;
+
+        // 替换单图为大图
+        (function () {
+            if (!singleMode) {
+                return;
+            }
+            console.log('加载单图模式');
+
+            var img = 'https://i.pximg.net/img-original/img' + param + '_p0.png';
+            $('div.works_display')
+                .find('img')
+                .attr('src', img)
+                .css('width', '100%');
+        })();
+
         // 下载动图
         (function () {
-            var hasGIF = !!$('div ._ugoku-illust-player-container').length;
-            if (hasGIF) {
-                var url = 'https://i.pximg.net/img-zip-ugoira/img' + param + '_ugoira600x600.zip';
-                // 添加下载按钮
-                $('div .bookmark-container').append(
-                    '<a href="' + url + '" class="_bookmark-toggle-button add-bookmark">' +
-                    '   <span class="bookmark-icon"></span><span class="description">下载动图</span>' +
-                    '</a>');
+            if (!gifMode) {
+                return;
             }
+            console.log('加载gif图模式');
+
+            var url = 'https://i.pximg.net/img-zip-ugoira/img' + param + '_ugoira600x600.zip';
+            // 添加下载按钮
+            $('div .bookmark-container').append(
+                '<a href="' + url + '" class="_bookmark-toggle-button add-bookmark">' +
+                '   <span class="bookmark-icon"></span><span class="description">下载动图</span>' +
+                '</a>');
         })();
 
         // 下载多图
         (function () {
-            var hasMore = !!$('a.read-more').length;
-            if (hasMore) {
-                var downloaded = 0;                             // 下载完成数量
-                var num = $('a.read-more').text().match(/\d+/); // 下载目标数量
+            if (!moreMode) {
+                return;
+            }
+            console.log('加载多图模式');
 
-                // 添加下载按钮
-                var $a = $('<a class="_bookmark-toggle-button add-bookmark">' +
-                    '   <span class="bookmark-icon"></span><span class="description">下载失败</span>' +
-                    '</a>')
-                    .on('click', function () {
-                        if (downloaded < num) {
-                            return;
-                        }
-                        zip.generateAsync({type: "blob", base64: true}).then(function (content) {
-                            saveAs(content, "pic.zip"); // see FileSaver.js'
-                        });
-                    });
-                $('div .bookmark-container').append($a);
+            var downloaded = 0;                             // 下载完成数量
+            var num = $('a.read-more').text().match(/\d+/); // 下载目标数量
 
-
-                var zip = new JSZip();
-                for (var i = 0; i < num; i++) {
-                    (function (index) {
-                        var url = 'https://i.pximg.net/img-master/img' + param + '_p' + index + '_master1200.jpg';
-                        GM_xmlhttpRequest({
-                            method: 'GET',
-                            headers: {referer: 'https://www.pixiv.net/'},
-                            overrideMimeType: 'text/plain; charset=x-user-defined',
-                            url: url,
-                            onload: function (xhr) {
-                                var r = xhr.responseText,
-                                    data = new Uint8Array(r.length),
-                                    i = 0;
-                                while (i < r.length) {
-                                    data[i] = r.charCodeAt(i);
-                                    i++;
-                                }
-
-                                var blob = new Blob([data], {type: 'image/jpeg'});
-
-                                downloaded++;
-                                zip.file('pic_' + index + '.jpg', blob, {binary: true});
-
-                                if (downloaded == num) {
-                                    $a.find('.description').text('下载多图(' + downloaded + '/' + num + ')');
-                                } else {
-                                    $a.find('.description').text('下载中: ' + downloaded + '/' + num);
-                                }
-                            }
-                        });
-                    })(i);
+            // 添加下载按钮
+            var $a = $('<a class="_bookmark-toggle-button add-bookmark">' +
+                '   <span class="bookmark-icon"></span><span class="description">下载失败</span>' +
+                '</a>');
+            $a.on('click', function () {
+                if (downloaded < num) {
+                    return;
                 }
+                zip.generateAsync({type: "blob", base64: true})
+                    .then(function (content) {
+                        saveAs(content, "pic.zip"); // see FileSaver.js'
+                    });
+            });
+            $('div .bookmark-container').append($a);
+
+
+            var zip = new JSZip();
+            for (var i = 0; i < num; i++) {
+                (function (index) {
+                    var url = 'https://i.pximg.net/img-master/img' + param + '_p' + index + '_master1200.jpg';
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        headers: {referer: 'https://www.pixiv.net/'},
+                        overrideMimeType: 'text/plain; charset=x-user-defined',
+                        url: url,
+                        onload: function (xhr) {
+                            var r = xhr.responseText,
+                                data = new Uint8Array(r.length),
+                                i = 0;
+                            while (i < r.length) {
+                                data[i] = r.charCodeAt(i);
+                                i++;
+                            }
+
+                            var blob = new Blob([data], {type: 'image/jpeg'});
+
+                            downloaded++;
+                            zip.file('pic_' + index + '.jpg', blob, {binary: true});
+
+                            if (downloaded == num) {
+                                $a.find('.description').text('下载多图(' + downloaded + '/' + num + ')');
+                            } else {
+                                $a.find('.description').text('下载中: ' + downloaded + '/' + num);
+                            }
+                        }
+                    });
+                })(i);
             }
         })();
     })();
@@ -172,8 +196,8 @@
         $username.after($id);
 
         // 显示画师背景图
-        var url = $('body').css('background-image').replace('url(','').replace(')','').replace(/\"/gi, "");
-        $username.after('<a target="_blank" href="'+url+' ">背景图</a>');
+        var url = $('body').css('background-image').replace('url(', '').replace(')', '').replace(/\"/gi, "");
+        $username.after('<a target="_blank" href="' + url + ' ">背景图</a>');
     })();
 
     // 自动加载评论
