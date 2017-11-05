@@ -1,16 +1,22 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.1.7
+// @version     0.1.8
 // @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
-// @match       http://class.imooc.com*
-// @match       https://class.imooc.com*
+// @match       http://www.imooc.com/*
+// @match       https://www.imooc.com/*
+// @match       http://class.imooc.com/*
+// @match       https://class.imooc.com/*
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
 (function ($) {
     'use strict';
+    if (location.href.indexOf('http://class.imooc.com') === -1) {
+        return;
+    }
+
     var itemTitles = ["",
         /*  1: */"",
         /*  2: */"",
