@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.6
+// @version     0.0.7
 // @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 替换大图, 下载gif、多图, 显示画师id、画师背景图链接, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       https://*.pixiv.net*
@@ -91,7 +91,7 @@
             }
             console.log('加载单图模式');
 
-            var img = 'https://i.pximg.net/img-original/img' + param + '_p0.png';
+            var img = $('.original-image').attr('data-src');
             $('div.works_display')
                 .find('img')
                 .attr('src', img)
