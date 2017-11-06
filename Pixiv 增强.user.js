@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Pixiv 增强
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.7
-// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 替换大图, 下载gif、多图, 显示画师id、画师背景图链接, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.0.8
+// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @match       https://*.pixiv.net*
 // @match       https://*.pixiv.net/*
@@ -123,9 +123,10 @@
             var downloaded = 0;                             // 下载完成数量
             var num = $('a.read-more').text().match(/\d+/); // 下载目标数量
 
-            // 添加下载按钮
+            // 1. 添加下载按钮
+            var zip = new JSZip();
             var $a = $('<a class="_bookmark-toggle-button add-bookmark">' +
-                '   <span class="bookmark-icon"></span><span class="description">下载失败</span>' +
+                '   <span class="bookmark-icon"></span><span class="description">下载中</span>' +
                 '</a>');
             $a.on('click', function () {
                 if (downloaded < num) {
@@ -138,46 +139,76 @@
             });
             $('div .bookmark-container').append($a);
 
-
-            var zip = new JSZip();
+            // 2. 获取图片地址
+            var ajaxs = [];
+            var imgUrls = [];
+            var illust_id = pixiv.context.illustId;
             for (var i = 0; i < num; i++) {
-                (function (index) {
-                    var url = 'https://i.pximg.net/img-master/img' + param + '_p' + index + '_master1200.jpg';
-                    GM_xmlhttpRequest({
-                        method: 'GET',
-                        headers: {referer: 'https://www.pixiv.net/'},
-                        overrideMimeType: 'text/plain; charset=x-user-defined',
-                        url: url,
-                        onload: function (xhr) {
-                            var r = xhr.responseText,
-                                data = new Uint8Array(r.length),
-                                i = 0;
-                            while (i < r.length) {
-                                data[i] = r.charCodeAt(i);
-                                i++;
-                            }
-
-                            var blob = new Blob([data], {type: 'image/jpeg'});
-
-                            downloaded++;
-                            zip.file('pic_' + index + '.jpg', blob, {binary: true});
-
-                            if (downloaded == num) {
-                                $a.find('.description').text('下载多图(' + downloaded + '/' + num + ')');
-                            } else {
-                                $a.find('.description').text('下载中: ' + downloaded + '/' + num);
-                            }
-                        }
-                    });
-                })(i);
+                var url = 'https://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=' + illust_id + '&page=' + i;
+                var ajax = $.ajax({
+                    type: 'GET',
+                    url: url,
+                    headers: {referer: 'https://www.pixiv.net/'}
+                });
+                ajaxs.push(ajax);
             }
+            // 3. 获取所有图片url后
+            $.when.apply($, ajaxs).then(function () {
+                for (var i in arguments) {
+                    var html = arguments[i][2].responseText;
+                    var pattern = /(<img.+">)/;
+                    var $img = $(html.match(pattern)[0]);
+                    imgUrls.push($img.attr('src'));
+                }
+
+                // 4. 下载并压缩图片
+                (function () {
+                    for (var i = 0; i < num; i++) {
+                        (function (index) {
+                            var url = imgUrls[i];
+                            // 4.1. 下载图片
+                            GM_xmlhttpRequest({
+                                method: 'GET',
+                                headers: {referer: 'https://www.pixiv.net/'},
+                                overrideMimeType: 'text/plain; charset=x-user-defined',
+                                url: url,
+                                onload: function (xhr) {
+                                    // 转为blob类型
+                                    var r = xhr.responseText,
+                                        data = new Uint8Array(r.length),
+                                        i = 0;
+                                    while (i < r.length) {
+                                        data[i] = r.charCodeAt(i);
+                                        i++;
+                                    }
+                                    var blob = new Blob([data], {type: 'image/jpeg'});
+
+                                    // 压缩图片
+                                    downloaded++;
+                                    var suffix = url.split('.').splice(-1);
+                                    zip.file('pic_' + index + '.' + suffix, blob, {binary: true});
+
+                                    if (downloaded == num) {
+                                        $a.find('.description').text('下载多图(' + downloaded + '/' + num + ')');
+                                    } else {
+                                        $a.find('.description').text('下载中: ' + downloaded + '/' + num);
+                                    }
+                                }
+                            });
+                        })(i);
+                    }
+                })();
+            }, function () {
+                //失败回调，任意一个请求失败时返回
+                $a.find('.description').text('下载失败: ' + 0 + '/' + num);
+            });
         })();
     })();
 
     // 显示画师id和背景图
     (function () {
         if (!(location.href.indexOf('member_illust.php') !== -1 ||
-                location.href.indexOf('member.php') !== -1  )) {
+            location.href.indexOf('member.php') !== -1  )) {
             return;
         }
         // 用户名
@@ -197,7 +228,7 @@
 
         // 显示画师背景图
         var url = $('body').css('background-image').replace('url(', '').replace(')', '').replace(/\"/gi, "");
-        $username.after('<a target="_blank" href="' + url + ' ">背景图</a>');
+        $username.after('<div style="text-align: center"><img src="' + url + '" width="10%"><a target="_blank" href="' + url + ' ">背景图</a></div>');
     })();
 
     // 自动加载评论
