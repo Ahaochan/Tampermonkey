@@ -18,7 +18,7 @@
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
 // @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
-// @run-at		document-end
+// @run-at      document-end
 // ==/UserScript==
 
 (function ($) {
@@ -252,7 +252,7 @@
                                     // 压缩图片
                                     downloaded++;
                                     var suffix = url.split('.').splice(-1);
-                                    zip.file(pid+'_' + index + '.' + suffix, blob, {binary: true});
+                                    zip.file(pid + '_' + index + '.' + suffix, blob, {binary: true});
 
                                     if (downloaded === num) {
                                         var label1 = lang === 'zh' ? '下载多图' : 'download gif';
