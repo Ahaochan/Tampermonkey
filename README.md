@@ -7,6 +7,7 @@
 - 获取行政区划代码: https://greasyfork.org/zh-CN/scripts/31888
 - Pixiv-增强: https://greasyfork.org/zh-CN/scripts/34153
 - Greasy Fork 替换原图: https://greasyfork.org/zh-CN/scripts/35062
+- Google翻译 替换: https://greasyfork.org/zh-CN/scripts/35072
 
 # 坑
 ## 1、函数在页面中点击执行
