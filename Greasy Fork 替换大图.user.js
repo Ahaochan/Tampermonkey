@@ -1,4 +1,5 @@
 // ==UserScript==
+// @name        Greasy Fork 替换原图
 // @name:zh     Greasy Fork 替换原图
 // @name:ja 	Greasy Fork replace original image
 // @name:en  	Greasy Fork replace original image
