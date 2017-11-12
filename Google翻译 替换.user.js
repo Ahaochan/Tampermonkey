@@ -8,8 +8,7 @@
 // @description:ja Replace the translated string. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:en Replace the translated string. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @author      Ahaochan
-// @match       https://translate.google.cn
-// @match       https://translate.google.*
+// @include     *://translate.google.*
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
