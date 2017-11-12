@@ -5,6 +5,7 @@
 // @name:en  	Pixiv Plus
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.9
+// @description 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:ja 広告をブロックし、人気のある写真のマスクを隠す. お気に入りの数で検索. 検索pidとuid. 大きな画像を置き換える. ダウンロードgif、複数の写真、アーティストID、アーティストの背景、コメントを自動的に読み込む. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:en Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
