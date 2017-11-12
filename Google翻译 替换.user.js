@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        google翻译 替换
+// @name        Google翻译 替换
 // @name:ja 	Google Translate replace
 // @name:en  	Google Translate replace
 // @namespace   https://github.com/Ahaochan/Tampermonkey
