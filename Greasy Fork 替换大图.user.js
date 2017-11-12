@@ -10,7 +10,8 @@
 // @description:en Replacement script details page preview is the original image, easy to drag and save. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @author      Ahaochan
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
-// @include     *://greasyfork.org*
+// @include     http*://greasyfork.org*
+// @include     http*://www.greasyfork.org/*
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
