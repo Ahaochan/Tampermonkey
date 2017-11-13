@@ -11,6 +11,7 @@
 // @description:en Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
+// @match       http://www.pixiv.net/
 // @connect     i.pximg.net
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @grant       GM_xmlhttpRequest
