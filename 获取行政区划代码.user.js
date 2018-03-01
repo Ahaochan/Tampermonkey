@@ -1,14 +1,15 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name        获取行政区划代码
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.1
-// @description 爬取国家统计局最新县及县以上行政区划代码, 解析为json。如: http://www.stats.gov.cn/tjsj/tjbz/xzqhdm/201703/t20170310_1471429.html
+// @version     0.0.2
+// @description 爬取国家统计局最新县及县以上行政区划代码, 解析为json。http://www.mca.gov.cn/article/sj/tjbz/a/
 // @author      Ahaochan
-// @match       http://www.stats.gov.cn/tjsj/tjbz/xzqhdm/*
+// @include     /http://www\.mca\.gov\.cn/article/sj/tjbz/a/[0-9]*/[0-9]*/[0-9]*\.html/
+// @match       http://www.mca.gov.cn/article/sj/tjbz/a/*/*/*.html
 // @grant       GM_setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
-(function () {
+(function ($) {
     'use strict';
 
     String.prototype.endWith = function (endStr) {
@@ -17,13 +18,10 @@
         return (d >= 0 && this.lastIndexOf(endStr) === d);
     };
 
-    var exclude = ['市辖区', '省直辖县级行政区划'];
-
-
     /**--------------------------------导出设置-------------------------------------------------*/
     var numberType = 4;
     var outTextType = '0000';
-    $('div.xilan_con').before(
+    $('table').before(
         $('<div id="jsonBox">' +
             '<div style="float:left;margin-right:30px;">' +
             '<h4 style="font-weight:700;font-size: 16px;marginTop:10px">代码位数 : </h4>' +
@@ -65,23 +63,17 @@
     /**--------------------------------格式化用以显示---------------------------------*/
     function getJson(numberType, outTextType) {
         var result = '{\n';
-        $('.MsoNormal').each(function () {
-            var data = {};
-            var i = 0;
-            $(this).find('span').each(function (index) {
-                var s = $(this).text().trim();
-                if (s === '') {
-                    i++;
-                }
-                
-                if (index === i && $.isNumeric(s) && s.endWith(outTextType)) {
-                    data.code = s;
-                } else if (data.code !== null) {
-                    data.city = s;
-                }
-            });
-            if (data.code !== undefined && !exclude.includes(data.city)) {
-                result += '\'' + data.code.substring(0, numberType) + '\' : \'' + data.city + '\',\n';
+        $('table tbody tr').each(function () {
+            var $this = $(this);
+            if($this.attr('height') != 19){
+                return;
+            }
+
+            var $td = $this.children();
+            var code = $td.eq(1).text();
+            var city = $td.eq(2).text();
+            if (!!code && code.endWith(outTextType)) {
+                result += '\'' + code.substring(0, numberType) + '\' : \'' + city + '\',\n';
             }
         });
         result = result.substring(0, result.length-2);
@@ -90,4 +82,4 @@
     }
 
     /**--------------------------------格式化用以显示---------------------------------*/
-})();
+})(jQuery);
