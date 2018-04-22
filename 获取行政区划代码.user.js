@@ -1,15 +1,15 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name        获取行政区划代码
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.2
+// @version     0.0.3
 // @description 爬取国家统计局最新县及县以上行政区划代码, 解析为json。http://www.mca.gov.cn/article/sj/tjbz/a/
 // @author      Ahaochan
 // @include     /http://www\.mca\.gov\.cn/article/sj/tjbz/a/[0-9]*/[0-9]*/[0-9]*\.html/
 // @match       http://www.mca.gov.cn/article/sj/tjbz/a/*/*/*.html
-// @grant       GM_setClipboard
+// @grant       GM.setClipboard
 // @require     http://code.jquery.com/jquery-1.11.0.min.js
 // ==/UserScript==
-(function ($) {
+$(function () {
     'use strict';
 
     String.prototype.endWith = function (endStr) {
@@ -42,19 +42,13 @@
             '</div>')
     );
     $('input:radio').css('margin', 'auto 50px auto 3px');//设置单选框
-    $('input:radio[name=number]').change(function () {
-        numberType = this.value;
-        textAreaChange();
-    });
-    $('input:radio[name=outText]').change(function () {
-        outTextType = this.value;
-        textAreaChange();
-    });
+    $('input:radio[name=number]' ).change(function () { numberType  = this.value; textAreaChange(); });
+    $('input:radio[name=outText]').change(function () { outTextType = this.value; textAreaChange(); });
     textAreaChange();
 
     function textAreaChange() {
         var testArea = getJson(numberType, outTextType);
-        GM_setClipboard(testArea);
+        GM.setClipboard(testArea);
         $('#jsonArea').text(testArea);
     }
     /**--------------------------------导出设置-------------------------------------------------*/
@@ -65,7 +59,7 @@
         var result = '{\n';
         $('table tbody tr').each(function () {
             var $this = $(this);
-            if($this.attr('height') != 19){
+            if(parseInt($this.attr('height')) !== 19){
                 return;
             }
 
@@ -82,4 +76,4 @@
     }
 
     /**--------------------------------格式化用以显示---------------------------------*/
-})(jQuery);
+});
