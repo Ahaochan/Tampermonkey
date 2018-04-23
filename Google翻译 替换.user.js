@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name        Google Translate replace
-// @name:zh     Google翻译 替换
+// @name:zh-CN  Google翻译 替换
+// @name:zh-TW  Google翻譯 替換
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.2
 // @description Replace the translated string. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
-// @description:zh 对翻译后的字符串进行替换。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-CN 对翻译后的字符串进行替换。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 對翻譯後的字符串進行替換。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @include     http*://translate.google.*
 // @grant       GM.setValue
