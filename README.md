@@ -8,8 +8,8 @@
 - Pixiv-增强: https://greasyfork.org/zh-CN/scripts/34153
 - Greasy Fork 替换原图: https://greasyfork.org/zh-CN/scripts/35062
 - Google翻译 替换: https://greasyfork.org/zh-CN/scripts/35072
-
-- fuck天猫
+- Fuck天猫: https://greasyfork.org/zh-CN/scripts/369391
+- 问卷星 自动随机填写: https://greasyfork.org/zh-CN/scripts/369392
 
 # 坑
 ## 1、函数在页面中点击执行
