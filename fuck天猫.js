@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        fuck天猫
+// @name        Fuck天猫
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.1
 // @description 天猫没有差评, 所以开发出这个脚本, 屏蔽淘宝下的天猫搜索结果, 还我一个干净的淘宝。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
