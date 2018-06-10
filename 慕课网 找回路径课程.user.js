@@ -11,11 +11,13 @@
 
 (function ($) {
     'use strict';
+    // 1. 链接判断是否为职业路径
     if (location.href.indexOf('class.imooc.com') === -1) {
         return;
     }
 
-    var itemTitles = ["",
+    // 2. 静态写死课程信息
+    var courseTitles = ["",
         /*  1: */"",
         /*  2: */"",
         /*  3: */"Web前端工程师成长第一阶段(基础篇)",
@@ -88,11 +90,7 @@
         "station": {"name": "整站", "id": [21]}
     };
 
-    //创建存储路径课程的内容div
-    var $box = $('<div class="plan-list-box clearfix"></div>'); // 装载课程的div, 复制自原有的课程div
-    $('.plan-list-wrap').prepend($box); // 添加到原有课程div之前
-
-    //获取图片数组
+    // 3. 获取已有课程的图片, 用于随机赋予消失的课程路径
     var imgs = [];
     $('.img-box').each(function () {
         var $this = $(this);
@@ -102,43 +100,70 @@
         img['img-down'] = $this.find('.img-down:first').css('background-image').slice(5, -2);
         imgs.push(img);
     });
-
-    // 设置导航中的文字
-    var $nav_a = $('.tab-nav a');
-    $nav_a.each(function (i) { // 获取a标签中的span标签，更改标题名
+    $('.plan-item-banner').each(function () {
         var $this = $(this);
-        var key = Object.keys(course)[i]; // 获取course的第i个属性名
-        $this.find('span:last').text(course[key].name); // 设置标题
-        $this.attr('ahao-type', key); // 设置type, 用于在点击事件获取课程id
+        var img = {};
+        // background-image: url(//img1.sycdn.imooc.com/climg/5acd69bb000103d706000338.jpg);
+        // background: url(//img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg) no-repeat center center;
+        img['img-up'] = $this.css('background-image').slice(5, -2);
+        img['img-mid'] = $this.css('background-image').slice(5, -2);
+        img['img-down'] = $this.css('background-image').slice(5, -2);
+        imgs.push(img);
     });
 
-    // 设置导航中的点击事件
+    // 4. 初始化导航栏
+    var $bannerOld = $('.program-banner:first'), $bannerNew = $bannerOld.clone();
+    $('.body-main').prepend($bannerNew); // 复制一份导航栏
+    var $nav_a = $bannerNew.find('.tab-nav a');
+    $nav_a.each(function (i) { // 更改标题名
+        var $this = $(this);
+        var key = Object.keys(course)[i];   // 获取course的第i个属性名
+        $this.text(course[key].name);       // 设置标题
+        $this.attr('ahao-type', key);       // 设置type, 用于在点击事件获取课程id
+    });
+
+    $bannerOld.css('height', '50px')                // 设置原来导航栏的高度
+        .children(':not(.tab-nav-wrap)').remove();  // 删除原来导航栏的其他图片标签
+
+    // 5. 创建存储路径课程的内容div
+    var $boxWrap = $('<div class="plan-list-wrap no-toppadding"><div class="plan-list-box clearfix"></div></div>'); // 装载课程的div, 从原有的课程div复制html代码
+    var $box = $boxWrap.find('.plan-list-box');
+    $bannerNew.after($boxWrap); // 添加到clone的导航栏后面
+
+
+    // 6. 设置导航中的点击事件
     $nav_a
-        .removeAttr('href') // 移除跳转链接
-        .off('click') // 移除jquery绑定的点击事件
+        .removeAttr('href')         // 移除跳转链接
+        .off('click')               // 移除jquery绑定的点击事件
         .on('click', function () {
             var $this = $(this);
-            $box.empty(); // 清空div中的内容, 用于重新加入div
+            // 6.1. 清空div中的内容, 用于重新加入div
+            $box.empty();
 
-            // 设置nav被选中的class
-            $('.tab-nav a').attr('class', 'navitem');
-            $this.attr('class', 'navitem navitemall active');
+            // 6.2. 设置高亮选中样式
+            $nav_a.attr('class', 'moco-change-big-btn');
+            $this.attr('class', 'moco-change-big-btn active');
 
-            var type = $this.attr('ahao-type'); // 获取之前设置的type
-            for (var i in course[type].id) { // 遍历course中的id数组
+            // 6.3. 加入item
+            var type = $this.attr('ahao-type');     // 获取之前设置的type
+            for (var i in course[type].id) {        // 遍历course中的id数组
                 var pid = course[type].id[i];
-                var img = imgs[parseInt(Math.random() * imgs.length)]; // 随机获取一个图片
+                var img = imgs[parseInt(Math.random() * imgs.length)] || {
+                    'img-up'    : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg',
+                    'img-mid'   : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg',
+                    'img-down'  : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg'
+                }; // 随机获取一个图片, 如果获取不到图片就使用默认图片
                 // 创建item, 复制自原有课程的div的a标签
                 var $item = $(
                     '<a class="plan-item l" href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
-                    '<div class="img-box">' +
-                    '<div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
-                    '<div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
-                    '<div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
-                    '</div>' +
-                    '<div class="plan-item-desc-box">' +
-                    '<p class="plan-item-name">' + itemTitles[pid] + '</p>' +
-                    '</div>' +
+                    '   <div class="img-box">' +
+                    '       <div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
+                    '       <div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
+                    '       <div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
+                    '   </div>' +
+                    '   <div class="plan-item-desc-box">' +
+                    '       <p class="plan-item-name">' + courseTitles[pid] + '</p>' +
+                    '   </div>' +
                     '</a>');
                 $box.append($item);
             }
