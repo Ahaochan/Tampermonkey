@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.1
+// @version     0.2.2
 // @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -24,8 +24,10 @@
 jQuery(function ($) {
     'use strict';
     // 加载依赖
-    var addMutationObserver = function (option) {
+    var executeMutationObserver = function (option) {
         var options = $.extend({
+            type: 'childList',
+            attributeName: [],
             isValid: function () {
                 return false;
             },
@@ -37,14 +39,21 @@ jQuery(function ($) {
         var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
         var mutationObserver = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
-                if (mutation.addedNodes && typeof mutation.addedNodes !== 'object') {
+                if(options.type !== mutation.type) {
                     return;
                 }
-                var $parent = $(mutation.addedNodes).parent();
+                if(options.type === 'attributes' && options.attributeName && options.attributeName.indexOf(mutation.attributeName) < 0) {
+                    return;
+                }
+                if (mutation.target && typeof mutation.target !== 'object') {
+                    return;
+                }
+                var $parent = $(mutation.target).parent();
                 if (!options.isValid($parent)) {
                     return;
                 }
                 options.execute($parent);
+
             });
         });
         mutationObserver.observe(document.getElementsByTagName('body')[0], {
@@ -161,11 +170,12 @@ jQuery(function ($) {
     // 1. 删除广告、查看热门图片
     (function () {
         // 1. 删除静态添加的广告
-        $('._premium-lead-tag-search-bar').remove();
-        $('.popular-introduction-overlay').remove();// 移除热门图片遮罩层
+        $('._premium-lead-tag-search-bar').hide();
+        $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
 
         // 2. 删除动态添加的广告
-        addMutationObserver({
+        executeMutationObserver({
+            type: 'childList',
             isValid: function () {
                 return true;
             },
@@ -175,7 +185,7 @@ jQuery(function ($) {
                 if (!$ad.length) {
                     return;
                 }
-                $ad.remove();
+                $ad.hide();
             }
         });
     })();
@@ -216,7 +226,8 @@ jQuery(function ($) {
                 return;
             }
             console.log("初始化作品页面 按收藏数搜索");
-            addMutationObserver({
+            executeMutationObserver({
+                type: 'childList',
                 isValid: function ($parent) {
                     // 1. 判断是否添加完毕
                     if (!!$parent.find('#select-ahao-favorites').length) {
@@ -342,7 +353,8 @@ jQuery(function ($) {
                 return;
             }
             console.log("初始化作品页面 搜索UID和PID");
-            addMutationObserver({
+            executeMutationObserver({
+                type: 'childList',
                 isValid: function ($parent) {
                     // 1. 判断是否添加完毕
                     if (!!$parent.find('.ahao-search').length) {
@@ -412,17 +424,13 @@ jQuery(function ($) {
         if (!(location.href.indexOf('member_illust.php') !== -1)) {
             return;
         }
-        addMutationObserver({
+        executeMutationObserver({
+            type: 'attributes',
+            attributeName: ['src', 'srcset'],
             isValid: function ($parent) {
-                // 1. 判断 figure 节点是否加入dom
-                var $figure = $parent.find('figure');
-                if (!$figure.length) {
-                    return false;
-                }
-
-                // 2. 判断 执行完毕
+                // 1. 判断 执行完毕
                 var $img = $parent.find('img.' + confused('illust'));
-                if (!$img.length || /.+original.+/.test($img.attr('src'))) {
+                if (!$img.length || (/.+original.+/.test($img.attr('src')) && !$img.attr('srcset'))) {
                     return false;
                 }
                 return true;
@@ -438,13 +446,14 @@ jQuery(function ($) {
                 console.log(i18n('download_mode_single'));
 
                 // 2. 替换大图
-                var url = globalInitData.preload.illust[Object.keys(globalInitData.preload.illust)[0]].urls.original;
-                var $img = $parent.find('img.' + confused('illust'))
-                    .attr('src', url)
-                    .attr('srcset', '');
+                var $img = $parent.find('img.' + confused('illust'));
+                var url = $img.closest('a').attr('href');
+                $img.attr('src', url).attr('srcset', '');
+
             }
         });
-        addMutationObserver({
+        executeMutationObserver({
+            type: 'childList',
             isValid: function ($parent) {
                 // 1. 判断 figure 节点是否加入dom
                 var $figure = $parent.find('figure');
@@ -487,7 +496,8 @@ jQuery(function ($) {
                 $shareButtonContainer.after($downloadButtonContainer);
             }
         });
-        addMutationObserver({
+        executeMutationObserver({
+            type: 'childList',
             isValid: function ($parent) {
                 // 1. 判断 figure 节点是否加入dom
                 var $figure = $parent.find('figure');
@@ -615,7 +625,8 @@ jQuery(function ($) {
                 return;
             }
 
-            addMutationObserver({
+            executeMutationObserver({
+                type: 'childList',
                 isValid: function ($parent) {
                     // 1. 判断 画师名称 节点是否加入dom
                     var $authorName = $parent.find('.'+confused('authorName'));
@@ -636,7 +647,8 @@ jQuery(function ($) {
                     var $authorMeta = $authorName.closest('div.'+confused('authorMeta'));
 
                     // 1. 显示画师背景图
-                    var url = globalInitData.preload.user[uid].background.url;
+                    var background = globalInitData.preload.user[uid].background;
+                    var url = (background && background.url) || '';
                     var $authorTopRow = $authorName.closest('div.'+confused('authorTopRow'));
                     var $authorSecondRow = $authorTopRow.clone().attr('id', 'ahao-background');
                     $authorSecondRow.children('a').remove();
@@ -650,13 +662,13 @@ jQuery(function ($) {
                     var $uid = $authorMeta.clone();
                     $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
                     $uid.on('click', function () {
-                            var $this = $(this);
-                            $this.find('a').text('UID' + i18n('copy_to_clipboard'));
-                            GM.setClipboard(uid);
-                            setTimeout(function () {
-                                $this.find('a').text('UID: ' + uid);
-                            }, 2000);
-                        });
+                        var $this = $(this);
+                        $this.find('a').text('UID' + i18n('copy_to_clipboard'));
+                        GM.setClipboard(uid);
+                        setTimeout(function () {
+                            $this.find('a').text('UID: ' + uid);
+                        }, 2000);
+                    });
                     $authorMeta.after($uid);
                 }
             });
@@ -664,11 +676,12 @@ jQuery(function ($) {
     })();
 
     // 6. 自动加载评论
-    (function () {
+     (function () {
         if (!(location.href.indexOf('member_illust.php') !== -1)) {
             return;
         }
-        addMutationObserver({
+        executeMutationObserver({
+            type: 'childList',
             isValid: function ($parent) {
                 // 1. 判断 查看更多评论 节点是否加入dom
                 var $showMoreButton = $parent.find('.'+confused('showMoreButton'));
@@ -683,4 +696,3 @@ jQuery(function ($) {
         });
     })();
 });
-
