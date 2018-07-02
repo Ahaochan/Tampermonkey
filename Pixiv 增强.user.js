@@ -3,10 +3,10 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.3
-// @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
-// @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
-// @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
+// @version     0.2.4
+// @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments, View R18 content directly. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
+// @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论, 直接查看R18内容。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論, 直接查看R18內容。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
@@ -157,6 +157,8 @@ jQuery(function ($) {
             authorMeta: "JdrBYtD",
             authorName: "_3RqJTSD",
             showMoreButton: "_3JLvVMw",
+            alertContainer: "_2mfCVqH",
+            blur: "_1sJo02p",
         };
         return lib[key] || 'confused[' + key + '] not found';
     };
@@ -183,12 +185,29 @@ jQuery(function ($) {
                 return true;
             },
             execute: function ($parent) {
-                var adSelector = ['iframe', '._premium-lead-promotion-banner'];
-                var $ad = $parent.find(adSelector.join(','));
-                if (!$ad.length) {
-                    return;
-                }
-                $ad.hide();
+                // 2.1. 隐藏广告
+                (function () {
+                    var adSelector = ['iframe', '._premium-lead-promotion-banner', '.'+confused('alertContainer')];
+                    var $ad = $parent.find(adSelector.join(','));
+                    if (!$ad.length) {
+                        return;
+                    }
+                    $ad.hide();
+                })();
+
+                // 2.2. 移除class
+                (function () {
+                    var $figure = $parent.find('figure');
+                    if (!$figure.length) {
+                        return false;
+                    }
+                    var classSelector = ['.'+confused('blur')];
+                    var $class = $parent.find(classSelector.join(','));
+                    if (!$class.length) {
+                        return;
+                    }
+                    $class.removeClass(classSelector.map(function (value) { return value.replace('.', ''); }).join(' '));
+                })();
             }
         });
     })();
@@ -451,6 +470,10 @@ jQuery(function ($) {
                 // 2. 替换大图
                 var $img = $parent.find('img.' + confused('illust'));
                 var url = $img.closest('a').attr('href');
+                if(!url) {
+                    // 当 18R 等情况下, 通过a标签获取原图失败, 则从 globalInitData 获取数据
+                    url = globalInitData && globalInitData.preload.illust[pid].urls.original;
+                }
                 $img.attr('src', url).attr('srcset', '');
 
             }
