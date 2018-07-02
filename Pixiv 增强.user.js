@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.2
+// @version     0.2.3
 // @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -39,10 +39,10 @@ jQuery(function ($) {
         var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
         var mutationObserver = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
-                if(options.type !== mutation.type) {
+                if (options.type !== mutation.type) {
                     return;
                 }
-                if(options.type === 'attributes' && options.attributeName && options.attributeName.indexOf(mutation.attributeName) < 0) {
+                if (options.type === 'attributes' && options.attributeName && options.attributeName.indexOf(mutation.attributeName) < 0) {
                     return;
                 }
                 if (mutation.target && typeof mutation.target !== 'object') {
@@ -74,10 +74,10 @@ jQuery(function ($) {
             window.clearInterval(intervalId);
         }, 10000);
     };
+
+    // ============================ i18n 国际化 ===============================
     var lang = document.documentElement.getAttribute('lang'),
         pixiv = unsafeWindow.pixiv, globalInitData = unsafeWindow.globalInitData;
-    var pid = (pixiv && pixiv.context.illustId) || (globalInitData && Object.keys(globalInitData.preload.illust)[0]) || 'unknown';
-    var uid = (pixiv && pixiv.context.userId) || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || 'unknown';
     var i18n = function (key) {
         if (!lang) {
             lang = 'en';
@@ -141,6 +141,12 @@ jQuery(function ($) {
 
         return lib[lang][key] || 'i18n[' + lang + '][' + key + '] not found';
     };
+
+    // ============================ url 页面判断 ==============================
+    var isArtworkPage = /.+member_illust.php?.*illust_id=\d+.*/.test(location.href);
+    var isMemberPage = /.+member_illust.php?.*id=\d+.*/.test(location.href);
+
+    // ============================ 反混淆 ====================================
     var confused = function (key) {
         var lib = {
             illust: '_2r_DywD',
@@ -154,15 +160,12 @@ jQuery(function ($) {
         };
         return lib[key] || 'confused[' + key + '] not found';
     };
-    var mimeType = function (suffix) {
-        var lib = {
-            png: "image/png",
-            jpg: "image/jpeg",
-            gif: "image/gif"
-        };
-        return lib[suffix] || 'mimeType[' + suffix + '] not found';
-    };
 
+    // ============================ 全局参数 ====================================
+    var pid = (pixiv && pixiv.context.illustId) || (globalInitData && Object.keys(globalInitData.preload.illust)[0]) || 'unknown';
+    var uid = (pixiv && pixiv.context.userId) || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || 'unknown';
+
+    // 判断是否登录
     if (dataLayer[0].login === 'no') {
         alert(i18n('loginWarning'));
     }
@@ -196,7 +199,7 @@ jQuery(function ($) {
 
         // 1. 初始化通用页面UI
         (function () {
-            if ((location.href.indexOf('member_illust.php') !== -1)) {
+            if (isArtworkPage) {
                 return;
             }
             console.log("初始化通用页面 按收藏数搜索");
@@ -222,7 +225,7 @@ jQuery(function ($) {
 
         // 2. 初始化作品页面UI
         (function () {
-            if (!(location.href.indexOf('member_illust.php') !== -1)) {
+            if (!isArtworkPage) {
                 return;
             }
             console.log("初始化作品页面 按收藏数搜索");
@@ -296,7 +299,7 @@ jQuery(function ($) {
     (function () {
         // 1. 初始化通用页面UI
         (function () {
-            if ((location.href.indexOf('member_illust.php') !== -1)) {
+            if (isArtworkPage) {
                 return;
             }
             console.log("初始化通用页面 搜索UID和PID");
@@ -349,7 +352,7 @@ jQuery(function ($) {
 
         // 2. 初始化作品页面UI
         (function () {
-            if (!(location.href.indexOf('member_illust.php') !== -1)) {
+            if (!isArtworkPage) {
                 return;
             }
             console.log("初始化作品页面 搜索UID和PID");
@@ -421,7 +424,7 @@ jQuery(function ($) {
 
     // 4. 下载图片
     (function () {
-        if (!(location.href.indexOf('member_illust.php') !== -1)) {
+        if (!isArtworkPage) {
             return;
         }
         executeMutationObserver({
@@ -555,6 +558,14 @@ jQuery(function ($) {
                 $shareButtonContainer.after($downloadButtonContainer);
 
                 // 4. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
+                var mimeType = function (suffix) {
+                    var lib = {
+                        png: "image/png",
+                        jpg: "image/jpeg",
+                        gif: "image/gif"
+                    };
+                    return lib[suffix] || 'mimeType[' + suffix + '] not found';
+                };
                 $.each(imgUrls, function (index, url) {
                     GM.xmlHttpRequest({
                         method: 'GET', url: url,
@@ -588,7 +599,7 @@ jQuery(function ($) {
 
         // 画师页面UI
         (function () {
-            if (!(location.href.indexOf('member.php') !== -1)) {
+            if (!isMemberPage) {
                 return;
             }
 
@@ -621,7 +632,7 @@ jQuery(function ($) {
 
         // 作品页面UI
         (function () {
-            if (!(location.href.indexOf('member_illust.php') !== -1)) {
+            if (!isArtworkPage) {
                 return;
             }
 
@@ -629,7 +640,7 @@ jQuery(function ($) {
                 type: 'childList',
                 isValid: function ($parent) {
                     // 1. 判断 画师名称 节点是否加入dom
-                    var $authorName = $parent.find('.'+confused('authorName'));
+                    var $authorName = $parent.find('.' + confused('authorName'));
                     if (!$authorName.length) {
                         return false;
                     }
@@ -643,13 +654,13 @@ jQuery(function ($) {
                 },
                 execute: function ($parent) {
                     console.log("显示画师id和背景图");
-                    var $authorName = $parent.find('.'+confused('authorName'));
-                    var $authorMeta = $authorName.closest('div.'+confused('authorMeta'));
+                    var $authorName = $parent.find('.' + confused('authorName'));
+                    var $authorMeta = $authorName.closest('div.' + confused('authorMeta'));
 
                     // 1. 显示画师背景图
                     var background = globalInitData.preload.user[uid].background;
                     var url = (background && background.url) || '';
-                    var $authorTopRow = $authorName.closest('div.'+confused('authorTopRow'));
+                    var $authorTopRow = $authorName.closest('div.' + confused('authorTopRow'));
                     var $authorSecondRow = $authorTopRow.clone().attr('id', 'ahao-background');
                     $authorSecondRow.children('a').remove();
 
@@ -676,22 +687,22 @@ jQuery(function ($) {
     })();
 
     // 6. 自动加载评论
-     (function () {
-        if (!(location.href.indexOf('member_illust.php') !== -1)) {
+    (function () {
+        if (!isArtworkPage) {
             return;
         }
         executeMutationObserver({
             type: 'childList',
             isValid: function ($parent) {
                 // 1. 判断 查看更多评论 节点是否加入dom
-                var $showMoreButton = $parent.find('.'+confused('showMoreButton'));
+                var $showMoreButton = $parent.find('.' + confused('showMoreButton'));
                 if (!$showMoreButton.length) {
                     return false;
                 }
                 return true;
             },
             execute: function ($parent) {
-                $parent.find('.'+confused('showMoreButton')).click();
+                $parent.find('.' + confused('showMoreButton')).click();
             }
         });
     })();
