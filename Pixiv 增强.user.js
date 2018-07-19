@@ -144,7 +144,7 @@ jQuery(function ($) {
 
     // ============================ url 页面判断 ==============================
     var isArtworkPage = /.+member_illust.php?.*illust_id=\d+.*/.test(location.href);
-    var isMemberPage = /.+member_illust.php?.*id=\d+.*/.test(location.href);
+    var isMemberPage = /.+member.php?.*id=\d+.*/.test(location.href);
 
     // ============================ 反混淆 ====================================
     let confusedLib = {};
