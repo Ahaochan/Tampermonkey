@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.4
+// @version     0.2.5
 // @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -18,7 +18,7 @@
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
 // @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
-// @run-at      document-idle
+// @run-at      document-end
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -147,20 +147,27 @@ jQuery(function ($) {
     var isMemberPage = /.+member_illust.php?.*id=\d+.*/.test(location.href);
 
     // ============================ 反混淆 ====================================
+    let confusedLib = {};
+    setInterval(function () {
+        let webpackJsonp = unsafeWindow.webpackJsonp;
+        let tmp1 = webpackJsonp.map(value => value[1]).filter(value => value && !Array.isArray(value) && typeof value === 'object');
+        console.log(tmp1);
+        $.each(tmp1, function (index, obj) {
+            for(let key in obj){
+                if(!obj.hasOwnProperty(key)) {
+                    continue;
+                }
+                let tmp = {};
+                try { obj[key](tmp); } catch(err) { continue; };
+                if(tmp.hasOwnProperty('exports')) {
+                    confusedLib = $.extend(confusedLib, tmp.exports);
+                    console.log(tmp);
+                }
+            }
+        });
+    }, 1000);
     var confused = function (key) {
-        var lib = {
-            illust: '_2r_DywD',
-            shareButtonContainer: "_3DhL-He",
-            play: "kbpwWEq",
-            mangaViewLink: "_2t-hEST",
-            authorTopRow: "_2kZnEk0",
-            authorMeta: "JdrBYtD",
-            authorName: "_3RqJTSD",
-            showMoreButton: "_3JLvVMw",
-            alertContainer: "_2mfCVqH",
-            blur: "_1sJo02p",
-        };
-        return lib[key] || 'confused[' + key + '] not found';
+        return confusedLib[key] || 'confused[' + key + '] not found';
     };
 
     // ============================ 全局参数 ====================================
