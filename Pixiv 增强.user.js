@@ -161,7 +161,6 @@ jQuery(function ($) {
                 try { obj[key](tmp); } catch(err) { continue; };
                 if(tmp.hasOwnProperty('exports')) {
                     confusedLib = $.extend(confusedLib, tmp.exports);
-                    console.log(tmp);
                 }
             }
         });
