@@ -150,9 +150,8 @@ jQuery(function ($) {
     let confusedLib = {};
     setInterval(function () {
         let webpackJsonp = unsafeWindow.webpackJsonp;
-        let tmp1 = webpackJsonp.map(value => value[1]).filter(value => value && !Array.isArray(value) && typeof value === 'object');
-        console.log(tmp1);
-        $.each(tmp1, function (index, obj) {
+        let filter = webpackJsonp.map(value => value[1]).filter(value => value && !Array.isArray(value) && typeof value === 'object');
+        $.each(filter, (index, obj) => {
             for(let key in obj){
                 if(!obj.hasOwnProperty(key)) {
                     continue;
