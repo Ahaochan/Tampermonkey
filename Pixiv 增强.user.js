@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.6
+// @version     0.2.7
 // @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -169,7 +169,7 @@ jQuery(function ($) {
     };
 
     // ============================ 全局参数 ====================================
-    var pid = (pixiv && pixiv.context.illustId) || (globalInitData && Object.keys(globalInitData.preload.illust)[0]) || 'unknown';
+    var pid = () => new URL(window.location.href).searchParams.get("illust_id");
     var uid = (pixiv && pixiv.context.userId) || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || 'unknown';
 
     // 判断是否登录
@@ -477,7 +477,7 @@ jQuery(function ($) {
                 var url = $img.closest('a').attr('href');
                 if(!url) {
                     // 当 18R 等情况下, 通过a标签获取原图失败, 则从 globalInitData 获取数据
-                    url = globalInitData && globalInitData.preload.illust[pid].urls.original;
+                    url = globalInitData && globalInitData.preload.illust[pid()].urls.original;
                 }
                 $img.attr('src', url).attr('srcset', '');
 
@@ -510,7 +510,7 @@ jQuery(function ($) {
                 console.log(i18n('download_mode_gif'));
 
                 // 2. 初始化 zip url
-                var url = (pixiv && pixiv.context.ugokuIllustData.src) || (globalInitData && globalInitData.preload.illust[pid].urls.original);
+                var url = (pixiv && pixiv.context.ugokuIllustData.src) || (globalInitData && globalInitData.preload.illust[pid()].urls.original);
                 url = url.replace('img-original', 'img-zip-ugoira').replace(/ugoira0\.\w+/, 'ugoira1920x1080.zip');
 
                 // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
@@ -554,17 +554,19 @@ jQuery(function ($) {
                 console.log(i18n('download_mode_more'));
 
                 // 2. 初始化 图片数量, 图片url
-                var zip = new JSZip();
-                var downloaded = 0;                                                         // 下载完成数量
-                var num = (globalInitData && globalInitData.preload.illust[pid].pageCount); // 下载目标数量
-                var url = globalInitData.preload.illust[Object.keys(globalInitData.preload.illust)[0]].urls.original;
-                var imgUrls = Array(num).fill().map(function (value, index) {
-                    return url.replace(/_p\d\./, '_p' + index + '.');
-                });
+                let zip = new JSZip();
+                let downloaded = 0;                                               // 下载完成数量
+                let num = $('.'+confused('pageCountBadge')).text().split('/')[1]; // 下载目标数量
+                let url = Object.values(globalInitData.preload.illust)[0].userIllusts[pid()].url;
+                let imgUrls = Array(parseInt(num)).fill().map((value, index) =>
+                    url.replace('c/240x240/img-master', 'img-original')
+                        .replace(/_p\d_/, '_p' + index + '_')
+                        .replace('_master1200', '')
+                        .replace('.jpg', '.png'));
 
                 // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
-                var $shareButtonContainer = $parent.find('.' + confused('shareButtonContainer'));
-                var $downloadButtonContainer = $shareButtonContainer.clone();
+                let $shareButtonContainer = $parent.find('.' + confused('shareButtonContainer'));
+                let $downloadButtonContainer = $shareButtonContainer.clone();
                 $downloadButtonContainer.attr('id', 'ahao-download-btn')
                     .removeClass(confused('shareButtonContainer'))
                     .css('margin-right', '10px')
@@ -579,19 +581,13 @@ jQuery(function ($) {
                         }
                         // 3.2. 使用jszip.js和FileSaver.js压缩并下载图片
                         zip.generateAsync({type: 'blob', base64: true})
-                            .then(function (content) {
-                                saveAs(content, pid + '.zip');
-                            });
+                            .then(content => saveAs(content, pid() + '.zip'));
                     });
                 $shareButtonContainer.after($downloadButtonContainer);
 
                 // 4. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
-                var mimeType = function (suffix) {
-                    var lib = {
-                        png: "image/png",
-                        jpg: "image/jpeg",
-                        gif: "image/gif"
-                    };
+                let mimeType = suffix => {
+                    let lib = { png: "image/png",  jpg: "image/jpeg",  gif: "image/gif" };
                     return lib[suffix] || 'mimeType[' + suffix + '] not found';
                 };
                 $.each(imgUrls, function (index, url) {
@@ -601,16 +597,16 @@ jQuery(function ($) {
                         overrideMimeType: 'text/plain; charset=x-user-defined',
                         onload: function (xhr) {
                             // 4.1. 转为blob类型
-                            var r = xhr.responseText, data = new Uint8Array(r.length), i = 0;
+                            let r = xhr.responseText, data = new Uint8Array(r.length), i = 0;
                             while (i < r.length) {
                                 data[i] = r.charCodeAt(i);
                                 i++;
                             }
-                            var suffix = url.split('.').splice(-1);
-                            var blob = new Blob([data], {type: mimeType(suffix)});
+                            let suffix = url.split('.').splice(-1);
+                            let blob = new Blob([data], {type: mimeType(suffix)});
 
                             // 4.2. 压缩图片
-                            zip.file(pid + '_' + index + '.' + suffix, blob, {binary: true});
+                            zip.file(pid() + '_' + index + '.' + suffix, blob, {binary: true});
 
                             // 4.3. 手动sync, 避免下载不完全的情况
                             downloaded++;
