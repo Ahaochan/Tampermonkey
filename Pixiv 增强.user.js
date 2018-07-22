@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.7
+// @version     0.2.8
 // @description Block ads. Hide mask layer of popular pictures. Search by favorites. Search pid and uid. Replace with big picture. Download gif, multiple pictures. Display artist id, background pictures. Automatically load comments. Github:https://github.com/Ahaochan/Tampermonkey. Star and fork is welcome.
 // @description:zh-CN 屏蔽广告, 查看热门图片, 按收藏数搜索, 搜索pid和uid, 替换大图, 下载gif、多图, 显示画师id、画师背景图, 自动加载评论。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 屏蔽廣告, 查看熱門圖片, 按收藏數搜索, 搜索pid和uid, 替換大圖, 下載gif、多圖, 顯示畫師id、畫師背景圖, 自動加載評論。github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -152,8 +152,8 @@ jQuery(function ($) {
         let webpackJsonp = unsafeWindow.webpackJsonp;
         let filter = webpackJsonp.map(value => value[1]).filter(value => value && !Array.isArray(value) && typeof value === 'object');
         $.each(filter, (index, obj) => {
-            for(let key in obj){
-                if(!obj.hasOwnProperty(key)) {
+            for (let key in obj) {
+                if (!obj.hasOwnProperty(key)) {
                     continue;
                 }
                 let tmp = {};
@@ -169,8 +169,20 @@ jQuery(function ($) {
     };
 
     // ============================ 全局参数 ====================================
-    var pid = () => new URL(window.location.href).searchParams.get("illust_id");
-    var uid = (pixiv && pixiv.context.userId) || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || 'unknown';
+    let illustJson = {};
+    let illust = function () {
+        // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
+        let preIllustId = $('body').attr('ahao_illust_id');
+        let urlIllustId = new URL(location.href).searchParams.get("illust_id");
+        // 2. 如果illust_id没变, 则不更新json
+        if (parseInt(preIllustId) === parseInt(urlIllustId)) {
+            return illustJson;
+        }
+        // 3. 如果illust_id变化, 则持久化illust_id, 且同步更新json
+        $('body').attr('ahao_illust_id', urlIllustId);
+        $.ajax({url: '/ajax/illust/' + urlIllustId, dataType: 'json', async: false, success: response => illustJson = response.body});
+        return illustJson;
+    };
 
     // 判断是否登录
     if (dataLayer[0].login === 'no') {
@@ -192,7 +204,7 @@ jQuery(function ($) {
             execute: function ($parent) {
                 // 2.1. 隐藏广告
                 (function () {
-                    var adSelector = ['iframe', '._premium-lead-promotion-banner', '.'+confused('alertContainer')];
+                    var adSelector = ['iframe', '._premium-lead-promotion-banner', '.' + confused('alertContainer')];
                     var $ad = $parent.find(adSelector.join(','));
                     if (!$ad.length) {
                         return;
@@ -206,7 +218,7 @@ jQuery(function ($) {
                     if (!$figure.length) {
                         return false;
                     }
-                    var classSelector = ['.'+confused('blur')];
+                    var classSelector = ['.' + confused('blur')];
                     var $class = $parent.find(classSelector.join(','));
                     if (!$class.length) {
                         return;
@@ -474,11 +486,7 @@ jQuery(function ($) {
 
                 // 2. 替换大图
                 var $img = $parent.find('img.' + confused('illust'));
-                var url = $img.closest('a').attr('href');
-                if(!url) {
-                    // 当 18R 等情况下, 通过a标签获取原图失败, 则从 globalInitData 获取数据
-                    url = globalInitData && globalInitData.preload.illust[pid()].urls.original;
-                }
+                let url = illust().urls.original;
                 $img.attr('src', url).attr('srcset', '');
 
             }
@@ -510,8 +518,8 @@ jQuery(function ($) {
                 console.log(i18n('download_mode_gif'));
 
                 // 2. 初始化 zip url
-                var url = (pixiv && pixiv.context.ugokuIllustData.src) || (globalInitData && globalInitData.preload.illust[pid()].urls.original);
-                url = url.replace('img-original', 'img-zip-ugoira').replace(/ugoira0\.\w+/, 'ugoira1920x1080.zip');
+                let url;
+                $.ajax({url: '/ajax/illust/' + illust().illustId +'/ugoira_meta', dataType: 'json', async: false, success: response => url = response.body.originalSrc});
 
                 // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
                 var $shareButtonContainer = $parent.find('.' + confused('shareButtonContainer'));
@@ -555,14 +563,11 @@ jQuery(function ($) {
 
                 // 2. 初始化 图片数量, 图片url
                 let zip = new JSZip();
-                let downloaded = 0;                                               // 下载完成数量
-                let num = $('.'+confused('pageCountBadge')).text().split('/')[1]; // 下载目标数量
-                let url = Object.values(globalInitData.preload.illust)[0].userIllusts[pid()].url;
-                let imgUrls = Array(parseInt(num)).fill().map((value, index) =>
-                    url.replace('c/240x240/img-master', 'img-original')
-                        .replace(/_p\d_/, '_p' + index + '_')
-                        .replace('_master1200', '')
-                        .replace('.jpg', '.png'));
+                let downloaded = 0;           // 下载完成数量
+                let num = illust().pageCount; // 下载目标数量
+                let url = illust().urls.original;
+                let imgUrls = Array(parseInt(num)).fill()
+                    .map((value, index) => url.replace(/_p\d\./, '_p' + index + '.'));
 
                 // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
                 let $shareButtonContainer = $parent.find('.' + confused('shareButtonContainer'));
@@ -581,13 +586,13 @@ jQuery(function ($) {
                         }
                         // 3.2. 使用jszip.js和FileSaver.js压缩并下载图片
                         zip.generateAsync({type: 'blob', base64: true})
-                            .then(content => saveAs(content, pid() + '.zip'));
+                            .then(content => saveAs(content, illust().illustId + '.zip'));
                     });
                 $shareButtonContainer.after($downloadButtonContainer);
 
                 // 4. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
                 let mimeType = suffix => {
-                    let lib = { png: "image/png",  jpg: "image/jpeg",  gif: "image/gif" };
+                    let lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
                     return lib[suffix] || 'mimeType[' + suffix + '] not found';
                 };
                 $.each(imgUrls, function (index, url) {
@@ -606,7 +611,7 @@ jQuery(function ($) {
                             let blob = new Blob([data], {type: mimeType(suffix)});
 
                             // 4.2. 压缩图片
-                            zip.file(pid() + '_' + index + '.' + suffix, blob, {binary: true});
+                            zip.file(illust().illustId + '_' + index + '.' + suffix, blob, {binary: true});
 
                             // 4.3. 手动sync, 避免下载不完全的情况
                             downloaded++;
@@ -642,13 +647,13 @@ jQuery(function ($) {
             $username.after($div);
 
             // 3. 显示画师id, 点击自动复制到剪贴板
-            var $uid = $('<span>UID: ' + uid + '</span>')
+            var $uid = $('<span>UID: ' + illust().userId + '</span>')
                 .on('click', function () {
                     var $this = $(this);
                     $this.text('UID' + i18n('copy_to_clipboard'));
-                    GM.setClipboard(uid);
+                    GM.setClipboard(illust().userId);
                     setTimeout(function () {
-                        $this.text('UID: ' + uid);
+                        $this.text('UID: ' + illust().userId);
                     }, 2000);
                 });
             $username.after($uid);
@@ -682,7 +687,7 @@ jQuery(function ($) {
                     var $authorMeta = $authorName.closest('div.' + confused('authorMeta'));
 
                     // 1. 显示画师背景图
-                    var background = globalInitData.preload.user[uid].background;
+                    var background = globalInitData.preload.user[illust().userId].background;
                     var url = (background && background.url) || '';
                     var $authorTopRow = $authorName.closest('div.' + confused('authorTopRow'));
                     var $authorSecondRow = $authorTopRow.clone().attr('id', 'ahao-background');
@@ -695,13 +700,13 @@ jQuery(function ($) {
 
                     // 2. 显示画师id, 点击自动复制到剪贴板
                     var $uid = $authorMeta.clone();
-                    $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
+                    $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + illust().userId);
                     $uid.on('click', function () {
                         var $this = $(this);
                         $this.find('a').text('UID' + i18n('copy_to_clipboard'));
-                        GM.setClipboard(uid);
+                        GM.setClipboard(illust().userId);
                         setTimeout(function () {
-                            $this.find('a').text('UID: ' + uid);
+                            $this.find('a').text('UID: ' + illust().userId);
                         }, 2000);
                     });
                     $authorMeta.after($uid);
