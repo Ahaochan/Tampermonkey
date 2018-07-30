@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.0
+// @version     0.3.1
 // @description Focus on the immersive experience, 1. Block ads, hide the popular image mask layer of the search page, and directly access the popular images. 2. Search by means of users, and display high-quality works first. 3. Additional search pid and uid functions 4. Single The picture is replaced with the original image format. Append download button, download gif, gif frame compression package, multi-image 5. Display artist id, artist background in the artist page and the work page 6. Automatically load comments 7. On the artist page dynamic The picture in the tag marks the type of work. Github: https://github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 隐藏搜索页的热门图片遮罩层, 直接访问热门图片 2. 使用users入り的方式进行搜索, 优先显示高质量作品 3. 追加搜索pid和uid功能 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图 5. 在画师页面和作品页面显示画师id、画师背景图 6. 自动加载评论 7. 对画师页动态中的图片标记作品类型。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 隱藏搜索頁的熱門圖片遮罩層, 直接訪問熱門圖片2. 使用users入り的方式進行搜索, 優先顯示高質量作品3. 追加搜索pid和uid功能4. 單張圖片替換為原圖格式. 追加下載按鈕, 下載gif圖、gif的幀壓縮包、多圖5. 在畫師頁面和作品頁面顯示畫師id、畫師背景圖6. 自動加載評論7. 對畫師頁動態中的圖片標記作品類型。 github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
@@ -20,6 +20,7 @@
 // @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
 // @require     https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
 // @run-at      document-end
+// @noframes
 // ==/UserScript==
 
 jQuery(function ($) {
@@ -28,8 +29,8 @@ jQuery(function ($) {
 
     // ============================ 全局参数 ====================================
     let lang = document.documentElement.getAttribute('lang') || 'en',
-        globalInitData = unsafeWindow.globalInitData;
-    let illustJson = {};
+        globalInitData = unsafeWindow.globalInitData,
+        illustJson = {};
     let illust = function () {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         let preIllustId = $('body').attr('ahao_illust_id');
@@ -52,11 +53,8 @@ jQuery(function ($) {
         var options = $.extend({
             type: 'childList',
             attributeName: [],
-            isValid: function () {
-                return false;
-            },
-            execute: function (addedNodes) {
-            }
+            isValid: () => false,
+            execute: addedNodes => {}
         }, option);
 
         // 2.1. MutationObserver 处理
@@ -103,7 +101,6 @@ jQuery(function ($) {
     let i18nLib = {
         ja: {
             favorites: 'users入り',
-            loginWarning: 'Pixiv Plus Script Warning! Please login to Pixiv for a better experience! Failure to login may result in unpredictable bugs!'
         },
         en: {
             favorites: 'favorites',
@@ -199,9 +196,7 @@ jQuery(function ($) {
         // 2. 删除动态添加的广告
         executeMutationObserver({
             type: 'childList',
-            isValid: function () {
-                return true;
-            },
+            isValid: () => true,
             execute: function ($parent) {
                 // 2.1. 隐藏广告
                 (function () {
@@ -318,17 +313,11 @@ jQuery(function ($) {
             var $text = $(this).find('input[name="word"]');
             var $favorites = $('#select-ahao-favorites');
             // 3.1. 去除旧的搜索选项
-            $text.val(function (index, val) {
-                return val.replace(/\d*users入り/g, '');
-            });
+            $text.val((index, val) => val.replace(/\d*users入り/g, ''));
             // 3.2. 去除多余空格
-            $text.val(function (index, val) {
-                return val.replace(/\s\s+/g, ' ');
-            });
+            $text.val((index, val) => val.replace(/\s\s+/g, ' '));
             // 3.3. 添加新的搜索选项
-            $text.val(function (index, val) {
-                return val + ' ' + $favorites.val();
-            });
+            $text.val((index, val) => val + ' ' + $favorites.val());
         });
     })();
 
@@ -380,11 +369,7 @@ jQuery(function ($) {
             // 1. UID搜索
             initSearch({right: '235px', placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
             // 2. PID搜索
-            initSearch({
-                right: '345px',
-                placeholder: 'PID',
-                url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
-            });
+            initSearch({right: '345px', placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
         })();
 
         // 2. 初始化作品页面UI
@@ -465,17 +450,18 @@ jQuery(function ($) {
             return;
         }
         // 1. 初始化 下载按钮, 复制分享按钮并旋转180度
-        let initDownloadBtn = function ($parent, text, clickFun) {
-            let $shareButtonContainer = $parent.find('.' + confused('shareButtonContainer'));
+        let initDownloadBtn = function (option) {
+            let options = $.extend({$parent: undefined, id: '', text: '', clickFun: ()=>{}}, option);
+            let $shareButtonContainer = options.$parent.find('.' + confused('shareButtonContainer'));
             let $downloadButtonContainer = $shareButtonContainer.clone();
             $downloadButtonContainer.addClass('ahao-download-btn')
+                .attr('id', options.id)
                 .removeClass(confused('shareButtonContainer'))
                 .css('margin-right', '10px')
                 .css('position', 'relative')
-                .append('<p>'+text+'</p>');
+                .append('<p>'+options.text+'</p>');
             $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
-                .on('click', clickFun);
-                // .wrap('a');
+                .on('click', options.clickFun);
             $shareButtonContainer.after($downloadButtonContainer);
         };
 
@@ -541,8 +527,11 @@ jQuery(function ($) {
                     dataType: 'json', async: false,
                     success: response => {
                         // 2.1. 初始化 zip 下载按钮
-                        initDownloadBtn($parent, 'zip', function () {
-                            window.open(response.body.originalSrc);
+                        initDownloadBtn({
+                            $parent: $parent,
+                            id: 'ahao-download-zip',
+                            text: 'zip',
+                            clickFun: () => window.open(response.body.originalSrc)
                         });
 
                         // 2.2. 初始化 gif 下载按钮
@@ -585,23 +574,29 @@ jQuery(function ($) {
                             });
                         });
                         gif.on('progress', function (pct) {
-                            $('.ahao-download-btn').eq(0).find('p').text('gif '+parseInt(pct*100)+'%');
+                            $('#ahao-download-gif').find('p').text('gif '+parseInt(pct*100)+'%');
                         });
                         gif.on('finished', function(blob) {
                             gifUrl = URL.createObjectURL(blob);
+
+                            let $a = $('<a id="ahao-download-gif" ></a>')
+                                .attr('href', gifUrl)
+                                .attr('download', illust().illustId+'.gif');
+                            $('#ahao-download-gif').find('button').wrap($a);
                         });
 
-                        initDownloadBtn($parent, 'gif 0%', function () {
-                            if(!gifUrl){
-                               alert('Gif未加载完毕, 请稍等片刻!');
-                               return;
+                        initDownloadBtn({
+                            $parent: $parent,
+                            id: 'ahao-download-gif',
+                            text: 'gif 0%',
+                            clickFun: function () {
+                                if (!gifUrl) {
+                                    alert('Gif未加载完毕, 请稍等片刻!');
+                                    return;
+                                }
+                                // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
+                                // window.open(gifUrl);
                             }
-                            // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
-                            // window.open(gifUrl);
-                            $('<a></a>').attr('href', gifUrl)
-                                .attr('download', illust().illustId+'.gif')
-                                [0]
-                                .click();
                         });
                     }
                 });
@@ -644,15 +639,20 @@ jQuery(function ($) {
                     .map((value, index) => url.replace(/_p\d\./, '_p' + index + '.'));
 
                 // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
-                initDownloadBtn($parent, i18n('download') + '0/' + num, function () {
-                    // 3.1. 手动sync, 避免下载不完全
-                    if (downloaded < num) {
-                        alert(i18n('download_wait'));
-                        return;
+                initDownloadBtn({
+                    $parent: $parent,
+                    id: 'ahao-download-gif',
+                    text: i18n('download') + '0/' + num,
+                    clickFun: function () {
+                        // 3.1. 手动sync, 避免下载不完全
+                        if (downloaded < num) {
+                            alert(i18n('download_wait'));
+                            return;
+                        }
+                        // 3.2. 使用jszip.js和FileSaver.js压缩并下载图片
+                        zip.generateAsync({type: 'blob', base64: true})
+                            .then(content => saveAs(content, illust().illustId + '.zip'));
                     }
-                    // 3.2. 使用jszip.js和FileSaver.js压缩并下载图片
-                    zip.generateAsync({type: 'blob', base64: true})
-                        .then(content => saveAs(content, illust().illustId + '.zip'));
                 });
 
                 // 4. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
@@ -742,7 +742,6 @@ jQuery(function ($) {
                 },
                 execute: function ($parent) {
                     console.log("显示画师id和背景图");
-                    console.log($parent);
                     let $authorTopRow = $parent.find('.' + confused('authorTopRow'));
                     let $authorMeta = $authorTopRow.children('div.' + confused('authorMeta'));
 
@@ -837,7 +836,5 @@ jQuery(function ($) {
 
             }
         });
-
     })();
-
 });
