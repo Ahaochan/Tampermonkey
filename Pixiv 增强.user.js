@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.2
+// @version     0.3.3
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Download original image | gif map | gif frame zip | multi-image zip 5. Display artist id , Artist background Figure 6. Automatic loading comments 7. Dynamically mark the work type 8. Remove the redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 下载原图|gif图|gif帧zip|多图zip 5. 显示画师id、画师背景图  6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
@@ -159,7 +159,7 @@ jQuery(function ($) {
     let isMemberIllustPage = /.+\/member_illust\.php\?id=\d+/.test(location.href);
     let isMemberBookmarkPage = /.+\/bookmark\.php\?id=\d+/.test(location.href);
     let isMemberFriendPage = /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
-    let isMemberDynamicPage = /.+\/stacc\/.+/.test(location.href);
+    let isMemberDynamicPage = /.+\/stacc.+/.test(location.href);
     let isMemberPage = isMemberIndexPage || isMemberIllustPage || isMemberBookmarkPage || isMemberFriendPage || isMemberDynamicPage;
 
     // ============================ 反混淆 ====================================
