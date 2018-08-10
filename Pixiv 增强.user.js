@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.5
+// @version     0.3.6
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 显示单图多图的原图, 下载原图|gif图|动图帧zip|多图zip 5. 显示画师id、画师背景图 6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
@@ -716,13 +716,16 @@ jQuery(function ($) {
                 });
             }
         });  // 下载多图zip
-        $('#main').find('.manga img').each(function () {
-            let $this = $(this);
-            let index = $this.attr('data-index');
-            let a = illust();
-            let url = illust().urls.original.replace(/_p\d\./, '_p' + index + '.');
-            $this.attr('src', url).attr('data-src', url).css('width', '').css('height', '');
-        }); // 显示多图原图
+        setTimeout(function () {
+            $('#main').find('.manga img').each(function () {
+                let $this = $(this);
+                let index = $this.attr('data-index');
+                let url = illust().urls.original.replace(/_p\d\./, '_p' + index + '.');
+                $this.attr('src', url).attr('data-src', url)
+                    .css('width', '').css('height', '')
+                    .css('max-width', '').css('max-height', '');
+            });
+        }, 2000); // 显示多图原图
     })();
 
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
