@@ -3,11 +3,11 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.4
+// @version     0.3.5
 // @icon        http://www.pixiv.net/favicon.ico
-// @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Download original image | gif map | gif frame zip | multi-image zip 5. Display artist id , artist background image, user avatar allows right-click to save 6. Automatically load comments 7. Dynamically mark the work type 8. Remove the redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
-// @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 下载原图|gif图|gif帧zip|多图zip 5. 显示画师id、画师背景图, 用户头像允许右键保存  6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
-// @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 直接訪問熱門圖片2. 使用users入り的方式進行搜索3. 搜索pid和uid 4. 下載原圖|gif圖|gif幀zip|多圖zip 5. 顯示畫師id 、畫師背景圖, 用戶頭像允許右鍵保存6. 自動加載評論7. 對動態標記作品類型8. 去除重定向github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
+// @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Download original image | gif map | gif frame zip | multi-image zip 5. Display artist id , Artist background Figure 6. Automatic loading comments 7. Dynamically mark the work type 8. Remove the redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
+// @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 下载原图|gif图|gif帧zip|多图zip 5. 显示画师id、画师背景图  6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 直接訪問熱門圖片2. 使用users入り的方式進行搜索3. 搜索pid和uid 4. 下載原圖|gif圖|gif幀zip|多圖zip 5. 顯示畫師id 、畫師背景圖6. 自動加載評論7. 對動態標記作品類型8. 去除重定向github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
@@ -97,6 +97,12 @@ jQuery(function ($) {
         setTimeout(function () {
             window.clearInterval(intervalId);
         }, 10000);
+    };
+    let isLogin = function () {
+        let status = 0;
+        $.ajax({url: 'https://www.pixiv.net/setting_user.php', async: false})
+            .done((data, statusText, xhr)=>status=xhr.status);
+        return status === 200;
     };
 
     // ============================ i18n 国际化 ===============================
@@ -194,7 +200,7 @@ jQuery(function ($) {
                 if(tmp.hasOwnProperty('exports')) {
                     $.each(tmp.exports, function (k, v) {
                         classLib[k] = classLib[k] || [];
-                        classLib[k].push(v);
+                        try { classLib[k].push(v); } catch(err) { return; }
                         classLib[k] = unique(classLib[k]); // 去重
                     });
                 }
@@ -215,7 +221,7 @@ jQuery(function ($) {
     };
 
     // 判断是否登录
-    if (dataLayer[0].login === 'no') {
+    if (!isLogin()) {
         alert(i18n('loginWarning'));
     }
 
@@ -523,7 +529,7 @@ jQuery(function ($) {
                 $img.attr('src', url).attr('srcset', '');
 
             }
-        });
+        }); // 显示单图原图
         executeMutationObserver({
             type: 'childList',
             isValid: function ($parent) {
@@ -631,7 +637,7 @@ jQuery(function ($) {
 
 
             }
-        });
+        });  // 下载动图帧zip, gif图
         executeMutationObserver({
             type: 'childList',
             isValid: function ($parent) {
@@ -709,7 +715,14 @@ jQuery(function ($) {
                     });
                 });
             }
-        });
+        });  // 下载多图zip
+        $('#main').find('.manga img').each(function () {
+            let $this = $(this);
+            let index = $this.attr('data-index');
+            let a = illust();
+            let url = illust().urls.original.replace(/_p\d\./, '_p' + index + '.');
+            $this.attr('src', url).attr('data-src', url).css('width', '').css('height', '');
+        }); // 显示多图原图
     })();
 
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
