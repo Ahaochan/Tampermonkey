@@ -5,9 +5,9 @@
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.3.5
 // @icon        http://www.pixiv.net/favicon.ico
-// @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Download original image | gif map | gif frame zip | multi-image zip 5. Display artist id , Artist background Figure 6. Automatic loading comments 7. Dynamically mark the work type 8. Remove the redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
-// @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 下载原图|gif图|gif帧zip|多图zip 5. 显示画师id、画师背景图  6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
-// @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 直接訪問熱門圖片2. 使用users入り的方式進行搜索3. 搜索pid和uid 4. 下載原圖|gif圖|gif幀zip|多圖zip 5. 顯示畫師id 、畫師背景圖6. 自動加載評論7. 對動態標記作品類型8. 去除重定向github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
+// @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
+// @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 显示单图多图的原图, 下载原图|gif图|动图帧zip|多图zip 5. 显示画师id、画师背景图 6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 直接訪問熱門圖片 2. 使用users入り的方式進行搜索 3. 搜索pid和uid 4. 顯示單圖多圖的原圖, 下載原圖|gif圖|動圖幀zip|多圖zip 5. 顯示畫師id、畫師背景圖 6. 自動加載評論 7. 對動態標記作品類型 8. 去除重定向 github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
