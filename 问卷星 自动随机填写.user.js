@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name        问卷星 自动随机填写
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.2
+// @version     0.0.3
 // @description 问卷星 自动随机填写, 目前支持单选题, 多选题, 比重题, 有需要自动填写的题型, 请在反馈或issue提出并附带问卷地址。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
-// @include     https://www\.wjx\.cn/[(jq)|(m)]/\d+\.aspx
+// @include     https://www\.wjx\.cn/[(jq)|(m)|(hj)]/\d+\.aspx
 // @match       https://www.wjx.cn/*
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
@@ -14,6 +14,11 @@
     var shuffle = function (array) {
         for (var j, x, i = array.length; i; j = parseInt(Math.random() * i), x = array[--i], array[i] = array[j], array[j] = x) ;
         return array;
+    };
+    let url = {
+        jq: /https:\/\/www\.wjx\.cn\/jq\/\w+\.aspx/.test(location.href),
+        hj: /https:\/\/www\.wjx\.cn\/hj\/\w+\.aspx/.test(location.href),
+        m:  /https:\/\/www\.wjx\.cn\/m\/\w+\.aspx/.test(location.href)
     };
 
     var $fieldset = $('#fieldset1');
@@ -116,7 +121,8 @@
     });
 
     (function () {
-        if (!/https:\/\/www\.wjx\.cn\/jq\/\d+\.aspx/.test(location.href)) {
+        let valid = url.jq || url.hj;
+        if (!valid) {
             return;
         }
         console.log('匹配jq模式问卷');
@@ -144,7 +150,8 @@
     })();
 
     (function () {
-        if (!/https:\/\/www\.wjx\.cn\/m\/\d+\.aspx/.test(location.href)) {
+        let valid = url.m;
+        if (!valid) {
             return;
         }
         console.log('匹配m模式问卷');
@@ -170,6 +177,4 @@
             $button: $('#divSubmit').find('a.button')
         });
     })();
-
-
 })(jQuery);
