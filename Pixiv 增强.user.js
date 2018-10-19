@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.8
+// @version     0.3.9
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.単一の画像の元の画像を表示し、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -468,19 +468,17 @@ jQuery(function ($) {
         }
         // 1. 初始化 下载按钮, 复制分享按钮并旋转180度
         let initDownloadBtn = function (option) {
-            let options = $.extend({$target: undefined, id: '', text: '', clickFun: ()=>{}}, option);
-            let shareButtonContainerClass = '_2Bc_aeW';
-            let $shareButtonContainer = options.$target.find('.'+shareButtonContainerClass);
-            let $downloadButtonContainer = $shareButtonContainer.clone();
+            let options = $.extend({$shareButtonContainer: undefined, id: '', text: '', clickFun: ()=>{}}, option);
+            let $downloadButtonContainer = options.$shareButtonContainer.clone();
             $downloadButtonContainer.addClass('ahao-download-btn')
                 .attr('id', options.id)
-                .removeClass(shareButtonContainerClass)
+                .removeClass(options.$shareButtonContainer.attr('class'))
                 .css('margin-right', '10px')
                 .css('position', 'relative')
                 .append('<p>'+options.text+'</p>');
             $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
                 .on('click', options.clickFun);
-            $shareButtonContainer.after($downloadButtonContainer);
+            options.$shareButtonContainer.after($downloadButtonContainer);
             return $downloadButtonContainer;
         };
         let isMoreMode = () => illust().pageCount > 1,
@@ -528,20 +526,20 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $presentation = $target.find('div[role="presentation"]');
-                if(!isGifMode() || mutation.type !== 'childList' || !$presentation.length || !!$target.find('#ahao-download-zip').length) {
+                let $shareBtn = $target.find('._2Bc_aeW');
+                if(!isGifMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
                     continue
                 }
                 console.log('下载gif图');
 
                 // 3. 初始化 下载按钮
                 let $zipBtn = initDownloadBtn({
-                    $target: $target,
+                    $shareButtonContainer: $shareBtn,
                     id: 'ahao-download-zip',
                     text: 'zip',
                 });
                 let $gifBtn = initDownloadBtn({
-                    $target: $target,
+                    $shareButtonContainer: $shareBtn,
                     id: 'ahao-download-gif',
                     text: 'gif 0%'
                 });
@@ -620,13 +618,8 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $img = $target.find('img[alt="'+illust().illustTitle+'"]');
-                let a = !isMoreMode(), b = mutation.type , c = !$img.length, d = !!$target.find('#ahao-download-zip').length;
-                if(a){
-                    continue;
-                }
-
-                if(!isMoreMode() || mutation.type !== 'childList' || !$img.length || !!$target.find('#ahao-download-zip').length) {
+                let $shareBtn = $target.find('._2Bc_aeW');
+                if(!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
                     continue
                 }
                 console.log('下载多图');
@@ -641,7 +634,7 @@ jQuery(function ($) {
 
                 // 4. 初始化 下载按钮, 复制分享按钮并旋转180度
                 let $zipBtn = initDownloadBtn({
-                    $target: $target,
+                    $shareButtonContainer: $shareBtn,
                     id: 'ahao-download-zip',
                     text: i18n('download') + '0/' + num,
                     clickFun: function () {
