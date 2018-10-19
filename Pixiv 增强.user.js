@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.3.9
+// @version     0.4.0
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.単一の画像の元の画像を表示し、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -552,11 +552,12 @@ jQuery(function ($) {
 
                         // 2.2. 初始化 gif 下载按钮 点击事件
                         // GIF_worker_URL 来自 https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
-                        let gifUrl;
-                        let gif = new GIF({workers: 2, quality: 10, workerScript: GIF_worker_URL});
-                        let gifFrames = [];
-                        $.each(response.body.frames, function (index, frame) {
-                            let url = illust().urls.original.replace('ugoira0.', 'ugoira'+index+'.');
+                        let gifUrl, gifFrames = [],
+                            gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
+
+                        for(let frameIdx = 0, frames = response.body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++){
+                            let frame = frames[i],
+                                url = illust().urls.original.replace('ugoira0.', 'ugoira'+frameIdx+'.');
                             GM.xmlHttpRequest({
                                 method: 'GET', url: url,
                                 headers: {referer: 'https://www.pixiv.net/'},
@@ -576,23 +577,20 @@ jQuery(function ($) {
                                     img.src = URL.createObjectURL(blob);
                                     img.width = illust().width;
                                     img.height = illust().height;
-                                    gifFrames[index] = {frame: img, option: {delay: frame.delay}};
-
-                                    let loadFramesLength = Object.keys(gifFrames).length;
-                                    // 2.2.3. 若xhr执行完毕, 则加载gif
-                                    if(loadFramesLength >= response.body.frames.length){
-                                        $.each(gifFrames, function (index, frame) {
-                                            gif.addFrame(frame.frame, frame.option);
-                                        });
-                                        gif.render();
-                                    }
+                                    img.onload = function(){
+                                        gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
+                                        if (Object.keys(gifFrames).length >= framesLen) {
+                                            $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
+                                            gifFactory.render();
+                                        }
+                                    };
                                 }
                             });
-                        });
-                        gif.on('progress', function (pct) {
+                        }
+                        gifFactory.on('progress', function (pct) {
                             $gifBtn.find('p').text('gif '+parseInt(pct*100)+'%');
                         });
-                        gif.on('finished', function(blob) {
+                        gifFactory.on('finished', function(blob) {
                             gifUrl = URL.createObjectURL(blob);
 
                             let $a = $('<a></a>')
