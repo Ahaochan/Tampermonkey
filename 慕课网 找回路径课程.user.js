@@ -1,23 +1,23 @@
 ﻿// ==UserScript==
 // @name        慕课网 找回路径课程
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.2.0
-// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入http://class.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @version     0.2.1
+// @description 将慕课网消失的路径课程显示出来，数据来源：慕课网App4.2.3。使用方法：点击首页上方职业路径，或者输入https://coding.imooc.com。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @include     http*://*.imooc.com*
-// @match       http://www.imooc.com/*
+// @match       https://coding.imooc.com/*
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
 (function ($) {
     'use strict';
     // 1. 链接判断是否为职业路径
-    if (location.href.indexOf('class.imooc.com') === -1) {
+    if (location.href.indexOf('coding.imooc.com') === -1) {
         return;
     }
 
     // 2. 静态写死课程信息
-    var courseTitles = ["",
+    let courseTitles = ["",
         /*  1: */"",
         /*  2: */"",
         /*  3: */"Web前端工程师成长第一阶段(基础篇)",
@@ -78,7 +78,7 @@
         /* 58: */"安卓特效合集豪华套餐",
         /* 59: */"搞定Java SSM框架开发",
         /* 60: */"SSH框架探幽"];
-    var course = {
+    let course = {
         "route": {"name": "路线", "id": [45, 34, 33, 32, 31]},
         "all": {
             "name": "全部",
@@ -91,81 +91,88 @@
     };
 
     // 3. 获取已有课程的图片, 用于随机赋予消失的课程路径
-    var imgs = [];
+    let imgs = [];
     $('.img-box').each(function () {
-        var $this = $(this);
-        var img = {};
-        img['img-up'] = $this.find('.img-up:first').css('background-image').slice(5, -2);
-        img['img-mid'] = $this.find('.img-mid:first').css('background-image').slice(5, -2);
-        img['img-down'] = $this.find('.img-down:first').css('background-image').slice(5, -2);
+        let $this = $(this), $img = $this.find('img:first'), img = $img.attr('src');
         imgs.push(img);
     });
-    $('.plan-item-banner').each(function () {
-        var $this = $(this);
-        var img = {};
-        // background-image: url(//img1.sycdn.imooc.com/climg/5acd69bb000103d706000338.jpg);
-        // background: url(//img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg) no-repeat center center;
-        img['img-up'] = $this.css('background-image').slice(5, -2);
-        img['img-mid'] = $this.css('background-image').slice(5, -2);
-        img['img-down'] = $this.css('background-image').slice(5, -2);
-        imgs.push(img);
-    });
+    // $('.plan-item-banner').each(function () {
+    //     var $this = $(this);
+    //     var img = {};
+    //     // background-image: url(//img1.sycdn.imooc.com/climg/5acd69bb000103d706000338.jpg);
+    //     // background: url(//img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg) no-repeat center center;
+    //     img['img-up'] = $this.css('background-image').slice(5, -2);
+    //     img['img-mid'] = $this.css('background-image').slice(5, -2);
+    //     img['img-down'] = $this.css('background-image').slice(5, -2);
+    //     imgs.push(img);
+    // });
 
     // 4. 初始化导航栏
-    var $bannerOld = $('.program-banner:first'), $bannerNew = $bannerOld.clone();
-    $('.body-main').prepend($bannerNew); // 复制一份导航栏
-    var $nav_a = $bannerNew.find('.tab-nav a');
-    $nav_a.each(function (i) { // 更改标题名
-        var $this = $(this);
-        var key = Object.keys(course)[i];   // 获取course的第i个属性名
-        $this.text(course[key].name);       // 设置标题
-        $this.attr('ahao-type', key);       // 设置type, 用于在点击事件获取课程id
+    let $navOld = $('.shizhan-header-nav:first'), $navNew = $navOld.clone();
+    $navOld.before($navNew);            // 复制一份导航栏
+    $navNew.find('.clearfix').empty();  // 清空 a 标签
+    $.each(course, function (key, val) {
+        let $nav_a = $('<a href="javascript:void(0);" ahao-type="' + key + '">' + val.name + '</a>');
+        $navNew.find('.clearfix').append($nav_a);
     });
+    $navNew.find('a:first').addClass('cur'); // 第一个标签高亮
 
-    $bannerOld.css('height', '50px')                // 设置原来导航栏的高度
-        .children(':not(.tab-nav-wrap)').remove();  // 删除原来导航栏的其他图片标签
+    // $bannerOld.css('height', '50px')                // 设置原来导航栏的高度
+    //     .children(':not(.tab-nav-wrap)').remove();  // 删除原来导航栏的其他图片标签
 
     // 5. 创建存储路径课程的内容div
-    var $boxWrap = $('<div class="plan-list-wrap no-toppadding"><div class="plan-list-box clearfix"></div></div>'); // 装载课程的div, 从原有的课程div复制html代码
-    var $box = $boxWrap.find('.plan-list-box');
-    $bannerNew.after($boxWrap); // 添加到clone的导航栏后面
+    let $box = $('<div class="w index-main">' +
+        '   <div class="screening-box clearfix"></div>' +
+        '   <div class="index-list-wrap">' +
+        '       <div class="shizhan-course-list clearfix">' +
+        '</div></div>'); // 装载课程的div, 从原有的课程div复制html代码
+    let $courseList = $box.find('.shizhan-course-list');
+    $navNew.after($box);
 
 
     // 6. 设置导航中的点击事件
-    $nav_a
-        .removeAttr('href')         // 移除跳转链接
+    $navNew.find('a')
         .off('click')               // 移除jquery绑定的点击事件
         .on('click', function () {
-            var $this = $(this);
+            let $this = $(this);
             // 6.1. 清空div中的内容, 用于重新加入div
-            $box.empty();
+            $courseList.empty();
 
             // 6.2. 设置高亮选中样式
-            $nav_a.attr('class', 'moco-change-big-btn');
-            $this.attr('class', 'moco-change-big-btn active');
+            $this.siblings().removeClass('cur');
+            $this.addClass('cur');
 
             // 6.3. 加入item
-            var type = $this.attr('ahao-type');     // 获取之前设置的type
-            for (var i in course[type].id) {        // 遍历course中的id数组
-                var pid = course[type].id[i];
-                var img = imgs[parseInt(Math.random() * imgs.length)] || {
-                    'img-up'    : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg',
-                    'img-mid'   : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg',
-                    'img-down'  : 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg'
-                }; // 随机获取一个图片, 如果获取不到图片就使用默认图片
+            let type = $this.attr('ahao-type');     // 获取之前设置的type
+            for (let idx in course[type].id) {        // 遍历course中的id数组
+                if (!course[type].id.hasOwnProperty(idx)) {
+                    continue;
+                }
+                let pid = course[type].id[idx];
+                // 随机获取一个图片, 如果获取不到图片就使用默认图片
+                let img = imgs[parseInt(Math.random() * imgs.length)] || 'http://img1.sycdn.imooc.com/climg/59030cc50001144806000338.jpg';
+                let title = courseTitles[pid];
+
                 // 创建item, 复制自原有课程的div的a标签
-                var $item = $(
-                    '<a class="plan-item l" href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
-                    '   <div class="img-box">' +
-                    '       <div class="img-up"   style="background-image: url(' + img["img-up"] + ');"></div>' +
-                    '       <div class="img-mid"  style="background-image: url(' + img["img-mid"] + ');"></div>' +
-                    '       <div class="img-down" style="background-image: url(' + img["img-down"] + ');"></div>' +
-                    '   </div>' +
-                    '   <div class="plan-item-desc-box">' +
-                    '       <p class="plan-item-name">' + courseTitles[pid] + '</p>' +
-                    '   </div>' +
-                    '</a>');
-                $box.append($item);
+                let $item = $('<div class="shizhan-course-wrap l" style="height: 200px;">' +
+                    '                <a href="http://www.imooc.com/course/programdetail/pid/' + pid + '" target="_blank">' +
+                    '                    <div class="shizhan-course-box">' +
+                    '                        <div class="box">' +
+                    '                            <div class="img-box">' +
+                    '                                <div class="shizhan-course-gradient"></div>' +
+                    '                                <img class="shizhan-course-img" alt="' + title + '" src="' + img + '">' +
+                    '                            </div>' +
+                    '                            <div class="shizhan-intro-box" style="min-height: auto">' +
+                    '                                <p class="shizan-name" title="' + title + '">' + title + '</p>' +
+                    '                            </div>' +
+                    '                        </div>' +
+                    '                    </div>' +
+                    '                </a>' +
+                    '            </div>');
+                if ((1 + parseInt(idx)) % 4 === 0) {
+                    $item.addClass('nomr');
+                }
+                $courseList.append($item);
             }
         })
         // 初始化, 默认选择第一个
