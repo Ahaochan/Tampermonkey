@@ -500,14 +500,15 @@ jQuery(function ($) {
                             $target.fitWindow();
                         }
                     };
-                    // 1. 只修改属性的情况
+                    // 1. 只修改属性的情况(多图详情页)
                     if (mutation.type === 'attributes') {
                         replaceImg($target, mutation.attributeName, url);
                     }
 
-                    // 2. 插入节点的情况
+                    // 2. 插入节点的情况(作品首页单图)
                     if (mutation.type === 'childList') {
-                        let $link = $target.find('a[href*="i.pximg.net"],img[src*="i.pximg.net"],img[srcset*="i.pximg.net"]');
+                        // let $link = $target.find('a[href*="i.pximg.net"],img[src*="i.pximg.net"],img[srcset*="i.pximg.net"]');
+                        let $link = $target.find('img[srcset]');
                         $link.each(function () {
                             let $item = $(this);
                             replaceImg($item, 'href', url);
@@ -517,7 +518,7 @@ jQuery(function ($) {
                     }
 
                     // 3. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
-                    $('.e2p8rxc2').hide();
+                    // $('.e2p8rxc2').hide(); // 懒得适配了, 自行去个人资料设置 https://www.pixiv.net/setting_user.php
                 }
             },
             option: {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'srcset', 'href']}
