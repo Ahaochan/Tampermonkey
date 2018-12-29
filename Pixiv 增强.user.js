@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.3
+// @version     0.4.4
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.単一の画像の元の画像を表示し、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -178,15 +178,15 @@ jQuery(function ($) {
     let i18n = key => i18nLib[lang][key] || 'i18n[' + lang + '][' + key + '] not found';
 
     // ============================ url 页面判断 ==============================
-    let isArtworkPage = /.+member_illust\.php\?.*illust_id=\d+.*/.test(location.href);
+    let isArtworkPage = () => /.+member_illust\.php\?.*illust_id=\d+.*/.test(location.href);
 
-    let isMemberIndexPage = /.+member.php.*id=\d+.*/.test(location.href);
-    let isMemberIllustPage = /.+\/member_illust\.php\?id=\d+/.test(location.href);
-    let isMemberBookmarkPage = /.+\/bookmark\.php\?id=\d+/.test(location.href);
-    let isMemberFriendPage = /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
-    let isMemberDynamicPage = /.+\/stacc.+/.test(location.href);
-    let isMemberPage = isMemberIndexPage || isMemberIllustPage || isMemberBookmarkPage || isMemberFriendPage || isMemberDynamicPage,
-        isSearchPage = /.+\/search\.php.*/.test(location.href);
+    let isMemberIndexPage = () => /.+member.php.*id=\d+.*/.test(location.href);
+    let isMemberIllustPage = () => /.+\/member_illust\.php\?id=\d+/.test(location.href);
+    let isMemberBookmarkPage = () => /.+\/bookmark\.php\?id=\d+/.test(location.href);
+    let isMemberFriendPage = () => /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
+    let isMemberDynamicPage = () => /.+\/stacc.+/.test(location.href);
+    let isMemberPage =  () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage || isMemberDynamicPage(),
+        isSearchPage = () => /.+\/search\.php.*/.test(location.href);
 
     // ============================ 反混淆 ====================================
     let unique = function(array) {
@@ -285,7 +285,7 @@ jQuery(function ($) {
 
         // 1. 初始化通用页面UI
         (function () {
-            if (isArtworkPage) {
+            if (isArtworkPage()) {
                 return;
             }
             console.log("初始化通用页面 按收藏数搜索");
@@ -304,7 +304,7 @@ jQuery(function ($) {
 
         // 2. 初始化作品页面UI
         (function () {
-            if (!isArtworkPage) {
+            if (!isArtworkPage()) {
                 return;
             }
             console.log("初始化作品页面 按收藏数搜索");
@@ -357,7 +357,7 @@ jQuery(function ($) {
 
     // 3. 追加搜索pid和uid功能
     (function () {
-        if (isArtworkPage) {
+        if (isArtworkPage()) {
             return;
         }
         console.log("初始化通用页面 搜索UID和PID");
@@ -402,7 +402,7 @@ jQuery(function ($) {
         initSearch({right: '345px', placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
     })(); // 初始化通用页面UI
     (function () {
-        if (!isArtworkPage && !isMemberPage) {
+        if (!isArtworkPage() && !isMemberPage()) {
             return;
         }
         console.log("初始化作品页面 搜索UID和PID");
@@ -463,7 +463,7 @@ jQuery(function ($) {
 
     // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
     (function () {
-        if (!isArtworkPage) {
+        if (!isArtworkPage()) {
             return;
         }
         // 1. 初始化 下载按钮, 复制分享按钮并旋转180度
@@ -681,17 +681,17 @@ jQuery(function ($) {
 
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
     (function () {
-        if (!isMemberPage) {
-            return;
-        }
         // 显示画师id、画师背景图
         observerFactory(function (mutations, observer) {
+            if (!isMemberIndexPage()) {
+                return;
+            }
             for(let i = 0, len = mutations.length; i < len; i++){
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[section]节点
                 let $target = $(mutation.target);
                 let $username = $target.find('._2VLnXNk');
-                if (mutation.type !== 'childList' || !$username.length) {
+                if (mutation.type !== 'childList' || !$username.length || !!$target.find('#uid').length) {
                     continue;
                 }
                 // 1. 获取用户名的元素
@@ -721,18 +721,17 @@ jQuery(function ($) {
                     $div.append('<span>' + i18n('background_not_found') + '</span>');
                 }
                 $mark.append($div);
-
-                observer.disconnect();
-                break;
             }
         });
     })(); // 画师页面UI
     (function () {
-        if (!isArtworkPage) {
-            return;
-        }
+
         // 显示画师id、画师背景图
         observerFactory(function (mutations, observer) {
+            if (!isArtworkPage()) {
+                return;
+            }
+
             for(let i = 0, len = mutations.length; i < len; i++){
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[section]节点
@@ -741,7 +740,7 @@ jQuery(function ($) {
                     continue;
                 }
                 let $section = $(mutation.target).find('section');
-                if (mutation.type !== 'childList' || !$section.length) {
+                if (mutation.type !== 'childList' || !$section.length || !!$section.find('#ahao-background').length) {
                     continue;
                 }
                 let $userIcon = $section.find('._2lyPnMP');
@@ -770,9 +769,6 @@ jQuery(function ($) {
                     }, 2000);
                 });
                 $bgDiv.after($uid);
-
-                observer.disconnect();
-                break;
             }
         });
     })(); // 作品页面UI
@@ -840,7 +836,7 @@ jQuery(function ($) {
 
     // 6. 自动加载评论
     (function () {
-        if (!isArtworkPage) {
+        if (!isArtworkPage()) {
             return;
         }
         let moreCommentSelector = '._3JLvVMw';
@@ -860,7 +856,7 @@ jQuery(function ($) {
 
     // 7. 对主页动态中的图片标记作品类型
     (function () {
-        if(!isMemberDynamicPage) {
+        if(!isMemberDynamicPage()) {
             return;
         }
 
@@ -924,7 +920,7 @@ jQuery(function ($) {
 
     // 9. 单页排序
     (function () {
-        if (!isSearchPage) {
+        if (!isSearchPage()) {
             return;
         }
         observerFactory({
