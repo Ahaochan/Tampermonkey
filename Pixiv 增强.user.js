@@ -745,8 +745,7 @@ jQuery(function ($) {
                     continue;
                 }
                 let $userIcon = $section.find('._2lyPnMP');
-                let $row = $userIcon.closest('div');
-                let $firstDiv = $row.find('div:first');
+                let $row = $userIcon.parent().closest('div');
 
                 // 2. 显示画师背景图
                 let background = globalInitData.preload.user[uid].background;
@@ -759,7 +758,8 @@ jQuery(function ($) {
                 $row.after($bgDiv);
 
                 // 3. 显示画师id, 点击自动复制到剪贴板
-                let $uid = $firstDiv.clone();
+                let $uid = $row.clone();
+                $uid.children('a').remove();
                 $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
                 $uid.on('click', function () {
                     let $this = $(this);
@@ -769,7 +769,7 @@ jQuery(function ($) {
                         $this.find('a').text('UID: ' + uid);
                     }, 2000);
                 });
-                $row.append($uid);
+                $bgDiv.after($uid);
 
                 observer.disconnect();
                 break;
