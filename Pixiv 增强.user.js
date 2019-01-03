@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.4
+// @version     0.4.5
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image of single image, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.単一の画像の元の画像を表示し、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -91,7 +91,6 @@ jQuery(function ($) {
         }
         return illustJson;
     };
-    console.log(illust());
     let uid = illust().userId || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || (pixiv && pixiv.context.userId) || 'unknown';
     let mimeType = suffix => {
         let lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
@@ -466,8 +465,9 @@ jQuery(function ($) {
         if (!isArtworkPage()) {
             return;
         }
-        // 1. 初始化 下载按钮, 复制分享按钮并旋转180度
+        // 1. 初始化方法
         let initDownloadBtn = function (option) {
+            // 下载按钮, 复制分享按钮并旋转180度
             let options = $.extend({$shareButtonContainer: undefined, id: '', text: '', clickFun: ()=>{}}, option);
             let $downloadButtonContainer = options.$shareButtonContainer.clone();
             $downloadButtonContainer.addClass('ahao-download-btn')
@@ -482,6 +482,40 @@ jQuery(function ($) {
                 .on('click', options.clickFun);
             options.$shareButtonContainer.after($downloadButtonContainer);
             return $downloadButtonContainer;
+        };
+        let addImgSize = function (option) {
+            // 从 $img 获取图片大小, after 到 $img
+            let options = $.extend({
+                $img: undefined,
+                position: 'absolute',
+            }, option);
+            let $img = options.$img, position = options.position;
+            if($img.length !== 1) {
+                return;
+            }
+            // 1. 找到 显示图片大小 的 span, 没有则添加
+            let $span = $img.next('span');
+            if($span.length <= 0) {
+                // 添加前 去除失去依赖的 span
+                $('body').find('.ahao-img-size').each(function () {
+                    let $this = $(this), $prev = $this.prev('canvas, img');
+                    if($prev.length<= 0) {
+                        $this.remove();
+                    }
+                });
+                $img.after('<span class="ahao-img-size" style="position: ' + position + '; right: 0; top: 28px;' +
+                    '    color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>');
+            }
+            // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
+            if($img.prop('tagName') === 'IMG') {
+                let img = new Image();
+                img.src = $img.attr('src');
+                img.onload = function () { $span.text(this.width + 'x' + this.height); };
+            } else {
+                let width  = $img.attr('width')  || $img.css('width').replace('px', '')  || $img.css('max-width').replace('px', '')  || 0;
+                let height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
+                $span.text(width + 'x' + height);
+            }
         };
         let isMoreMode = () => illust().pageCount > 1,
             isGifMode  = () => illust().illustType === 2,
@@ -503,6 +537,7 @@ jQuery(function ($) {
                     // 1. 只修改属性的情况(多图详情页)
                     if (mutation.type === 'attributes') {
                         replaceImg($target, mutation.attributeName, url);
+                        addImgSize({$img: $target, position: 'relative'}); // 显示图片大小
                     }
 
                     // 2. 插入节点的情况(作品首页单图)
@@ -510,11 +545,13 @@ jQuery(function ($) {
                         // let $link = $target.find('a[href*="i.pximg.net"],img[src*="i.pximg.net"],img[srcset*="i.pximg.net"]');
                         let $link = $target.find('img[srcset]');
                         $link.each(function () {
-                            let $item = $(this);
-                            replaceImg($item, 'href', url);
-                            replaceImg($item, 'src', url);
-                            replaceImg($item, 'srcset', url);
+                            let $this = $(this);
+                            replaceImg($this, 'href', url);
+                            replaceImg($this, 'src', url);
+                            replaceImg($this, 'srcset', url);
+                            addImgSize({$img: $this}); // 显示图片大小
                         });
+
                     }
 
                     // 3. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
@@ -529,8 +566,12 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('._2Bc_aeW');
-                if(!isGifMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
+                let $shareBtn = $target.find('._2Bc_aeW'), $canvas = $target.find('canvas');
+                addImgSize({$img: $canvas}); // 显示图片大小
+
+                if(!isGifMode() || mutation.type !== 'childList' ||
+                    $shareBtn.length <= 0 ||
+                    $target.find('#ahao-download-zip').length > 0) {
                     continue
                 }
                 console.log('下载gif图');
