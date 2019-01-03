@@ -721,98 +721,90 @@ jQuery(function ($) {
     })();
 
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
-    (function () {
-        // 显示画师id、画师背景图
-        observerFactory(function (mutations, observer) {
-            if (!isMemberIndexPage()) {
-                return;
+    observerFactory(function (mutations, observer) {
+        if (!isMemberIndexPage()) {
+            return;
+        }
+        for(let i = 0, len = mutations.length; i < len; i++){
+            let mutation = mutations[i];
+            // 1. 判断是否改变节点, 或者是否有[section]节点
+            let $target = $(mutation.target);
+            let $username = $target.find('._2VLnXNk');
+            if (mutation.type !== 'childList' || !$username.length || !!$target.find('#uid').length) {
+                continue;
             }
-            for(let i = 0, len = mutations.length; i < len; i++){
-                let mutation = mutations[i];
-                // 1. 判断是否改变节点, 或者是否有[section]节点
-                let $target = $(mutation.target);
-                let $username = $target.find('._2VLnXNk');
-                if (mutation.type !== 'childList' || !$username.length || !!$target.find('#uid').length) {
-                    continue;
-                }
-                // 1. 获取用户名的元素
-                let $banner   = $target.find('.ezjht4u0');
-                let $mark     = $target.find('.cXGkZvO').closest('div');
+            // 1. 获取用户名的元素
+            let $mark = $target.find('.cXGkZvO').closest('div');
 
-                // 2. 显示画师id, 点击自动复制到剪贴板
-                let $uid = $('<div class="'+$username.attr('class')+'" id="uid"> <span>UID: ' + uid + '</span></div>')
-                    .on('click', function () {
-                        let $this = $(this);
-                        $this.text('UID' + i18n('copy_to_clipboard'));
-                        GM.setClipboard(uid);
-                        setTimeout(function () {
-                            $this.text('UID: ' + uid);
-                        }, 2000);
-                    });
-                $mark.append($uid);
-
-                // 3. 显示画师背景图
-                let backgroundImage = $banner.css('background-image') || '';
-                let url = backgroundImage.replace('url(', '').replace(')', '').replace(/"/gi, "");
-                let $div = $('<div class="'+$username.attr('class')+'"></div>');
-                if (!!url && url !== 'none') {
-                    $div.append('<img src="' + url + '" width="30px">' +
-                        '<a target="_blank" href="' + url + ' ">' + i18n('background') + '</a>');
-                } else {
-                    $div.append('<span>' + i18n('background_not_found') + '</span>');
-                }
-                $mark.append($div);
-            }
-        });
-    })(); // 画师页面UI
-    (function () {
-
-        // 显示画师id、画师背景图
-        observerFactory(function (mutations, observer) {
-            if (!isArtworkPage()) {
-                return;
-            }
-
-            for(let i = 0, len = mutations.length; i < len; i++){
-                let mutation = mutations[i];
-                // 1. 判断是否改变节点, 或者是否有[section]节点
-                let $aside = $(mutation.target).parent().find('._2e0p8Qb');
-                if(!$aside.length || mutation.target.tagName.toLowerCase() !== 'aside'){
-                    continue;
-                }
-                let $section = $(mutation.target).find('section');
-                if (mutation.type !== 'childList' || !$section.length || !!$section.find('#ahao-background').length) {
-                    continue;
-                }
-                let $userIcon = $section.find('._2lyPnMP');
-                let $row = $userIcon.parent().closest('div');
-
-                // 2. 显示画师背景图
-                let background = globalInitData.preload.user[uid].background;
-                let url = (background && background.url) || '';
-                let $bgDiv = $row.clone().attr('id', 'ahao-background');
-                $bgDiv.children('a').remove();
-                $bgDiv.prepend('<img src="' + url + '" width="10%"/>');
-                $bgDiv.find('div a').attr('href', !!url ? url : 'javascript:void(0)').attr('target', '_blank')
-                    .text(!!url ? i18n('background') : i18n('background_not_found'));
-                $row.after($bgDiv);
-
-                // 3. 显示画师id, 点击自动复制到剪贴板
-                let $uid = $row.clone();
-                $uid.children('a').remove();
-                $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
-                $uid.on('click', function () {
+            // 2. 显示画师id, 点击自动复制到剪贴板
+            let $uid = $('<div class="'+$username.attr('class')+'" id="uid"> <span>UID: ' + uid + '</span></div>')
+                .on('click', function () {
                     let $this = $(this);
-                    $this.find('a').text('UID' + i18n('copy_to_clipboard'));
+                    $this.text('UID' + i18n('copy_to_clipboard'));
                     GM.setClipboard(uid);
                     setTimeout(function () {
-                        $this.find('a').text('UID: ' + uid);
+                        $this.text('UID: ' + uid);
                     }, 2000);
                 });
-                $bgDiv.after($uid);
+            $mark.append($uid);
+
+            // 3. 显示画师背景图
+            let background = globalInitData.preload.user[uid].background;
+            let url = (background && background.url) || '';
+            let $div = $('<div class="'+$username.attr('class')+'"></div>');
+            if (!!url && url !== 'none') {
+                $div.append('<img src="' + url + '" width="30px">' +
+                    '<a target="_blank" href="' + url + ' ">' + i18n('background') + '</a>');
+            } else {
+                $div.append('<span>' + i18n('background_not_found') + '</span>');
             }
-        });
-    })(); // 作品页面UI
+            $mark.append($div);
+        }
+    }); // 画师页面UI
+    observerFactory(function (mutations, observer) {
+        if (!isArtworkPage()) {
+            return;
+        }
+
+        for(let i = 0, len = mutations.length; i < len; i++){
+            let mutation = mutations[i];
+            // 1. 判断是否改变节点, 或者是否有[section]节点
+            let $aside = $(mutation.target).parent().find('._2e0p8Qb');
+            if($aside.length <= 0){
+                continue;
+            }
+            let $section = $aside.find('section');
+            if (mutation.type !== 'childList' || $section.length <= 0 || $section.find('#ahao-background').length > 0) {
+                continue;
+            }
+            let $userIcon = $section.find('._2lyPnMP');
+            let $row = $userIcon.parent().closest('div');
+
+            // 2. 显示画师背景图
+            let background = globalInitData.preload.user[uid].background;
+            let url = (background && background.url) || '';
+            let $bgDiv = $row.clone().attr('id', 'ahao-background');
+            $bgDiv.children('a').remove();
+            $bgDiv.prepend('<img src="' + url + '" width="10%"/>');
+            $bgDiv.find('div a').attr('href', !!url ? url : 'javascript:void(0)').attr('target', '_blank')
+                .text(!!url ? i18n('background') : i18n('background_not_found'));
+            $row.after($bgDiv);
+
+            // 3. 显示画师id, 点击自动复制到剪贴板
+            let $uid = $row.clone();
+            $uid.children('a').remove();
+            $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
+            $uid.on('click', function () {
+                let $this = $(this);
+                $this.find('a').text('UID' + i18n('copy_to_clipboard'));
+                GM.setClipboard(uid);
+                setTimeout(function () {
+                    $this.find('a').text('UID: ' + uid);
+                }, 2000);
+            });
+            $bgDiv.after($uid);
+        }
+    }); // 作品页面UI
     // 解除 用户头像 的background 限制, 方便保存用户头像
     observerFactory(function (mutations, observer) {
         for(let i = 0, len = mutations.length; i < len; i++){
