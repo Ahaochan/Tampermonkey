@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.5
+// @version     0.4.6
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -770,15 +770,15 @@ jQuery(function ($) {
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
             let $aside = $(mutation.target).parent().find('._2e0p8Qb');
-            if($aside.length <= 0){
+            if(mutation.type !== 'childList' || $aside.length <= 0){
                 continue;
             }
             let $section = $aside.find('section');
-            if (mutation.type !== 'childList' || $section.length <= 0 || $section.find('#ahao-background').length > 0) {
+            if ($section.length <= 0 || $section.find('#ahao-background').length > 0) {
                 continue;
             }
             let $userIcon = $section.find('._2lyPnMP');
-            let $row = $userIcon.parent().closest('div');
+            let $row = $userIcon.parent().parent();
 
             // 2. 显示画师背景图
             let background = globalInitData.preload.user[uid].background;
