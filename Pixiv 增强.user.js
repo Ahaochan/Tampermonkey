@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.6
+// @version     0.4.7
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -18,6 +18,8 @@
 // @grant       unsafeWindow
 // @grant       GM.xmlHttpRequest
 // @grant       GM.setClipboard
+// @grant       GM.setValue
+// @grant       GM.getValue
 // @grant       GM_addStyle
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
@@ -56,16 +58,13 @@ jQuery(function ($) {
         getBackgroundUrl: function () {
             let imgUrls = [];
             this.each(function (index, ele) {
-                let bgUrl = ele.style.backgroundImage || 'url("")';
+                let bgUrl = $(this).css('background-image') || ele.style.backgroundImage || 'url("")';
                 bgUrl = bgUrl.match(/url\((['"])(.*?)\1\)/)[2];
                 imgUrls.push(bgUrl);
             });
             return imgUrls.length === 1 ? imgUrls[0] : imgUrls;
         }
     });
-
-    // ============================ 全局CSS ===================================
-    GM_addStyle('._2lyPnMP._1dTH3iR:before { display: none }'); // 解决用户头像hack后的before内容填充整个页面的问题
 
     // ============================ 全局参数 ====================================
     let lang = document.documentElement.getAttribute('lang') || 'en',
@@ -199,10 +198,15 @@ jQuery(function ($) {
         }
         return out;
     };
-    let classLib = {
-        userIcon: ['_2lyPnMP'],
-        rightColumn: ['_2e0p8Qb']
+
+    let defaultClassLib = {
+        userIcon: 'sc-iwsKbI',
+        rightColumn: '_3czssV0',
+        coverTexture: '_3HZmrVs',
+        alertContainer: "_3Dfo7Ik",
     };
+    let classLib = defaultClassLib;
+    GM.getValue('classLib').then(value => { classLib = $.extend(JSON.parse(value || '{}'), defaultClassLib); });
     setInterval(function () {
         let webpackJsonp = unsafeWindow.webpackJsonp;
         // 1. 格式化 webpackJsonp 变量, 取出反混淆所需的变量
@@ -218,24 +222,16 @@ jQuery(function ($) {
                 // 3. 存在一个变量对应多个反混淆值的情况, 用数组存入
                 if(tmp.hasOwnProperty('exports')) {
                     $.each(tmp.exports, function (k, v) {
-                        classLib[k] = classLib[k] || [];
-                        try { classLib[k].push(v); } catch(err) { return; }
-                        classLib[k] = unique(classLib[k]); // 去重
+                        try { classLib[k] = v; } catch(err) { }
                     });
                 }
             }
         });
+        GM.setValue('classLib', JSON.stringify(classLib));
     }, 1000);
-    let clazz = function (option) {
-        let options = $.extend({key: '', dot: true, tag: '', join: undefined,}, option);
-        let classItem = classLib[options.key] || [];
-        if(options.dot) {
-            classItem = classItem.map((v)=>'.'+v); // 是否加上点, 用于类选择器
-        }
-        classItem = classItem.map((v)=>options.tag+v); // 加上 tag 名, 用于限制标签的选择器
-        if(!!options.join) {
-            classItem = classItem.join(options.join); // 转化为字符串
-        }
+    let clazz = function (key) {
+        let classItem = classLib[key];
+        if(!classItem) console.error('反混淆'+key+'失败!');
         return classItem;
     };
 
@@ -252,8 +248,8 @@ jQuery(function ($) {
 
         // 2. 删除动态添加的广告
         let adSelectors = ['iframe', '._premium-lead-promotion-banner'];
-        adSelectors = adSelectors.concat(clazz({key: 'alertContainer'}));
-        adSelectors = adSelectors.concat(clazz({key: 'adContainer'}));
+        adSelectors = adSelectors.concat('.'+clazz('alertContainer'));
+        adSelectors = adSelectors.concat('.'+clazz('adContainer'));
 
         observerFactory(function (mutations, observer) {
             mutations.forEach(function (mutation) {
@@ -284,7 +280,7 @@ jQuery(function ($) {
 
         // 1. 初始化通用页面UI
         (function () {
-            if (isArtworkPage()) {
+            if (isArtworkPage() || isMemberPage()) {
                 return;
             }
             console.log("初始化通用页面 按收藏数搜索");
@@ -301,9 +297,9 @@ jQuery(function ($) {
 
         })();
 
-        // 2. 初始化作品页面UI
+        // 2. 初始化作品页面和画师页面UI
         (function () {
-            if (!isArtworkPage()) {
+            if (!isArtworkPage() && !isMemberPage()) {
                 return;
             }
             console.log("初始化作品页面 按收藏数搜索");
@@ -356,7 +352,7 @@ jQuery(function ($) {
 
     // 3. 追加搜索pid和uid功能
     (function () {
-        if (isArtworkPage()) {
+        if (isArtworkPage() || isMemberPage()) {
             return;
         }
         console.log("初始化通用页面 搜索UID和PID");
@@ -566,7 +562,7 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('._2Bc_aeW'), $canvas = $target.find('canvas');
+                let $shareBtn = $target.find('.'+clazz('shareButtonContainer')), $canvas = $target.find('canvas');
                 addImgSize({$img: $canvas}); // 显示图片大小
 
                 if(!isGifMode() || mutation.type !== 'childList' ||
@@ -660,7 +656,7 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('._2Bc_aeW');
+                let $shareBtn = $target.find('.'+clazz('shareButtonContainer'));
                 if(!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
                     continue
                 }
@@ -728,37 +724,40 @@ jQuery(function ($) {
         for(let i = 0, len = mutations.length; i < len; i++){
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
-            let $target = $(mutation.target);
-            let $username = $target.find('._2VLnXNk');
-            if (mutation.type !== 'childList' || !$username.length || !!$target.find('#uid').length) {
+            let $target = $(mutation.target), authorInformation = '_1NXBIHX XyJF90a';
+            let $row = $(document.getElementsByClassName(authorInformation)).find('div:first');
+            if (mutation.type !== 'childList' || $row.length <= 0 || $('body').find('#uid').length > 0) {
                 continue;
             }
-            // 1. 获取用户名的元素
-            let $mark = $target.find('.cXGkZvO').closest('div');
+            // 1. 添加新的一行的div
+            let $ahaoRow = $row.clone(), $ul = $ahaoRow.find('ul');
+            $ul.empty();
+            $row.before($ahaoRow);
 
             // 2. 显示画师id, 点击自动复制到剪贴板
-            let $uid = $('<div class="'+$username.attr('class')+'" id="uid"> <span>UID: ' + uid + '</span></div>')
+            let $uid = $('<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID: ' + uid + '</div></li>')
                 .on('click', function () {
                     let $this = $(this);
-                    $this.text('UID' + i18n('copy_to_clipboard'));
+                    $this.html('<span>UID' + i18n('copy_to_clipboard') + '</span>');
                     GM.setClipboard(uid);
                     setTimeout(function () {
-                        $this.text('UID: ' + uid);
+                        $this.html('<span>UID' + uid + '</span>');
                     }, 2000);
                 });
-            $mark.append($uid);
+            $ul.append($uid);
 
             // 3. 显示画师背景图
             let background = globalInitData.preload.user[uid].background;
             let url = (background && background.url) || '';
-            let $div = $('<div class="'+$username.attr('class')+'"></div>');
+            let $bgli = $('<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>'),
+                $bg = $bgli.find('div');
             if (!!url && url !== 'none') {
-                $div.append('<img src="' + url + '" width="30px">' +
+                $bg.append('<img src="' + url + '" width="30px">' +
                     '<a target="_blank" href="' + url + ' ">' + i18n('background') + '</a>');
             } else {
-                $div.append('<span>' + i18n('background_not_found') + '</span>');
+                $bg.append('<span>' + i18n('background_not_found') + '</span>');
             }
-            $mark.append($div);
+            $ul.append($bgli);
         }
     }); // 画师页面UI
     observerFactory(function (mutations, observer) {
@@ -769,7 +768,7 @@ jQuery(function ($) {
         for(let i = 0, len = mutations.length; i < len; i++){
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
-            let $aside = $(mutation.target).parent().find('._2e0p8Qb');
+            let $aside = $(mutation.target).parent().find('.'+clazz('rightColumn'));
             if(mutation.type !== 'childList' || $aside.length <= 0){
                 continue;
             }
@@ -777,8 +776,9 @@ jQuery(function ($) {
             if ($section.length <= 0 || $section.find('#ahao-background').length > 0) {
                 continue;
             }
-            let $userIcon = $section.find('._2lyPnMP');
-            let $row = $userIcon.parent().parent();
+            let userIconSelector = $('a[href="/member.php?id='+uid+'"]').attr('class');
+            let $userIconA = $section.find('*[class="'+userIconSelector+'"]');
+            let $row = $userIconA.parent();
 
             // 2. 显示画师背景图
             let background = globalInitData.preload.user[uid].background;
@@ -816,7 +816,7 @@ jQuery(function ($) {
 
             // 2. 将作者头像由 background 转为 <img>
             let $target = $(mutation.target);
-            $target.find('._2lyPnMP').each(function () {
+            $target.find('div[role="img"]').each(function () {
                 let $this = $(this);
                 let tagName = $this.prop('tagName');
 
@@ -829,11 +829,11 @@ jQuery(function ($) {
                 $userImg.css('width', $this.css('width'))
                     .css('height', $this.css('height'));
 
-                if(tagName.toLowerCase() === 'a') {
-                    $this.html($userImg);
-                    $this.css('background-image', '');
-                    return;
-                }
+                // if(tagName.toLowerCase() === 'a') {
+                //     $this.html($userImg);
+                //     $this.css('background-image', '');
+                //     return;
+                // }
 
                 if(tagName.toLowerCase() === 'div') {
                     $userImg.attr('class', $this.attr('class'));
@@ -854,15 +854,6 @@ jQuery(function ($) {
                         .css('height', $div.css('height'));
                     $this.html($img);
                 }
-
-            });
-
-            // 2.2. 解除图片不允许新窗口打开的限制, 如用户头像
-            $('._2lyPnMP').each(function () {
-                let $this = $(this);
-                if($this.css('position') === 'relative') {
-                    $this.css('position', 'static');
-                }
             });
         }
     });
@@ -872,7 +863,7 @@ jQuery(function ($) {
         if (!isArtworkPage()) {
             return;
         }
-        let moreCommentSelector = '._3JLvVMw';
+        let moreCommentSelector = '._1Hom0qN';
         observerFactory(function (mutations, observer) {
             for(let i = 0, len = mutations.length; i < len; i++){
                 let mutation = mutations[i];
@@ -960,9 +951,9 @@ jQuery(function ($) {
             callback: function (mutations, observer) {
                 for (let i = 0, len = mutations.length; i < len; i++) {
                     let mutation = mutations[i];
-                    // 1. 判断是否改变节点, 或者是否有[userIcon]节点
-                    let $container = $(mutation.target).find('._1BUAfFH');
-                    if (mutation.type !== 'childList' || !$container.length) {
+                    // 1. 判断是否改变节点
+                    let $container = $(mutation.target).find('div:first');
+                    if (mutation.type !== 'childList' || $container.length <= 0) {
                         continue;
                     }
 
