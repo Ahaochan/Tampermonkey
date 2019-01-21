@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.8
+// @version     0.4.9
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -745,8 +745,8 @@ jQuery(function ($) {
         for (let i = 0, len = mutations.length; i < len; i++) {
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
-            let $target = $(mutation.target), authorInformation = '_1NXBIHX XyJF90a';
-            let $row = $(document.getElementsByClassName(authorInformation)).find('div:first');
+            let $target = $(mutation.target), externalLinksContainer = '_2AOtfl9'; // 多个反混淆externalLinksContainer
+            let $row = $(`ul.${externalLinksContainer}`).parent();
             if (mutation.type !== 'childList' || $row.length <= 0 || $('body').find('#uid').length > 0) {
                 continue;
             }
