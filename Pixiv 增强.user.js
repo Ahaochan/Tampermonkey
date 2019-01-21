@@ -180,7 +180,7 @@ jQuery(function ($) {
     let isMemberBookmarkPage = () => /.+\/bookmark\.php\?id=\d+/.test(location.href);
     let isMemberFriendPage = () => /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
     let isMemberDynamicPage = () => /.+\/stacc.+/.test(location.href);
-    let isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage() || isMemberDynamicPage(),
+    let isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage(),
         isSearchPage = () => /.+\/search\.php.*/.test(location.href);
 
     // ============================ 反混淆 ====================================
