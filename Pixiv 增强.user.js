@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.7
+// @version     0.4.8
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -28,7 +28,6 @@
 // @run-at      document-end
 // @noframes
 // ==/UserScript==
-
 jQuery(function ($) {
     'use strict';
     // 加载依赖
@@ -38,17 +37,18 @@ jQuery(function ($) {
             this.css('width', 'auto').css('height', 'auto')
                 .css('max-width', '').css('max-height', $(window).height());
         },
-        replaceTagName: function(replaceWith) {
+        replaceTagName: function (replaceWith) {
             var tags = [],
-                i    = this.length;
+                i = this.length;
             while (i--) {
                 var newElement = document.createElement(replaceWith),
-                    thisi      = this[i],
-                    thisia     = thisi.attributes;
+                    thisi = this[i],
+                    thisia = thisi.attributes;
                 for (var a = thisia.length - 1; a >= 0; a--) {
                     var attrib = thisia[a];
                     newElement.setAttribute(attrib.name, attrib.value);
-                };
+                }
+                ;
                 newElement.innerHTML = thisi.innerHTML;
                 $(thisi).after(newElement).remove();
                 tags[i] = newElement;
@@ -79,7 +79,7 @@ jQuery(function ($) {
             return illustJson;
         }
         // 3. 如果illust_id变化, 则持久化illust_id, 且同步更新json
-        if(!!urlIllustId) {
+        if (!!urlIllustId) {
             $('body').attr('ahao_illust_id', urlIllustId);
             $.ajax({
                 url: '/ajax/illust/' + urlIllustId,
@@ -91,23 +91,20 @@ jQuery(function ($) {
         return illustJson;
     };
     let uid = illust().userId || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || (pixiv && pixiv.context.userId) || 'unknown';
-    let mimeType = suffix => {
-        let lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
-        return lib[suffix] || 'mimeType[' + suffix + '] not found';
-    };
     let observerFactory = function (option) {
         let options;
-        if(typeof option === 'function'){
+        if (typeof option === 'function') {
             options = {
                 callback: option,
                 node: document.getElementsByTagName('body')[0],
-                option:{childList: true, subtree: true}
+                option: {childList: true, subtree: true}
             };
         } else {
             options = $.extend({
-                callback:()=>{},
+                callback: () => {
+                },
                 node: document.getElementsByTagName('body')[0],
-                option:{childList: true, subtree: true}
+                option: {childList: true, subtree: true}
             }, option);
         }
         let MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver,
@@ -118,7 +115,7 @@ jQuery(function ($) {
     let isLogin = function () {
         let status = 0;
         $.ajax({url: 'https://www.pixiv.net/setting_user.php', async: false})
-            .done((data, statusText, xhr)=>status=xhr.status);
+            .done((data, statusText, xhr) => status = xhr.status);
         return status === 200;
     };
 
@@ -183,15 +180,15 @@ jQuery(function ($) {
     let isMemberBookmarkPage = () => /.+\/bookmark\.php\?id=\d+/.test(location.href);
     let isMemberFriendPage = () => /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
     let isMemberDynamicPage = () => /.+\/stacc.+/.test(location.href);
-    let isMemberPage =  () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage || isMemberDynamicPage(),
+    let isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage() || isMemberDynamicPage(),
         isSearchPage = () => /.+\/search\.php.*/.test(location.href);
 
     // ============================ 反混淆 ====================================
-    let unique = function(array) {
+    let unique = function (array) {
         let seen = {}, out = [], len = array.length, j = 0;
-        for(let i = 0; i < len; i++) {
+        for (let i = 0; i < len; i++) {
             let item = array[i];
-            if(seen[item] !== 1) {
+            if (seen[item] !== 1) {
                 seen[item] = 1;
                 out[j++] = item;
             }
@@ -218,11 +215,18 @@ jQuery(function ($) {
                 }
                 let tmp = {};
                 // 2. 尝试导出反混淆变量到tmp
-                try { obj[key](tmp); } catch(err) { continue; }
+                try {
+                    obj[key](tmp);
+                } catch (err) {
+                    continue;
+                }
                 // 3. 存在一个变量对应多个反混淆值的情况, 用数组存入
-                if(tmp.hasOwnProperty('exports')) {
+                if (tmp.hasOwnProperty('exports')) {
                     $.each(tmp.exports, function (k, v) {
-                        try { classLib[k] = v; } catch(err) { }
+                        try {
+                            classLib[k] = v;
+                        } catch (err) {
+                        }
                     });
                 }
             }
@@ -231,7 +235,7 @@ jQuery(function ($) {
     }, 1000);
     let clazz = function (key) {
         let classItem = classLib[key];
-        if(!classItem) console.error('反混淆'+key+'失败!');
+        if (!classItem) console.error('反混淆' + key + '失败!');
         return classItem;
     };
 
@@ -248,8 +252,8 @@ jQuery(function ($) {
 
         // 2. 删除动态添加的广告
         let adSelectors = ['iframe', '._premium-lead-promotion-banner'];
-        adSelectors = adSelectors.concat('.'+clazz('alertContainer'));
-        adSelectors = adSelectors.concat('.'+clazz('adContainer'));
+        adSelectors = adSelectors.concat('.' + clazz('alertContainer'));
+        adSelectors = adSelectors.concat('.' + clazz('adContainer'));
 
         observerFactory(function (mutations, observer) {
             mutations.forEach(function (mutation) {
@@ -305,7 +309,7 @@ jQuery(function ($) {
             console.log("初始化作品页面 按收藏数搜索");
             let discoverySelector = 'a[href="/discovery"]';
             observerFactory(function (mutations, observer) {
-                for(let i = 0, len = mutations.length; i < len; i++) {
+                for (let i = 0, len = mutations.length; i < len; i++) {
                     let mutation = mutations[i];
 
                     // 1. 判断是否改变节点, 或者是否有[发现]节点
@@ -394,7 +398,11 @@ jQuery(function ($) {
         // 1. UID搜索
         initSearch({right: '235px', placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
         // 2. PID搜索
-        initSearch({right: '345px', placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
+        initSearch({
+            right: '345px',
+            placeholder: 'PID',
+            url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
+        });
     })(); // 初始化通用页面UI
     (function () {
         if (!isArtworkPage() && !isMemberPage()) {
@@ -404,7 +412,7 @@ jQuery(function ($) {
         let formSelector = 'form[action="/search.php"]';
 
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
                 let $form = $(mutation.target).find(formSelector);
@@ -418,7 +426,7 @@ jQuery(function ($) {
                 $flexBox = $form.closest('div');
 
                 let initSearch = function (option) {
-                    let options = $.extend({ placeholder: '', url: ''}, option);
+                    let options = $.extend({placeholder: '', url: ''}, option);
 
                     // 1. clone form表单
                     let $cloneForm = $form.clone();
@@ -464,7 +472,10 @@ jQuery(function ($) {
         // 1. 初始化方法
         let initDownloadBtn = function (option) {
             // 下载按钮, 复制分享按钮并旋转180度
-            let options = $.extend({$shareButtonContainer: undefined, id: '', text: '', clickFun: ()=>{}}, option);
+            let options = $.extend({
+                $shareButtonContainer: undefined, id: '', text: '', clickFun: () => {
+                }
+            }, option);
             let $downloadButtonContainer = options.$shareButtonContainer.clone();
             $downloadButtonContainer.addClass('ahao-download-btn')
                 .attr('id', options.id)
@@ -473,7 +484,7 @@ jQuery(function ($) {
                 .css('position', 'relative')
                 .css('border', '1px solid')
                 .css('padding', '1px 10px')
-                .append('<p style="display: inline">'+options.text+'</p>');
+                .append('<p style="display: inline">' + options.text + '</p>');
             $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
                 .on('click', options.clickFun);
             options.$shareButtonContainer.after($downloadButtonContainer);
@@ -486,16 +497,16 @@ jQuery(function ($) {
                 position: 'absolute',
             }, option);
             let $img = options.$img, position = options.position;
-            if($img.length !== 1) {
+            if ($img.length !== 1) {
                 return;
             }
             // 1. 找到 显示图片大小 的 span, 没有则添加
             let $span = $img.next('span');
-            if($span.length <= 0) {
+            if ($span.length <= 0) {
                 // 添加前 去除失去依赖的 span
                 $('body').find('.ahao-img-size').each(function () {
                     let $this = $(this), $prev = $this.prev('canvas, img');
-                    if($prev.length<= 0) {
+                    if ($prev.length <= 0) {
                         $this.remove();
                     }
                 });
@@ -503,18 +514,24 @@ jQuery(function ($) {
                     '    color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>');
             }
             // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
-            if($img.prop('tagName') === 'IMG') {
+            if ($img.prop('tagName') === 'IMG') {
                 let img = new Image();
                 img.src = $img.attr('src');
-                img.onload = function () { $span.text(this.width + 'x' + this.height); };
+                img.onload = function () {
+                    $span.text(this.width + 'x' + this.height);
+                };
             } else {
-                let width  = $img.attr('width')  || $img.css('width').replace('px', '')  || $img.css('max-width').replace('px', '')  || 0;
+                let width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
                 let height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
                 $span.text(width + 'x' + height);
             }
         };
+        let mimeType = suffix => {
+            let lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
+            return lib[suffix] || 'mimeType[' + suffix + '] not found';
+        };
         let isMoreMode = () => illust().pageCount > 1,
-            isGifMode  = () => illust().illustType === 2,
+            isGifMode = () => illust().illustType === 2,
             isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
         // 显示单图原图
         observerFactory({
@@ -558,14 +575,14 @@ jQuery(function ($) {
         });
         // 下载动图帧zip, gif图
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('.'+clazz('shareButtonContainer')), $canvas = $target.find('canvas');
+                let $shareBtn = $target.find('.' + clazz('shareButtonContainer')), $canvas = $target.find('canvas');
                 addImgSize({$img: $canvas}); // 显示图片大小
 
-                if(!isGifMode() || mutation.type !== 'childList' ||
+                if (!isGifMode() || mutation.type !== 'childList' ||
                     $shareBtn.length <= 0 ||
                     $target.find('#ahao-download-zip').length > 0) {
                     continue
@@ -585,7 +602,8 @@ jQuery(function ($) {
                 });
 
                 // 4. 从 pixiv 官方 api 获取 gif 的数据
-                $.ajax({url: '/ajax/illust/' + illust().illustId + '/ugoira_meta', dataType: 'json',
+                $.ajax({
+                    url: '/ajax/illust/' + illust().illustId + '/ugoira_meta', dataType: 'json',
                     success: response => {
                         // 2.1. 初始化 zip 下载按钮 点击事件
                         $zipBtn.find('button').on('click', () => window.open(response.body.originalSrc));
@@ -595,9 +613,9 @@ jQuery(function ($) {
                         let gifUrl, gifFrames = [],
                             gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
 
-                        for(let frameIdx = 0, frames = response.body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++){
+                        for (let frameIdx = 0, frames = response.body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
                             let frame = frames[i],
-                                url = illust().urls.original.replace('ugoira0.', 'ugoira'+frameIdx+'.');
+                                url = illust().urls.original.replace('ugoira0.', 'ugoira' + frameIdx + '.');
                             GM.xmlHttpRequest({
                                 method: 'GET', url: url,
                                 headers: {referer: 'https://www.pixiv.net/'},
@@ -617,7 +635,7 @@ jQuery(function ($) {
                                     img.src = URL.createObjectURL(blob);
                                     img.width = illust().width;
                                     img.height = illust().height;
-                                    img.onload = function(){
+                                    img.onload = function () {
                                         gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
                                         if (Object.keys(gifFrames).length >= framesLen) {
                                             $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
@@ -628,14 +646,14 @@ jQuery(function ($) {
                             });
                         }
                         gifFactory.on('progress', function (pct) {
-                            $gifBtn.find('p').text('gif '+parseInt(pct*100)+'%');
+                            $gifBtn.find('p').text('gif ' + parseInt(pct * 100) + '%');
                         });
-                        gifFactory.on('finished', function(blob) {
+                        gifFactory.on('finished', function (blob) {
                             gifUrl = URL.createObjectURL(blob);
 
                             let $a = $('<a></a>')
                                 .attr('href', gifUrl)
-                                .attr('download', illust().illustId+'.gif');
+                                .attr('download', illust().illustId + '.gif');
                             $gifBtn.find('button').wrap($a);
                         });
                         $gifBtn.find('button').on('click', () => {
@@ -652,12 +670,12 @@ jQuery(function ($) {
         });
         // 下载多图zip
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('.'+clazz('shareButtonContainer'));
-                if(!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
+                let $shareBtn = $target.find('.' + clazz('shareButtonContainer'));
+                if (!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
                     continue
                 }
                 console.log('下载多图');
@@ -721,7 +739,7 @@ jQuery(function ($) {
         if (!isMemberIndexPage()) {
             return;
         }
-        for(let i = 0, len = mutations.length; i < len; i++){
+        for (let i = 0, len = mutations.length; i < len; i++) {
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
             let $target = $(mutation.target), authorInformation = '_1NXBIHX XyJF90a';
@@ -765,19 +783,19 @@ jQuery(function ($) {
             return;
         }
 
-        for(let i = 0, len = mutations.length; i < len; i++){
+        for (let i = 0, len = mutations.length; i < len; i++) {
             let mutation = mutations[i];
             // 1. 判断是否改变节点, 或者是否有[section]节点
-            let $aside = $(mutation.target).parent().find('.'+clazz('rightColumn'));
-            if(mutation.type !== 'childList' || $aside.length <= 0){
+            let $aside = $(mutation.target).parent().find('.' + clazz('rightColumn'));
+            if (mutation.type !== 'childList' || $aside.length <= 0) {
                 continue;
             }
             let $section = $aside.find('section');
             if ($section.length <= 0 || $section.find('#ahao-background').length > 0) {
                 continue;
             }
-            let userIconSelector = $('a[href="/member.php?id='+uid+'"]').attr('class');
-            let $userIconA = $section.find('*[class="'+userIconSelector+'"]');
+            let userIconSelector = $('a[href="/member.php?id=' + uid + '"]').attr('class');
+            let $userIconA = $section.find('*[class="' + userIconSelector + '"]');
             let $row = $userIconA.parent();
 
             // 2. 显示画师背景图
@@ -807,7 +825,7 @@ jQuery(function ($) {
     }); // 作品页面UI
     // 解除 用户头像 的background 限制, 方便保存用户头像
     observerFactory(function (mutations, observer) {
-        for(let i = 0, len = mutations.length; i < len; i++){
+        for (let i = 0, len = mutations.length; i < len; i++) {
             let mutation = mutations[i];
             // 1. 判断是否改变节点
             if (mutation.type !== 'childList') {
@@ -821,7 +839,7 @@ jQuery(function ($) {
                 let tagName = $this.prop('tagName');
 
                 let imgUrl = $this.getBackgroundUrl();
-                if(!imgUrl) {
+                if (!imgUrl) {
                     return;
                 }
 
@@ -835,10 +853,10 @@ jQuery(function ($) {
                 //     return;
                 // }
 
-                if(tagName.toLowerCase() === 'div') {
+                if (tagName.toLowerCase() === 'div') {
                     $userImg.attr('class', $this.attr('class'));
                     $userImg.html($this.html());
-                    $this.replaceWith(()=>$userImg);
+                    $this.replaceWith(() => $userImg);
                     return;
                 }
             });
@@ -848,7 +866,7 @@ jQuery(function ($) {
                 let $this = $(this), $div = $this.find('div'),
                     $img = $('<img/>');
                 $img.attr('src', $this.attr('data-src'));
-                if(!!$div.length) {
+                if (!!$div.length) {
                     $img.attr('class', $div.attr('class'))
                         .css('width', $div.css('width'))
                         .css('height', $div.css('height'));
@@ -865,7 +883,7 @@ jQuery(function ($) {
         }
         let moreCommentSelector = '._1Hom0qN';
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点
                 if (mutation.type !== 'childList') {
@@ -880,13 +898,13 @@ jQuery(function ($) {
 
     // 7. 对主页动态中的图片标记作品类型
     (function () {
-        if(!isMemberDynamicPage()) {
+        if (!isMemberDynamicPage()) {
             return;
         }
 
         let illustTitleSelector = '.stacc_ref_illust_title';
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点
                 let $title = $(mutation.target).find(illustTitleSelector);
@@ -897,7 +915,7 @@ jQuery(function ($) {
                 $title.each(function () {
                     let $a = $(this).find('a');
                     // 1. 已经添加过标记的就不再添加
-                    if(!!$a.attr('ahao-illust-id')){
+                    if (!!$a.attr('ahao-illust-id')) {
                         return;
                     }
                     // 2. 获取pid, 设置标记避免二次生成
@@ -911,8 +929,12 @@ jQuery(function ($) {
                             let isMultiPic = parseInt(response.body.pageCount) > 1;
                             switch (illustType) {
                                 case 0:
-                                case 1:$a.after('<p>' + (isMultiPic ? i18n('illust_type_multiple') : i18n('illust_type_single')) + '</p>');break;
-                                case 2:$a.after('<p>'+i18n('illust_type_gif')+'</p>');break;
+                                case 1:
+                                    $a.after('<p>' + (isMultiPic ? i18n('illust_type_multiple') : i18n('illust_type_single')) + '</p>');
+                                    break;
+                                case 2:
+                                    $a.after('<p>' + i18n('illust_type_gif') + '</p>');
+                                    break;
                             }
                         }
                     });
@@ -926,7 +948,7 @@ jQuery(function ($) {
         let jumpSelector = 'a[href*="jump.php"]';
 
         observerFactory(function (mutations, observer) {
-            for(let i = 0, len = mutations.length; i < len; i++){
+            for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点
                 if (mutation.type !== 'childList') {
