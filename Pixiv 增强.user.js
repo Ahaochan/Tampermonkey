@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.4.9
+// @version     0.5.0
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -108,7 +108,10 @@ jQuery(function ($) {
             }, option);
         }
         let MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver,
-            observer = new MutationObserver(options.callback);
+            observer = new MutationObserver((mutations, observer) => {
+                options.callback.call(this, mutations, observer);
+                // GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
+            });
         observer.observe(options.node, options.option);
         return observer;
     };
@@ -669,6 +672,9 @@ jQuery(function ($) {
                         });
                     }
                 });
+
+                // 5. 取消监听
+                GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
             }
         });
         // 下载多图zip
@@ -733,6 +739,9 @@ jQuery(function ($) {
                         }
                     });
                 });
+
+                // 6. 取消监听
+                GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
             }
         });
     })();
@@ -778,6 +787,9 @@ jQuery(function ($) {
                 $bg.append(`<span>${i18n('background_not_found')}</span>`);
             }
             $ul.append($bgli);
+
+            // 4. 取消监听
+            GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
         }
     }); // 画师页面UI
     observerFactory(function (mutations, observer) {
@@ -823,6 +835,9 @@ jQuery(function ($) {
                 }, 2000);
             });
             $bgDiv.after($uid);
+
+            // 4. 取消监听
+            GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
         }
     }); // 作品页面UI
     // 解除 用户头像 的background 限制, 方便保存用户头像
@@ -990,6 +1005,37 @@ jQuery(function ($) {
             },
             node: document.getElementById('js-react-search-mid')
         });
+    })();
+
+    // 10. 兼容模式和极速模式
+    (function () {
+        // 1. 初始化 UI
+        let $li = $(`<li class="link-item">
+            <a title="只在首页出现"><input type="checkbox" >极速模式</input></a></li>`), $checkbox = $li.find('input[type="checkbox"]');
+        GM.getValue('MO', true).then(function (value) { $checkbox.prop('checked', value); });
+        $('li.settings-menu').after($li);
+
+        // 2. 点击事件
+        $li.on('click', function () {
+            let checked = $checkbox.prop('checked');
+            $checkbox.prop(checked, checked);
+            GM.setValue('MO', checked);
+        });
+
+        // 3. 兼容模式检测是否PJAX并刷新页面, https://stackoverflow.com/a/4585031/6335926
+        (function(history){
+            let pushState = history.pushState;
+            history.pushState = function(state) {
+                if (typeof history.onpushstate == "function") {
+                    history.onpushstate({state: state});
+                }
+                GM.getValue('MO', true).then(function (enableMO) {
+                    if(enableMO) { return; }
+                    location.reload();
+                });
+                return pushState.apply(history, arguments);
+            };
+        })(window.history);
     })();
 
     //TODO 图片下载 重命名规则
