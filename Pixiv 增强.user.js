@@ -534,6 +534,8 @@ jQuery(function ($) {
         let isMoreMode = () => illust().pageCount > 1,
             isGifMode = () => illust().illustType === 2,
             isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
+        let shareButtonContainerSelector = '.jTvDOv'; // section 下的 div
+
         // 显示单图原图
         observerFactory({
             callback: function (mutations, observer) {
@@ -580,7 +582,7 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('.' + clazz('shareButtonContainer')), $canvas = $target.find('canvas');
+                let $shareBtn = $target.find(shareButtonContainerSelector), $canvas = $target.find('canvas');
                 addImgSize({$img: $canvas}); // 显示图片大小
 
                 if (!isGifMode() || mutation.type !== 'childList' ||
@@ -675,7 +677,7 @@ jQuery(function ($) {
                 let mutation = mutations[i], $target = $(mutation.target);
 
                 // 1. 单图、多图、gif图三种模式
-                let $shareBtn = $target.find('.' + clazz('shareButtonContainer'));
+                let $shareBtn = $target.find(shareButtonContainerSelector);
                 if (!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
                     continue
                 }
