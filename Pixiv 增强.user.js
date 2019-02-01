@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.5.1
+// @version     0.5.2
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -139,6 +139,7 @@ jQuery(function ($) {
             illust_type_single: '[single pic]',
             illust_type_multiple: '[multiple pic]',
             illust_type_gif: '[gif pic]',
+            sort_by_popularity: 'Sort_by_popularity(single page)'
         },
         ko: {},
         zh: {
@@ -153,6 +154,7 @@ jQuery(function ($) {
             illust_type_single: '[单图]',
             illust_type_multiple: '[多图]',
             illust_type_gif: '[gif图]',
+            sort_by_popularity: '按收藏数搜索(单页)'
         },
         'zh-CN': {},
         'zh-tw': {
@@ -167,6 +169,7 @@ jQuery(function ($) {
             illust_type_single: '[單圖]',
             illust_type_multiple: '[多圖]',
             illust_type_gif: '[gif圖]',
+            sort_by_popularity: '按收藏數搜索(單頁)'
         }
     };
     i18nLib['zh-CN'] = $.extend({}, i18nLib.zh);
@@ -986,24 +989,65 @@ jQuery(function ($) {
         if (!isSearchPage()) {
             return;
         }
+        // 9.1. 生成按收藏数排序的按钮
         observerFactory({
             callback: function (mutations, observer) {
                 for (let i = 0, len = mutations.length; i < len; i++) {
                     let mutation = mutations[i];
                     // 1. 判断是否改变节点
-                    let $container = $(mutation.target).find('div:first');
-                    if (mutation.type !== 'childList' || $container.length <= 0) {
+                    let $menuItem = $(mutation.target).find('.search-sort-container ul.menu-items');
+                    if (mutation.type !== 'childList' || $menuItem.length <= 0) {
                         continue;
                     }
 
-                    // 2. 获取所有的item, 排序并填充
-                    let $list = $container.children();
-                    let getCount = $ => parseInt($.find('ul.count-list a').text()) || 0;
-                    $list.sort((a, b) => getCount($(b)) - getCount($(a)));
-                    $container.html($list);
+                    // 2. 为其他按钮添加点击事件
+                    $menuItem.children().on('click', function () {
+                        location.reload();
+                    });
+
+                    // 3. 添加按收藏数排序的按钮
+                    let $favourite = $(`<li class="_order-item"><span class="search-order-text">${i18n('sort_by_popularity')}</span></li>`);
+                    $favourite.on('click', function () {
+                        GM.setValue('orderByPopular', !$(this).hasClass('_selected'));
+                        location.reload();
+                    });
+                    $menuItem.prepend($favourite);
+                    GM.getValue('orderByPopular').then(value => {
+                        if(value){
+                            $favourite.addClass('_selected');
+                        }
+                    });
+
+                    observer.disconnect();
                 }
             },
-            node: document.getElementById('js-react-search-mid')
+            node: document.getElementById('js-react-search-top')
+        });
+
+        // 9.2. 按收藏数排序
+        GM.getValue('orderByPopular').then(value => {
+            if(!value) {
+                return;
+            }
+            observerFactory({
+                callback: function (mutations, observer) {
+                    for (let i = 0, len = mutations.length; i < len; i++) {
+                        let mutation = mutations[i];
+                        // 1. 判断是否改变节点
+                        let $container = $(mutation.target).find('div:first');
+                        if (mutation.type !== 'childList' || $container.length <= 0) {
+                            continue;
+                        }
+
+                        // 2. 获取所有的item, 排序并填充
+                        let $list = $container.children();
+                        let getCount = $ => parseInt($.find('ul.count-list a').text()) || 0;
+                        $list.sort((a, b) => getCount($(b)) - getCount($(a)));
+                        $container.html($list);
+                    }
+                },
+                node: document.getElementById('js-react-search-mid')
+            });
         });
     })();
 
