@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.5.2
+// @version     0.5.3
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
 // @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
@@ -48,7 +48,6 @@ jQuery(function ($) {
                     var attrib = thisia[a];
                     newElement.setAttribute(attrib.name, attrib.value);
                 }
-                ;
                 newElement.innerHTML = thisi.innerHTML;
                 $(thisi).after(newElement).remove();
                 tags[i] = newElement;
@@ -472,7 +471,7 @@ jQuery(function ($) {
     })(); // 初始化作品页面和画师页面UI
 
     // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-    (function () {
+    (async function () {
         if (!isArtworkPage()) {
             return;
         }
@@ -540,8 +539,20 @@ jQuery(function ($) {
         let isMoreMode = () => illust().pageCount > 1,
             isGifMode = () => illust().illustType === 2,
             isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
-        let shareButtonContainerSelector = '.kEJgdW'; // section 下的 div
+        let shareButtonContainerSelector = await GM.getValue('shareButtonContainerSelector', '.UXmvz'); // section 下的 div
 
+        // 热修复下载按钮的className
+        observerFactory(function (mutations, observer) {
+            for (let i = 0, len = mutations.length; i < len; i++) {
+                let mutation = mutations[i], $target = $(mutation.target);
+                let $section = $target.find('figure').find('section');
+                if($section.length <= 0) continue;
+                let className = $section.children('div').eq(1).attr('class').split(' ')[1];
+                GM.setValue('shareButtonContainerSelector', `.${className}`);
+                observer.disconnect();
+                return;
+            }
+        });
         // 显示单图原图
         observerFactory({
             callback: function (mutations, observer) {
