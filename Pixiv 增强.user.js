@@ -1095,6 +1095,7 @@ jQuery(function ($) {
         })(window.history);
     })();
 
+    //TODO 图片不要自动下载 https://greasyfork.org/zh-CN/forum/discussion/51949/x
     //TODO 图片下载 重命名规则
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
