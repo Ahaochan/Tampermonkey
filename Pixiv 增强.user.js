@@ -320,8 +320,9 @@ jQuery(function ($) {
                     let mutation = mutations[i];
 
                     // 1. 判断是否改变节点, 或者是否有[发现]节点
-                    let $discovery = $(mutation.target).find(discoverySelector);
-                    if (mutation.type !== 'childList' || !$discovery.length) {
+                    // let $discovery = $(mutation.target).find(discoverySelector);
+                    let $discovery = $(discoverySelector);
+                    if (mutation.type !== 'childList' || $discovery.length <= 0) {
                         continue;
                     }
 
@@ -421,7 +422,8 @@ jQuery(function ($) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
-                let $form = $(mutation.target).find(formSelector);
+                // let $form = $(mutation.target).find(formSelector);
+                let $form = $(formSelector);
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
