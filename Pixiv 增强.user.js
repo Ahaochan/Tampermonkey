@@ -272,6 +272,7 @@ jQuery(function ($) {
     // 1. 屏蔽广告, 全局进行css处理
     (function () {
         // 1. 删除静态添加的广告
+        $('.ad').remove();
         $('._premium-lead-tag-search-bar').hide();
         $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
 
