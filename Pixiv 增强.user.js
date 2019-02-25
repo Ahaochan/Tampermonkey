@@ -5,10 +5,10 @@
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.5.5
 // @icon        http://www.pixiv.net/favicon.ico
-// @description Focus on immersive experience, 1. Block ads, directly access popular images 2. Search using users to search for 3. Search pid and uid 4. Display original image and size, download original image|gif image|motion frame Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirect 9. single page sort. github: https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
-// @description:ja    没入型の体験に焦点を当てる. 1. 広告をブロックして人気のある画像に直接アクセスする 2.ユーザーを使って検索する 3. pidとuidを検索する 4.元の画像とサイズを表示、元の画像をダウンロードする| gif画像| Zip |複数のマップのジップ 5.表示アーティストID、アーティスト背景画像 6.自動読み込みコメント 7.動的マークアップ作業タイプ 8.リダイレクトを削除 9.シングルページソート github:https://github.com/Ahaochan/Tampermonkey, welcome star and fork.
-// @description:zh-CN 专注沉浸式体验, 1. 屏蔽广告, 直接访问热门图片 2. 使用users入り的方式进行搜索 3. 搜索pid和uid 4. 显示原图及尺寸, 下载原图|gif图|动图帧zip|多图zip 5. 显示画师id、画师背景图 6. 自动加载评论 7. 对动态标记作品类型 8. 去除重定向 9.单页排序 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
-// @description:zh-TW 專注沉浸式體驗, 1. 屏蔽廣告, 直接訪問熱門圖片 2. 使用users入り的方式進行搜索 3. 搜索pid和uid 4. 顯示原圖及尺寸, 下載原圖|gif圖|動圖幀zip|多圖zip 5. 顯示畫師id、畫師背景圖 6. 自動加載評論 7. 對動態標記作品類型 8. 去除重定向 9.單頁排序 github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
+// @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
+// @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
+// @description:zh-CN 专注沉浸式体验，1.屏蔽广告,直接访问热门图片 2.使用users入り的方式搜索 3.搜索pid和uid 4.显示原图及尺寸，图片重命名，下载原图|gif图|动图帧zip|多图zip 5.显示画师id、画师背景图 6.自动加载评论 7.对动态标记作品类型 8.去除重定向 9.单页排序 10.控制面板选择想要的功能 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 專注沉浸式體驗，1.屏蔽廣告,直接訪問熱門圖片2.使用users入り的方式搜索3.搜索pid和uid 4.顯示原圖及尺寸，圖片重命名，下載原圖|gif圖|動圖幀zip|多圖zip 5.顯示畫師id、畫師背景圖6.自動加載評論7.對動態標記作品類型8.去除重定向9.單頁排序10.控制面板選擇想要的功能github:https:/ /github.com/Ahaochan/Tampermonkey，歡迎star和fork。
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
