@@ -39,4 +39,4 @@ about: 为当前脚本纠错
 2. 
 3. 
 
-### 其他信息<!--  Other Information -->
+### 其他信息<!-- Other Information -->
