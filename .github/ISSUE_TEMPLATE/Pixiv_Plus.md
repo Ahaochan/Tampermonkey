@@ -1,5 +1,6 @@
 ---
 name: Pixiv Plus / Pixiv 增强
+labels: Pixiv Plus
 about: 为当前脚本纠错
 
 ---
