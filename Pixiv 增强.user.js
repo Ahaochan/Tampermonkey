@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.5.5
+// @version     0.5.6
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -128,7 +128,6 @@ jQuery(function ($) {
 
     // ============================ 配置信息 ====================================
     let GMkeys = {
-        classLib: 'lib-class',                      // 反混淆库
         MO: 'MO',                                   // MutationObserver 的开关
         selectorShareBtn: 'selectorShareBtn',       // 下载按钮的selector
         selectorRightColumn: 'selectorRightColumn', // 作品页面的作者信息selector
@@ -208,62 +207,6 @@ jQuery(function ($) {
     let isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage(),
         isSearchPage = () => /.+\/search\.php.*/.test(location.href);
 
-    // ============================ 反混淆 ====================================
-    let unique = function (array) {
-        let seen = {}, out = [], len = array.length, j = 0;
-        for (let i = 0; i < len; i++) {
-            let item = array[i];
-            if (seen[item] !== 1) {
-                seen[item] = 1;
-                out[j++] = item;
-            }
-        }
-        return out;
-    };
-
-    let defaultClassLib = {
-        userIcon: 'sc-iwsKbI',
-        rightColumn: '_3czssV0',
-        coverTexture: '_3HZmrVs',
-        alertContainer: "_3Dfo7Ik",
-    };
-    let classLib = defaultClassLib;
-    GM.getValue(GMkeys.classLib).then(value => { classLib = $.extend(JSON.parse(value || '{}'), defaultClassLib); });
-    setInterval(function () {
-        let webpackJsonp = unsafeWindow.webpackJsonp;
-        // 1. 格式化 webpackJsonp 变量, 取出反混淆所需的变量
-        let filter = webpackJsonp.map(value => value[1]).filter(value => value && !Array.isArray(value) && typeof value === 'object');
-        $.each(filter, (index, obj) => {
-            for (let key in obj) {
-                if (!obj.hasOwnProperty(key)) {
-                    continue;
-                }
-                let tmp = {};
-                // 2. 尝试导出反混淆变量到tmp
-                try {
-                    obj[key](tmp);
-                } catch (err) {
-                    continue;
-                }
-                // 3. 存在一个变量对应多个反混淆值的情况, 用数组存入
-                if (tmp.hasOwnProperty('exports')) {
-                    $.each(tmp.exports, function (k, v) {
-                        try {
-                            classLib[k] = v;
-                        } catch (err) {
-                        }
-                    });
-                }
-            }
-        });
-        GM.setValue(GMkeys.classLib, JSON.stringify(classLib));
-    }, 1000);
-    let clazz = function (key) {
-        let classItem = classLib[key];
-        if (!classItem) console.error(`反混淆${key}失败!`);
-        return classItem;
-    };
-
     // 判断是否登录
     if (!isLogin()) {
         alert(i18n('loginWarning'));
@@ -278,8 +221,6 @@ jQuery(function ($) {
 
         // 2. 删除动态添加的广告
         let adSelectors = ['iframe', '._premium-lead-promotion-banner'];
-        adSelectors = adSelectors.concat('.' + clazz('alertContainer'));
-        adSelectors = adSelectors.concat('.' + clazz('adContainer'));
 
         observerFactory(function (mutations, observer) {
             mutations.forEach(function (mutation) {
