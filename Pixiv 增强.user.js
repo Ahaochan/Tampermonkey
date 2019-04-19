@@ -816,6 +816,7 @@ jQuery(function ($) {
             let url = (background && background.url) || '';
             let $bgDiv = $row.clone().attr('id', 'ahao-background');
             $bgDiv.children('a').remove();
+            $bgDiv.children('div').children('div').remove();
             $bgDiv.prepend(`<img src="${url}" width="10%"/>`);
             $bgDiv.find('div a').attr('href', !!url ? url : 'javascript:void(0)').attr('target', '_blank')
                 .text(!!url ? i18n('background') : i18n('background_not_found'));
@@ -824,6 +825,7 @@ jQuery(function ($) {
             // 3. 显示画师id, 点击自动复制到剪贴板
             let $uid = $row.clone();
             $uid.children('a').remove();
+            $uid.children('div').children('div').remove();
             $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text('UID: ' + uid);
             $uid.on('click', function () {
                 let $this = $(this);
@@ -1075,7 +1077,7 @@ jQuery(function ($) {
                     <label><input type="checkbox" name="${GMkeys.switchComment}">自动加载评论</label><br/>
                     <label><input type="checkbox" name="${GMkeys.switchImgSize}">显示图片尺寸大小</label><br/>
                     <label><input type="checkbox" name="${GMkeys.switchImgPreload}">预下载Gif、Zip(耗流量)</label><br/>
-                    
+
                     <label>下载文件名: <input type="text" name="${GMkeys.downloadName}" placeholder="{pid}-{uid}-{pname}-{uname}"></label>
                     <a>保存</a>
                     <a onclick="alert('{pid}是作品id--------{uid}是画师id\\n{pname}是作品名--------{uname}是画师名\\n注意, 多图情况下, 会自动填充index索引编号\\n目前只支持GIF和多图的重命名');">说明</a>
