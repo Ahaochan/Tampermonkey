@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.5.6
+// @version     0.5.7
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -521,13 +521,11 @@ jQuery(function ($) {
                 return;
             }
         });
-        // 显示单图原图
+        // 显示单图、多图原图
         observerFactory({
             callback: function (mutations, observer) {
                 for (let i = 0, len = mutations.length; i < len; i++) {
-                    let mutation = mutations[i], $target = $(mutation.target),
-                        index = $target.attr('data-index') || 0,
-                        url = illust().urls.original.replace(/_p\d\./, `_p${index}.`);
+                    let mutation = mutations[i], $target = $(mutation.target);
                     let replaceImg = function ($target, attr, value) {
                         let oldValue = $target.attr(attr);
                         if (new RegExp(`.*i\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
@@ -535,27 +533,20 @@ jQuery(function ($) {
                             $target.fitWindow();
                         }
                     };
-                    // 1. 只修改属性的情况(多图详情页)
-                    if (mutation.type === 'attributes') {
-                        replaceImg($target, mutation.attributeName, url);
-                        addImgSize({$img: $target, position: 'relative'}); // 显示图片大小
-                    }
 
-                    // 2. 插入节点的情况(作品首页单图)
-                    if (mutation.type === 'childList') {
-                        // let $link = $target.find('a[href*="i.pximg.net"],img[src*="i.pximg.net"],img[srcset*="i.pximg.net"]');
-                        let $link = $target.find('img[srcset]');
-                        $link.each(function () {
-                            let $this = $(this);
-                            replaceImg($this, 'href', url);
-                            replaceImg($this, 'src', url);
-                            replaceImg($this, 'srcset', url);
+                    // 1. 单图、多图 DOM 结构都为 <a href=""><img/></a>
+                    let $link = $target.find('img[srcset]');
+                    $link.each(function () {
+                        let $this = $(this);
+                        let href = $this.parent('a').attr('href');
+                        if(!!href) {
+                            replaceImg($this, 'src', href);
+                            replaceImg($this, 'srcset', href);
                             addImgSize({$img: $this}); // 显示图片大小
-                        });
+                        }
+                    });
 
-                    }
-
-                    // 3. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
+                    // 2. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
                     // $('.e2p8rxc2').hide(); // 懒得适配了, 自行去个人资料设置 https://www.pixiv.net/setting_user.php
                 }
             },
