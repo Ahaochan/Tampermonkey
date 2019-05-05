@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.5.7
+// @version     0.5.8
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -71,7 +71,7 @@ jQuery(function ($) {
     });
 
     // ============================ 全局参数 ====================================
-    let lang = document.documentElement.getAttribute('lang') || 'en',
+    let lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase(),
         globalInitData = unsafeWindow.globalInitData,
         illustJson = {};
     let illust = function () {
@@ -174,7 +174,7 @@ jQuery(function ($) {
             illust_type_gif: '[gif图]',
             sort_by_popularity: '按收藏数搜索(单页)'
         },
-        'zh-CN': {},
+        'zh-cn': {},
         'zh-tw': {
             favorites: '收藏人數',
             illegal: '不合法',
@@ -190,7 +190,7 @@ jQuery(function ($) {
             sort_by_popularity: '按收藏數搜索(單頁)'
         }
     };
-    i18nLib['zh-CN'] = $.extend({}, i18nLib.zh);
+    i18nLib['zh-cn'] = $.extend({}, i18nLib.zh);
     // TODO 待翻译
     i18nLib.ja = $.extend({}, i18nLib.en, i18nLib.ja);
     i18nLib.ko = $.extend({}, i18nLib.en, i18nLib.ko);
