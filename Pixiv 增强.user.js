@@ -219,6 +219,7 @@ jQuery(function ($) {
         $('.ad').remove();
         $('._premium-lead-tag-search-bar').hide();
         $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
+        $('.ad-footer').remove();//移除页脚广告
 
         // 2. 删除动态添加的广告
         let adSelectors = ['iframe', '._premium-lead-promotion-banner'];
