@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.6.2
+// @version     0.6.3
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -470,31 +470,35 @@ jQuery(function ($) {
             if ($img.length !== 1) {
                 return;
             }
-            // 1. 找到 显示图片大小 的 span, 没有则添加
-            let $span = $img.next('span');
-            if ($span.length <= 0) {
-                // 添加前 去除失去依赖的 span
-                $('body').find('.ahao-img-size').each(function () {
-                    let $this = $(this), $prev = $this.prev('canvas, img');
-                    if ($prev.length <= 0) {
-                        $this.remove();
-                    }
-                });
-                $img.after(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
+            GM.getValue(GMkeys.switchImgSize, true).then(open => {
+                if (!!open) {
+                    // 1. 找到 显示图片大小 的 span, 没有则添加
+                    let $span = $img.next('span');
+                    if ($span.length <= 0) {
+                        // 添加前 去除失去依赖的 span
+                        $('body').find('.ahao-img-size').each(function () {
+                            let $this = $(this), $prev = $this.prev('canvas, img');
+                            if ($prev.length <= 0) {
+                                $this.remove();
+                            }
+                        });
+                        $img.after(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
                     color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>`);
-            }
-            // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
-            if ($img.prop('tagName') === 'IMG') {
-                let img = new Image();
-                img.src = $img.attr('src');
-                img.onload = function () {
-                    $span.text(`${this.width}x${this.height}`);
-                };
-            } else {
-                let width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
-                let height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
-                $span.text(`${width}x${height}`);
-            }
+                    }
+                    // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
+                    if ($img.prop('tagName') === 'IMG') {
+                        let img = new Image();
+                        img.src = $img.attr('src');
+                        img.onload = function () {
+                            $span.text(`${this.width}x${this.height}`);
+                        };
+                    } else {
+                        let width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
+                        let height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
+                        $span.text(`${width}x${height}`);
+                    }
+                }
+            });
         };
         let mimeType = suffix => {
             let lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
@@ -564,11 +568,7 @@ jQuery(function ($) {
                 // 1. 单图、多图、gif图三种模式
                 let $shareBtn = $target.find(selectorShareBtn), $canvas = $target.find('canvas');
                 // 2. 显示图片大小
-                if($canvas.length > 0) {
-                    GM.getValue(GMkeys.switchImgSize, true).then(open => {
-                        if(!!open) { addImgSize({$img: $canvas}) }
-                    });
-                }
+                addImgSize({$img: $canvas})
                 if (!isGifMode() || mutation.type !== 'childList' ||
                     $shareBtn.length <= 0 ||
                     $target.find('#ahao-download-zip').length > 0) {
