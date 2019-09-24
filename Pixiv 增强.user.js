@@ -198,7 +198,7 @@ jQuery(function ($) {
     let i18n = key => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
     // ============================ url 页面判断 ==============================
-    let isArtworkPage = () => /.+member_illust\.php\?.*illust_id=\d+.*/.test(location.href);
+    let isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
     let isMemberIndexPage = () => /.+member.php.*id=\d+.*/.test(location.href);
     let isMemberIllustPage = () => /.+\/member_illust\.php\?id=\d+/.test(location.href);
