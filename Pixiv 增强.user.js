@@ -78,7 +78,8 @@ jQuery(function ($) {
     let illust = function () {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         let preIllustId = $('body').attr('ahao_illust_id');
-        let urlIllustId = new URL(location.href).searchParams.get("illust_id");
+        let paramRegex = location.href.match(/artworks\/(\d*)$/);
+        let urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
         // 2. 如果illust_id没变, 则不更新json
         if (parseInt(preIllustId) === parseInt(urlIllustId)) {
             return illustJson;
@@ -198,7 +199,7 @@ jQuery(function ($) {
     let i18n = key => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
     // ============================ url 页面判断 ==============================
-    let isArtworkPage = () => /.+member_illust\.php\?.*illust_id=\d+.*/.test(location.href);
+    let isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
     let isMemberIndexPage = () => /.+member.php.*id=\d+.*/.test(location.href);
     let isMemberIllustPage = () => /.+\/member_illust\.php\?id=\d+/.test(location.href);
