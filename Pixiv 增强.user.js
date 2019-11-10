@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.6.5
+// @version     0.7.0
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -267,7 +267,8 @@ jQuery(function ($) {
 
         // 1. 初始化通用页面UI
         (function () {
-            if (isArtworkPage() || isMemberPage()) {
+            let enable = (isArtworkPage() || isMemberPage() || isSearchPage());
+            if (enable) {
                 return;
             }
             console.log("初始化通用页面 按收藏数搜索");
@@ -287,7 +288,8 @@ jQuery(function ($) {
 
         // 2. 初始化作品页面和画师页面UI
         (function () {
-            if (!isArtworkPage() && !isMemberPage()) {
+            let enable = !(isArtworkPage() || isMemberPage() || isSearchPage());
+            if (enable) {
                 return;
             }
             console.log("初始化作品页面 按收藏数搜索");
@@ -341,7 +343,8 @@ jQuery(function ($) {
 
     // 3. 追加搜索pid和uid功能
     (function () {
-        if (isArtworkPage() || isMemberPage()) {
+        let enable = (isArtworkPage() || isMemberPage() || isSearchPage());
+        if (enable) {
             return;
         }
         console.log("初始化通用页面 搜索UID和PID");
@@ -389,18 +392,18 @@ jQuery(function ($) {
         });
     })(); // 初始化通用页面UI
     (function () {
-        if (!isArtworkPage() && !isMemberPage()) {
+        let enable = !(isArtworkPage() || isMemberPage() || isSearchPage());
+        if (enable) {
             return;
         }
         console.log("初始化作品页面 搜索UID和PID");
-        let formSelector = 'form[action="/search.php"]';
 
         observerFactory(function (mutations, observer) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
                 // let $form = $(mutation.target).find(formSelector);
-                let $form = $(formSelector);
+                let $form = $('input[name="word"]').parent('form');
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
@@ -417,7 +420,7 @@ jQuery(function ($) {
                     let $cloneForm = $form.clone();
                     $cloneForm.attr('action', '').addClass('ahao-search').css('margin-right', '15px').css('width', '126px');
                     $cloneForm.find('input[name="s_mode"]').remove(); // 只保留一个input
-                    $cloneForm.find('input:first').attr('placeholder', options.placeholder).attr('name', options.placeholder).css('width', '64px');
+                    $cloneForm.find('input:first').attr('placeholder', options.placeholder).attr('name', options.placeholder).css('width', '64px').val('');
                     $flexBox.prepend($cloneForm);
 
                     // 2. 绑定submit事件
