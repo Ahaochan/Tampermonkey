@@ -1106,9 +1106,6 @@ jQuery(function ($) {
                 GM.setValue(name, checked);
             });
         });
-        GM.getValue(GMkeys.downloadName).then(function (value) {
-            console.log("test"+value)
-        });
         $table.find('input[type="text"]').each(function () {
             let $input = $(this), name = $input.attr('name');
             GM.getValue(name).then(function (value) { $input.val(value); });
