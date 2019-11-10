@@ -73,7 +73,7 @@ jQuery(function ($) {
 
     // ============================ 全局参数 ====================================
     let lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase(),
-        globalInitData = unsafeWindow.globalInitData,
+        globalInitData = unsafeWindow.globalInitData, pixiv = unsafeWindow.pixiv,
         illustJson = {};
     let illust = function () {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
@@ -96,7 +96,7 @@ jQuery(function ($) {
         }
         return illustJson;
     };
-    let uid = illust().userId || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || (pixiv && pixiv.context.userId) || 'unknown';
+    let uid = illust().userId || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || (pixiv && pixiv.context && pixiv.context.userId) || 'unknown';
     let observerFactory = function (option) {
         let options;
         if (typeof option === 'function') {
