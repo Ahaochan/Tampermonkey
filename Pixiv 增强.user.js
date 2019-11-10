@@ -77,8 +77,8 @@ jQuery(function ($) {
         success: response => {
             let html = document.createElement( 'html' );
             html.innerHTML = response;
-            globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '');
-            preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '');
+            globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
+            preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
         }
     });
     let lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase(),
