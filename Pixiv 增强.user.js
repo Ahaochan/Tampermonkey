@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.6.4
+// @version     0.6.5
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -1004,70 +1004,70 @@ jQuery(function ($) {
 
     // 9. 单页排序
     (function () {
-        if (!isSearchPage()) {
+        if (!isSearchPage() || true) {
             return;
         }
         // 9.1. 生成按收藏数排序的按钮
-        observerFactory({
-            callback: function (mutations, observer) {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    let mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    let $menuItem = $(mutation.target).find('.search-sort-container ul.menu-items');
-                    if (mutation.type !== 'childList' || $menuItem.length <= 0) {
-                        continue;
-                    }
-
-                    // 2. 为其他按钮添加点击事件
-                    $menuItem.children().on('click', function () {
-                        location.reload();
-                    });
-
-                    // 3. 添加按收藏数排序的按钮
-                    let $favourite = $(`<li class="_order-item"><span class="search-order-text">${i18n('sort_by_popularity')}</span></li>`);
-                    $favourite.on('click', function () {
-                        GM.setValue(GMkeys.switchOrderByPopular, !$(this).hasClass('_selected'));
-                        location.reload();
-                    });
-                    $menuItem.prepend($favourite);
-                    GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
-                        if(value){
-                            $favourite.addClass('_selected');
-                        }
-                    });
-
-                    observer.disconnect();
+        observerFactory(function (mutations, observer) {
+            for (let i = 0, len = mutations.length; i < len; i++) {
+                let mutation = mutations[i];
+                // 1. 判断是否改变节点
+                let $section = $('section');
+                if (mutation.type !== 'childList' || $section.length <= 0) {
+                    continue;
                 }
-            },
-            node: document.getElementById('js-react-search-top')
+                let $div = $section.prev().find('div').eq(0);
+
+                // 2. 添加按收藏数排序的按钮
+                let $sort = $(`<span class="sc-LzLvL">${i18n('sort_by_popularity')}</span>`);
+                $sort.on('click', function () {
+                    var value = !$(this).hasClass('bNPzQX');
+                    console.log(value);
+                    GM.setValue(GMkeys.switchOrderByPopular, value);
+                    if (value) {
+                        $sort.attr('class', 'sc-LzLvL bNPzQX');
+                    } else {
+                        $sort.attr('class', 'sc-LzLvL lfAMBc');
+                    }
+                });
+                $div.prepend($sort);
+                GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
+                    if (value) {
+                        $sort.attr('class', 'sc-LzLvL bNPzQX');
+                    } else {
+                        $sort.attr('class', 'sc-LzLvL lfAMBc');
+                    }
+                });
+
+                observer.disconnect();
+                break;
+            }
         });
 
-        // 9.2. 按收藏数排序
-        GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
-            if(!value) {
-                return;
-            }
-            observerFactory({
-                callback: function (mutations, observer) {
-                    for (let i = 0, len = mutations.length; i < len; i++) {
-                        let mutation = mutations[i];
-                        // 1. 判断是否改变节点
-                        let $div = $(mutation.target);
-                        if (mutation.type !== 'childList' || $div.find('.count-list').length > 0) {
-                            continue;
-                        }
+        // 9.2. 按收藏数排序 // TODO 页面没有展示收藏数, 关闭单页排序
+        observerFactory(function (mutations, observer) {
+            for (let i = 0, len = mutations.length; i < len; i++) {
+                let mutation = mutations[i];
+                // 1. 判断是否改变节点
+                let $div = $(mutation.target);
+                if (mutation.type !== 'childList' || $div.find('.count-list').length > 0) {
+                    continue;
+                }
 
-                        // 2. 获取所有的item, 排序并填充
-                        let $container = $('section#js-react-search-mid').find('div:first');
-                        let $list = $container.children();
-                        let getCount = $ => parseInt($.find('ul.count-list a').text()) || 0;
-                        $list.sort((a, b) => getCount($(b)) - getCount($(a)));
-                        $container.html($list);
-                        return; // 本次变更只排序一次
+                // 2. 获取所有的item, 排序并填充
+                GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
+                    if(!value) {
+                        return;
                     }
-                },
-                node: document.getElementById('js-react-search-mid')
-            });
+                    let $container = $('section#js-react-search-mid').find('div:first');
+                    let $list = $container.children();
+                    let getCount = $ => parseInt($.find('ul.count-list a').text()) || 0;
+                    $list.sort((a, b) => getCount($(b)) - getCount($(a)));
+                    $container.html($list);
+
+                });
+                return; // 本次变更只排序一次
+            }
         });
     })();
 
