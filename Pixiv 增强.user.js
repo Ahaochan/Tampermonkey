@@ -72,9 +72,20 @@ jQuery(function ($) {
     });
 
     // ============================ 全局参数 ====================================
+    let globalData, preloadData;
+    $.ajax({ url: location.href, async: false,
+        success: response => {
+            let html = document.createElement( 'html' );
+            html.innerHTML = response;
+            globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '');
+            preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '');
+        }
+    });
     let lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase(),
-        globalInitData = unsafeWindow.globalInitData, pixiv = unsafeWindow.pixiv,
         illustJson = {};
+
+    console.log(globalData);
+    console.log(preloadData);
     let illust = function () {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         let preIllustId = $('body').attr('ahao_illust_id');
@@ -96,7 +107,7 @@ jQuery(function ($) {
         }
         return illustJson;
     };
-    let uid = illust().userId || (globalInitData && Object.keys(globalInitData.preload.user)[0]) || (pixiv && pixiv.context && pixiv.context.userId) || 'unknown';
+    let uid = preloadData && preloadData.user && Object.keys(preloadData.user)[0];
     let observerFactory = function (option) {
         let options;
         if (typeof option === 'function') {
@@ -783,7 +794,7 @@ jQuery(function ($) {
             $ul.append($uid);
 
             // 3. 显示画师背景图
-            let background = globalInitData.preload.user[uid].background;
+            let background = preloadData.user[uid].background;
             let url = (background && background.url) || '';
             let $bgli = $('<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>'),
                 $bg = $bgli.find('div');
@@ -817,7 +828,7 @@ jQuery(function ($) {
             }
 
             // 2. 显示画师背景图
-            let background = globalInitData.preload.user[uid].background;
+            let background = preloadData.user[uid].background;
             let url = (background && background.url) || '';
             let $bgDiv = $row.clone().attr('id', 'ahao-background');
             $bgDiv.children('a').remove();
