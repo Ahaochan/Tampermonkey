@@ -234,7 +234,9 @@ jQuery(function ($) {
         $('.ad-footer').remove();//移除页脚广告
 
         // 2. 删除动态添加的广告
-        let adSelectors = ['iframe', '._premium-lead-promotion-banner'];
+        let adSelectors = ['iframe', '._premium-lead-promotion-banner',
+            '.jkOmhW' // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
+        ];
 
         observerFactory(function (mutations, observer) {
             mutations.forEach(function (mutation) {
