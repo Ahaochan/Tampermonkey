@@ -212,7 +212,7 @@ jQuery(function ($) {
     // ============================ url 页面判断 ==============================
     let isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
-    let isMemberIndexPage = () => /.+member.php.*id=\d+.*/.test(location.href);
+    let isMemberIndexPage = () => /.+\/users\/\d+.*/.test(location.href);
     let isMemberIllustPage = () => /.+\/member_illust\.php\?id=\d+/.test(location.href);
     let isMemberBookmarkPage = () => /.+\/bookmark\.php\?id=\d+/.test(location.href);
     let isMemberFriendPage = () => /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
