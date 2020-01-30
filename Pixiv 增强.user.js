@@ -73,19 +73,27 @@ jQuery(function ($) {
 
     // ============================ 全局参数 ====================================
     let globalData, preloadData;
-    $.ajax({ url: location.href, async: false,
-        success: response => {
-            let html = document.createElement( 'html' );
-            html.innerHTML = response;
-            globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
-            preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
-        }
-    });
+    let initData = function() {
+        $.ajax({ url: location.href, async: false,
+            success: response => {
+                let html = document.createElement( 'html' );
+                html.innerHTML = response;
+                globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
+                preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
+            }
+        });
+    };
+    let getPreloadData = function () {
+        if(!preloadData) { initData(); }
+        return preloadData;
+    };
+    let getGlobalData = function () {
+        if(!globalData) { initData(); }
+        return globalData;
+    };
     let lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase(),
         illustJson = {};
 
-    console.log(globalData);
-    console.log(preloadData);
     let illust = function () {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         let preIllustId = $('body').attr('ahao_illust_id');
@@ -107,7 +115,12 @@ jQuery(function ($) {
         }
         return illustJson;
     };
-    let uid = preloadData && preloadData.user && Object.keys(preloadData.user)[0];
+    let getUid = function () {
+        if(!preloadData || !preloadData.user || !Object.keys(preloadData.user)[0]) {
+            initData();
+        }
+        return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
+    };
     let observerFactory = function (option) {
         let options;
         if (typeof option === 'function') {
@@ -802,6 +815,7 @@ jQuery(function ($) {
             $row.before($ahaoRow);
 
             // 2. 显示画师id, 点击自动复制到剪贴板
+            let uid = getUid();
             let $uid = $(`<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`)
                 .on('click', function () {
                     let $this = $(this);
@@ -848,6 +862,7 @@ jQuery(function ($) {
             }
 
             // 2. 显示画师背景图
+            let uid = getUid();
             let background = preloadData.user[uid].background;
             let url = (background && background.url) || '';
             let $bgDiv = $row.clone().attr('id', 'ahao-background');
