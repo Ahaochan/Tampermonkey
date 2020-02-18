@@ -12,7 +12,7 @@
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
-// @connect     i.pximg.net
+// @connect     i-cf.pximg.net
 // @license     GPL-3.0
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @grant       unsafeWindow
@@ -568,7 +568,7 @@ jQuery(function ($) {
                     let mutation = mutations[i], $target = $(mutation.target);
                     let replaceImg = function ($target, attr, value) {
                         let oldValue = $target.attr(attr);
-                        if (new RegExp(`.*i\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
+                        if (new RegExp(`.*i-cf\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
                             $target.attr(attr, value).css('filter', 'none');
                             $target.fitWindow();
                         }
