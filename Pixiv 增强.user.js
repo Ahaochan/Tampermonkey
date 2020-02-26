@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.7.5
+// @version     0.7.6
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -264,151 +264,8 @@ jQuery(function ($) {
         });
     })();
 
-    // 2. 使用users入り的方式进行搜索, 优先显示高质量作品
+    // 2/3. 搜索增强
     (function () {
-        let label = i18n('favorites'); // users入り
-        let $select = $(`
-        <select id="select-ahao-favorites">
-            <option value=""></option>
-            <option value="30000">30000users入り</option>
-            <option value="20000">20000users入り</option>
-            <option value="10000">10000users入り</option>
-            <option value="5000" > 5000users入り</option>
-            <option value="1000" > 1000users入り</option>
-            <option value="500"  >  500users入り</option>
-            <option value="300"  >  300users入り</option>
-            <option value="100"  >  100users入り</option>
-            <option value="50"   >   50users入り</option>
-        </select>`);
-
-        // 1. 初始化通用页面UI
-        (function () {
-            let enable = (isArtworkPage() || isMemberPage() || isSearchPage());
-            if (enable) {
-                return;
-            }
-            console.log("初始化通用页面 按收藏数搜索");
-            let icon = $('._discovery-icon').attr('src');
-            let $menu = $(`
-                <div class="menu-group">
-                    <a class="menu-item js-click-trackable-later">
-                        <img class="_howto-icon" src="${icon}">
-                        <span class="label">${label}：</span>
-                    <!--select-->
-                    </a>
-                </div>`);
-            $menu.find('span.label').after($select);
-            $('.navigation-menu-right').append($menu);
-
-        })();
-
-        // 2. 初始化作品页面和画师页面UI
-        (function () {
-            let enable = !(isArtworkPage() || isMemberPage() || isSearchPage());
-            if (enable) {
-                return;
-            }
-            console.log("初始化作品页面 按收藏数搜索");
-            let discoverySelector = 'a[href="/discovery"]';
-            observerFactory(function (mutations, observer) {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    let mutation = mutations[i];
-
-                    // 1. 判断是否改变节点, 或者是否有[发现]节点
-                    // let $discovery = $(mutation.target).find(discoverySelector);
-                    let $discovery = $(discoverySelector);
-                    if (mutation.type !== 'childList' || $discovery.length <= 0) {
-                        continue;
-                    }
-
-                    // 2. clone [发现]节点, 移除href属性, 避免死循环
-                    let $tabGroup = $discovery.closest('div');
-                    let $tab = $discovery.closest('ul').clone();
-                    $tab.find(discoverySelector).attr('href', 'javascript:void(0)');
-
-                    // 3. 加入dom中
-                    $tabGroup.prepend($tab);
-                    $tab.find('a').contents().last()[0].textContent = label;
-                    $tab.find('a').after($select);
-
-                    observer.disconnect();
-                    break;
-                }
-            });
-        })();
-
-        setTimeout(() => {
-            // 3. 如果已经有搜索字符串, 就在改变选项时直接搜索
-            let $form = $('input[name="word"]').parent();
-            $('body').on('change', '#select-ahao-favorites', function () {
-                if (!!$('input[name="word"]').val()) {
-                    $form.submit();
-                }
-            });
-
-            // 4. 在提交搜索前处理搜索关键字
-            $form.submit(function (e) {
-                e.preventDefault();
-
-                let $text = $(this).find('input[name="word"]');
-                let $favorites = $('#select-ahao-favorites');
-                if(!!$favorites.val()) {
-                    // 2.4.1. 去除旧的搜索选项
-                    $text.val((index, val) => val.replace(/\d*users入り/g, ''));
-                    $text.val((index, val) => val.replace(/\d*$/g, ''));
-                    // 2.4.2. 去除多余空格
-                    $text.val((index, val) => val.replace(/\s\s*/g, ''));
-                    $text.val((index, val) => val + ' ');
-                    // 2.4.3. 添加新的搜索选项
-                    $text.val((index, val) => `${val}${$favorites.val()}`);
-                }
-
-                let value = $text.val();
-                if(!!value) {
-                    location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
-                }
-            });
-        }, 3000);
-    })();
-
-    // 3. 追加搜索pid和uid功能
-    (function () {
-        console.log("搜索UID和PID 初始化");
-        let initSearch = function (option) {
-            let options = $.extend({$form: null, placeholder: '', url: ''}, option);
-
-            if(!options.$form) {
-                console.log('搜索UID和PID 初始化失败, form元素获取失败');
-            }
-
-            // 1. 初始化表单UI
-            let $form = options.$form.clone();
-            $form.children('div').eq(1).remove();
-            $form.attr('class', 'ahao-search');
-            options.$form.before($form);
-
-            let $input = $form.find('input[type="text"]:first');
-            $input.attr('placeholder', options.placeholder);
-
-            // 2. 绑定submit事件
-            $form.submit(function (e) {
-                e.preventDefault();
-
-                let id = $input.val();
-                // 2.1. ID 必须为纯数字
-                if (!/^[0-9]+$/.test(id)) {
-                    let label = options.placeholder + i18n('illegal');
-                    alert(label);
-                    return;
-                }
-                // 2.2. 新窗口打开url
-                let url = option.url + id;
-                window.open(url);
-                // 2.3. 清空input等待下次输入
-                $input.val('');
-            });
-        };
-
         observerFactory(function (mutations, observer) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
@@ -417,13 +274,92 @@ jQuery(function ($) {
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
+                console.log("搜索增强 初始化");
 
                 // 2. 修改父级grid布局
-                $form.parent().css('grid-template-columns', '1fr 1fr 1fr minmax(auto, 528px) 1fr');
+                $form.parent().css('grid-template-columns', '2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
 
                 // 3. 搜索UID和PID
-                initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
-                initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
+                (function ($form) {
+                    let initSearch = function (option) {
+                        let options = $.extend({$form: null, placeholder: '', url: ''}, option);
+
+                        if(!options.$form) {
+                            console.log('搜索UID和PID 初始化失败, form元素获取失败');
+                        }
+
+                        // 1. 初始化表单UI
+                        let $form = options.$form.clone();
+                        $form.children('div').eq(1).remove();
+                        $form.attr('class', 'ahao-search');
+                        options.$form.before($form);
+
+                        let $input = $form.find('input[type="text"]:first');
+                        $input.attr('placeholder', options.placeholder);
+                        $input.val('');
+
+                        // 2. 绑定submit事件
+                        $form.submit(function (e) {
+                            e.preventDefault();
+
+                            let id = $input.val();
+                            // 2.1. ID 必须为纯数字
+                            if (!/^[0-9]+$/.test(id)) {
+                                let label = options.placeholder + i18n('illegal');
+                                alert(label);
+                                return;
+                            }
+                            // 2.2. 新窗口打开url
+                            let url = option.url + id;
+                            window.open(url);
+                            // 2.3. 清空input等待下次输入
+                            $input.val('');
+                        });
+                    };
+                    initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/'});
+                    initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/'});
+                })($form);
+
+                // 4. 搜索条件
+                (function ($form) {
+                    let label = i18n('favorites'); // users入り
+                    let $input = $form.find('input[type="text"]:first');
+                    let $select = $(`
+                    <select id="select-ahao-favorites">
+                        <option value=""></option>
+                        <option value="30000users入り">30000users入り</option>
+                        <option value="20000users入り">20000users入り</option>
+                        <option value="10000users入り">10000users入り</option>
+                        <option value="5000users入り" > 5000users入り</option>
+                        <option value="1000users入り" > 1000users入り</option>
+                        <option value="500users入り"  >  500users入り</option>
+                        <option value="300users入り"  >  300users入り</option>
+                        <option value="100users入り"  >  100users入り</option>
+                        <option value="50users入り"   >   50users入り</option>
+                    </select>`);
+                    $select.on('change', function () { if (!!$input.val()) { $form.submit(); }});
+                    $form.after($select);
+                    $form.submit(function (e) {
+                        e.preventDefault();
+
+                        if(!!$select.val()) {
+                            // 2.4.1. 去除旧的搜索选项
+                            $input.val((index, val) => val.replace(/\d*users入り/g, ''));
+                            $input.val((index, val) => val.replace(/\d*$/g, ''));
+                            // 2.4.2. 去除多余空格
+                            $input.val((index, val) => val.replace(/\s\s*/g, ''));
+                            $input.val((index, val) => val + ' ');
+                            // 2.4.3. 添加新的搜索选项
+                            $input.val((index, val) => `${val}${$select.val()}`);
+                        }
+
+                        let value = $input.val();
+                        if(!!value) {
+                            location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
+                        }
+                    });
+                })($form);
+
                 observer.disconnect();
                 break;
             }

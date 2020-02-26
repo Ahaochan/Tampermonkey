@@ -6,20 +6,27 @@
 // @author      Ahaochan
 // @include     https://www\.wjx\.cn/[(jq)|(m)|(hj)]/\d+\.aspx
 // @match       https://www.wjx.cn/*
+// @grant       GM.setValue
+// @grant       GM.getValue
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // ==/UserScript==
 
 (function ($) {
     'use strict';
-    var shuffle = function (array) {
+    let A = 0, B = 1, C = 2, D = 3, E = 4, F = 5, G = 6;
+    let shuffle = function (array) {
         for (var j, x, i = array.length; i; j = parseInt(Math.random() * i), x = array[--i], array[i] = array[j], array[j] = x) ;
         return array;
     };
     let url = {
         jq: /https:\/\/www\.wjx\.cn\/jq\/\w+\.aspx/.test(location.href),
         hj: /https:\/\/www\.wjx\.cn\/hj\/\w+\.aspx/.test(location.href),
-        m:  /https:\/\/www\.wjx\.cn\/m\/\w+\.aspx/.test(location.href)
+        m: /https:\/\/www\.wjx\.cn\/m\/\w+\.aspx/.test(location.href)
     };
+
+    (function (setValue) {
+
+    })(GM.setValue);
 
     var $fieldset = $('#fieldset1');
 
@@ -38,43 +45,55 @@
                     return true;
                 }
             }, option);
+
             options.$fieldset.find(options.questionSelector).each(function () {
                 var $this = $(this);
-                var title = $this.find(options.titleSelector).text();
                 var $answers = $this.find(options.answerSelector);
 
-                // 匹配标题, 用于固定某些题目的答案
-                // if (title.indexOf('匹配标题') > -1) {
-                //     $radios.eq(1).click(); // 选中B选项
-                //     $radios.eq(Math.round(Math.random() * (3 - 1))).click(); // 随机选中范围
-                //     return;
-                // }
-
-                // 1. 单选题自动填写, 随机点击一个答案
-                (function () {
+                let fillInput = function (value) {
+                    // 1. 单选题自动填写
                     if (options.isRadio($answers)) {
-                        var index = Math.round(Math.random() * ($answers.length - 1));
-                        $answers.eq(index).click();
+                        // 默认随机填写
+                        if(!value) { value = Math.round(Math.random() * ($answers.length - 1)); }
+                        $answers.eq(value).click();
                     }
-                })();
 
-                // 2. 多选题自动填写, 打乱按钮顺序, 随机点击多个答案
-                (function () {
+                    // 2. 多选题自动填写, 打乱按钮顺序, 默认随机点击多个答案
                     if (options.isCheckbox($answers)) {
-                        // 2.1. 打乱顺序
-                        $answers = shuffle($answers);
-
-                        // 2.2. 多选重复num次填写
-                        var num = Math.round(Math.random() * ($answers.length - 1)) || 1;
-                        for (var i = 0, len = num; i < len; i++) {
-                            $answers.eq(i).click();
+                        // 默认随机点击多个答案
+                        if(!value.length) {
+                            $answers = shuffle($answers); // 打乱顺序
+                            let num = Math.round(Math.random() * ($answers.length - 1)) || 1;
+                            for (let i = 0, len = num; i < len; i++) {
+                                value.push(i);
+                            }
                         }
+                        $.each(value, (index, item) => $answers.eq(item).click());
                     }
-                })();
+                };
+
+                // 1. 初始化 是否记住选项的checkbox
+                let $title = $this.find(options.titleSelector), title = $title.text();
+
+                let $remember = $('<input type="checkbox" name="' + title + 'Remember">');
+                $remember.on('change', function () {
+                    let checked = $(this).is(':checked');
+                    GM.setValue(title+'Remember', pattern);
+                });
+
+
+                $title.append($remember).append('(记住选项)');
+
+                // 2. 恢复上次选中的选项
+                GM.getValue(title+'Remember').then(function (value) {
+                    $remember.prop('checked', !!value);
+                    fillInput(value);
+                });
             });
         },
         // 2. 比重题
         ratingQuestion: function (option) {
+            return;
             var options = $.extend({
                 $fieldset: undefined,   // 表单
                 answerSelector: ''      // 答案的selector
@@ -85,6 +104,8 @@
                 // 随机点击某一个选项
                 $td.eq(Math.round(Math.random() * ($td.length - 1))).click();
             });
+
+
         },
         // 3. 自动提交
         autoSubmit: function (option) {
