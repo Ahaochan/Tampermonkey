@@ -468,6 +468,12 @@ jQuery(function ($) {
                         if (new RegExp(`.*i\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
                             $target.attr(attr, value).css('filter', 'none');
                             $target.fitWindow();
+                        } else if (new RegExp(`.*i-f\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
+                            $target.attr(attr, value).css('filter', 'none');
+                            $target.fitWindow();
+                        } else if (new RegExp(`.*i-cf\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) && !/.+original.+/.test(oldValue)) {
+                            $target.attr(attr, value).css('filter', 'none');
+                            $target.fitWindow();
                         }
                     };
 
