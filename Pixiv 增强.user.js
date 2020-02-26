@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.7.4
+// @version     0.7.5
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -373,31 +373,27 @@ jQuery(function ($) {
 
     // 3. 追加搜索pid和uid功能
     (function () {
-        let enable = (isArtworkPage() || isMemberPage() || isSearchPage());
-        if (enable) {
-            return;
-        }
-        console.log("初始化通用页面 搜索UID和PID");
+        console.log("搜索UID和PID 初始化");
         let initSearch = function (option) {
-            let options = $.extend({right: '0px', placeholder: '', url: ''}, option);
+            let options = $.extend({$form: null, placeholder: '', url: ''}, option);
+
+            if(!options.$form) {
+                console.log('搜索UID和PID 初始化失败, form元素获取失败');
+            }
 
             // 1. 初始化表单UI
-            let $form = $(`<form class="ui-search" style="position: static;width: 100px;">
-                <div class="container" style="width:80%;">
-                    <input class="ahao-input" placeholder="${options.placeholder}" style="width:80%;"/>
-                </div>
-                <input type="submit" class="submit sprites-search-old" value="">
-                </form>`);
-            let $div = $('<div class="ahao-search"></div>').css('position', 'absolute')
-                .css('bottom', '44px').css('height', '30px').css('right', options.right);
-            $div.append($form);
-            $('#suggest-container').before($div);
+            let $form = options.$form.clone();
+            $form.children('div').eq(1).remove();
+            $form.attr('class', 'ahao-search');
+            options.$form.before($form);
+
+            let $input = $form.find('input[type="text"]:first');
+            $input.attr('placeholder', options.placeholder);
 
             // 2. 绑定submit事件
             $form.submit(function (e) {
                 e.preventDefault();
 
-                let $input = $(this).find('.ahao-input');
                 let id = $input.val();
                 // 2.1. ID 必须为纯数字
                 if (!/^[0-9]+$/.test(id)) {
@@ -412,75 +408,27 @@ jQuery(function ($) {
                 $input.val('');
             });
         };
-        // 1. UID搜索
-        initSearch({right: '235px', placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
-        // 2. PID搜索
-        initSearch({
-            right: '345px',
-            placeholder: 'PID',
-            url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
-        });
-    })(); // 初始化通用页面UI
-    (function () {
-        let enable = !(isArtworkPage() || isMemberPage() || isSearchPage());
-        if (enable) {
-            return;
-        }
-        console.log("初始化作品页面 搜索UID和PID");
 
         observerFactory(function (mutations, observer) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
-                // let $form = $(mutation.target).find(formSelector);
-                let $form = $('input[name="word"]').parent('form');
+                let $form = $('input[type="text"]').parent('div').parent('form');
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
 
-                // 2. 使用flex布局包裹
-                let $flexBox = $('<div></div>').css('display', 'flex');
-                $form.wrap($flexBox);
-                $flexBox = $form.closest('div');
+                // 2. 修改父级grid布局
+                $form.parent().css('grid-template-columns', '1fr 1fr 1fr minmax(auto, 528px) 1fr');
 
-                let initSearch = function (option) {
-                    let options = $.extend({placeholder: '', url: ''}, option);
-
-                    // 1. clone form表单
-                    let $cloneForm = $form.clone();
-                    $cloneForm.attr('action', '').addClass('ahao-search').css('margin-right', '15px').css('width', '126px');
-                    $cloneForm.find('input[name="s_mode"]').remove(); // 只保留一个input
-                    $cloneForm.find('input:first').attr('placeholder', options.placeholder).attr('name', options.placeholder).css('width', '64px').val('');
-                    $flexBox.prepend($cloneForm);
-
-                    // 2. 绑定submit事件
-                    $cloneForm.submit(function (e) {
-                        e.preventDefault();
-
-                        let $input = $(this).find(`input[name="${options.placeholder}"]`);
-                        let id = $input.val();
-                        // ID 必须为纯数字
-                        if (!/^[0-9]+$/.test(id)) {
-                            var label = options.placeholder + i18n('illegal');
-                            alert(label);
-                            return;
-                        }
-                        // 新窗口打开url
-                        let url = option.url + id;
-                        window.open(url);
-                        // 清空input等待下次输入
-                        $input.val('');
-                    });
-                };
-                // 3. UID搜索
-                initSearch({placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
-                // 4. PID搜索
-                initSearch({placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
+                // 3. 搜索UID和PID
+                initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/member.php?id='});
+                initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='});
                 observer.disconnect();
                 break;
             }
         });
-    })(); // 初始化作品页面和画师页面UI
+    })();
 
     // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
     (async function () {
