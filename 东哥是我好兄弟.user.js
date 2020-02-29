@@ -38,6 +38,7 @@ jQuery(function ($) {
         // ============================= 手动 ======================================},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 5},
         {name: "简单赚钱", url: "https://jddx.jd.com/m/jdd/money/index.html", multi: 6}, // class = indexSign
+        {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
         {name: "天天赚零钱", url: "https://m.jr.jd.com/btyingxiao/advertMoney/html/home.html?from=jddzqicon"},
     ];
 
