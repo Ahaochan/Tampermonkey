@@ -272,7 +272,7 @@ jQuery(function ($) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
-                let $form = $('form:not([action])');
+                let $form = $('#js-mount-point-header form:not([action])');
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
