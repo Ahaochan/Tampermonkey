@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.8.0
+// @version     0.8.1
 // @icon        http://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -272,14 +272,14 @@ jQuery(function ($) {
             for (let i = 0, len = mutations.length; i < len; i++) {
                 let mutation = mutations[i];
                 // 1. 判断是否改变节点, 或者是否有[form]节点
-                let $form = $('#js-mount-point-header form:not([action])');
+                let $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
                 if (mutation.type !== 'childList' || !$form.length) {
                     continue;
                 }
                 console.log("搜索增强 初始化");
 
                 // 2. 修改父级grid布局
-                $form.parent().css('grid-template-columns', '2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
+                $form.parent().parent().css('grid-template-columns', '2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
 
                 // 3. 搜索UID和PID
                 (function ($form) {
@@ -291,10 +291,11 @@ jQuery(function ($) {
                         }
 
                         // 1. 初始化表单UI
-                        let $form = options.$form.clone();
+                        let $parent = options.$form.parent().clone();
+                        let $form = $parent.find('form');
                         $form.children('div').eq(1).remove();
                         $form.attr('class', 'ahao-search');
-                        options.$form.before($form);
+                        options.$form.parent().before($parent);
 
                         let $input = $form.find('input[type="text"]:first');
                         $input.attr('placeholder', options.placeholder);
@@ -340,7 +341,7 @@ jQuery(function ($) {
                         <option value="50users入り"   >   50users入り</option>
                     </select>`);
                     $select.on('change', function () { if (!!$input.val()) { $form.submit(); }});
-                    $form.after($select);
+                    $form.parent().after($select);
                     $form.submit(function (e) {
                         e.preventDefault();
 
