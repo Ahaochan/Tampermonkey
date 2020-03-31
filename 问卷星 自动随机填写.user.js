@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        问卷星 自动随机填写
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.3
+// @version     0.0.4
 // @description 问卷星 自动随机填写, 目前支持单选题, 多选题, 比重题, 有需要自动填写的题型, 请在反馈或issue提出并附带问卷地址。github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
 // @author      Ahaochan
 // @include     https://www\.wjx\.cn/[(jq)|(m)|(hj)]/\d+\.aspx
@@ -61,7 +61,8 @@
                     // 2. 多选题自动填写, 打乱按钮顺序, 默认随机点击多个答案
                     if (options.isCheckbox($answers)) {
                         // 默认随机点击多个答案
-                        if(!value.length) {
+                        if(!value || !value.length) {
+                            value = [];
                             $answers = shuffle($answers); // 打乱顺序
                             let num = Math.round(Math.random() * ($answers.length - 1)) || 1;
                             for (let i = 0, len = num; i < len; i++) {
