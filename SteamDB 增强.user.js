@@ -31,7 +31,7 @@ jQuery(function ($) {
             // 2. 添加排序功能
             $thead.find('th').each(function (index, ele) {
                 let $th = $(this);
-                $th.text($th.text() + 'v');
+                $th.text($th.text() + '  v');
                 $th.attr('ahao-asc', 1);
 
                 $th.click(function () {
@@ -57,7 +57,8 @@ jQuery(function ($) {
         (function ($table, $thead, $tbody) {
             $tbody.find('tr').each(function () {
                 let $tr = $(this);
-                let command = `!addlicense ${$tr.attr('data-appid')}`;
+                let id = $tr.children('td').eq(1).find('a').attr('href').match(/\d+/);
+                let command = `!addlicense ${id}`;
                 let $td = $(`<td>${command}</td>`);
                 $td.click(function () {
                     let $this = $(this);
