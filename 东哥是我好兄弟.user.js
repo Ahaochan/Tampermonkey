@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        东哥是我好兄弟
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.1
+// @version     0.0.2
 // @icon        https://bean.m.jd.com/favicon.ico
 // @description 狗东助手
 // @author      Ahaochan
@@ -25,7 +25,7 @@ jQuery(function ($) {
         {name: "领京豆", url: "https://bean.m.jd.com/"},
         {name: "京豆大转盘", url: "https://turntable.m.jd.com/?actId=jgpqtzjhvaoym&appSource=jdhome"},
         {name: "京东支付单单反", url: "https://m.jr.jd.com/vip/activity/newperback/index.html?businessNo=jr_fuli"},
-        {name: "摇一摇领京豆", url: "https://vip.jd.com/newPage/reward?from=groupmessage&isappinstalled=0"},
+        {name: "摇一摇领京豆", url: "https://vip.m.jd.com/newPage/reward/123dd"},
         // ============================= 脚本 ======================================},
         {name: "金币天天抽奖", url: "https://m.jr.jd.com/member/coinlottery/index.html"},
         {name: "宠物馆", url: "https://pro.m.jd.com/mall/active/3GCjZzanFWbJEU4xYEjqfPfovokM/index.html"},
@@ -37,6 +37,7 @@ jQuery(function ($) {
         {name: "超市签到有礼", url: "https://pro.m.jd.com/mall/active/aNCM6yrzD6qp1Vvh5YTzeJtk7cM/index.html"},
         {name: "拍拍二手签到有礼", url: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"},
         // ============================= 手动 ======================================},
+        {name: "金币商城", url: "https://member.jr.jd.com/gcmall/", multi: 1},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 5},
         {name: "简单赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 6}, // class = indexSign
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
