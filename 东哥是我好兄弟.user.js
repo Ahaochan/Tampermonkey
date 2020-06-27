@@ -104,10 +104,4 @@ jQuery(function ($) {
         $('#adMain').attr('id', '');
         $('#adFloorCont').css('width', 'auto');
     });
-
-    // 每日签到【https://uf.jr.jd.com/activities/sign/v5/index.html?channel= 】
-    exec(/uf\.jr\.jd\.com\/activities\/sign\/v5\/index\.html.*/, '#adFloorCont', () => {
-        $('#adMain').attr('id', '');
-        $('#adFloorCont').css('width', 'auto');
-    });
 });
