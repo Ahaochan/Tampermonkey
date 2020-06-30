@@ -1,7 +1,5 @@
 // ==UserScript==
 // @name        东哥是我好兄弟
-// @name:zh-CN  Pixiv 增强
-// @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.3
 // @icon        https://bean.m.jd.com/favicon.ico
