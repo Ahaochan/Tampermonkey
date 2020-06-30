@@ -103,9 +103,4 @@ jQuery(function ($) {
         $('#adMain').attr('id', '');
         $('#adFloorCont').css('width', 'auto');
     });
-
-    // 京豆商城【https://jdmall.m.jd.com/beansForPrizes 】
-    exec(/uf\.jr\.jd\.com\/activities\/sign\/v5\/index\.html.*/, 'span:contains("免费")', ($this) => {
-        $this.click();
-    });
 });
