@@ -58,8 +58,7 @@ jQuery(function ($) {
 
                 let name = dong[idx].name;
                 let url = dong[idx].url;
-                let multi = dong[idx].multi || 1;
-
+                let multi = (typeof dong[idx].multi === 'undefined') ? 1 : dong[idx].multi;
                 for (let i = 0; i < multi; i++) {
                     GM.openInTab(url, true);
                 }
