@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name        东哥是我好兄弟
+// @name:zh-CN  Pixiv 增强
+// @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.0.3
 // @icon        https://bean.m.jd.com/favicon.ico
-// @description 狗东助手
+// @description 在任意jd.com页面按下alt+A, 实现页面签到领金币钢镚等功能. 部分功能已实现自动化, 少部分需要手动签到.
 // @author      Ahaochan
 // @include     http*://*.jd.com*
 // @license     GPL-3.0
@@ -11,6 +13,7 @@
 // @grant       GM.openInTab
 // @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @run-at      document-end
+// @noframes
 // ==/UserScript==
 jQuery(function ($) {
     'use strict';
