@@ -23,6 +23,8 @@ jQuery(function ($) {
         {name: "点商品赚京豆", url: "https://jddx.jd.com/m/reward/product-list.html?from=kggicon&cu=true", multi: 0},
         {name: "逛商品赚京豆", url: "https://jddx.jd.com/m/reward/product-list.html?from=zqdhdljd", multi: 0},
         {name: "天天赚零钱", url: "https://m.jr.jd.com/btyingxiao/advertMoney/html/home.html?from=jddzqicon", multi: 0},
+
+        {name: "京东母婴", url: "https://pro.m.jd.com/mall/active/3BbAVGQPDd6vTyHYjmAutXrKAos6/index.html", multi: 0},
         // ============================= 京价保自动 ======================================},
         {name: "领京豆", url: "https://bean.m.jd.com/"},
         {name: "京豆大转盘", url: "https://turntable.m.jd.com/?actId=jgpqtzjhvaoym&appSource=jdhome"},
@@ -36,19 +38,20 @@ jQuery(function ($) {
         {name: "女装馆", url: "https://pro.m.jd.com/mall/active/DpSh7ma8JV7QAxSE2gJNro8Q2h9/index.html"},
         {name: "京东个护", url: "https://pro.m.jd.com/mall/active/NJ1kd1PJWhwvhtim73VPsD1HwY3/index.html"},
         {name: "京东图书", url: "https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html"},
-        {name: "京东母婴", url: "https://pro.m.jd.com/mall/active/3BbAVGQPDd6vTyHYjmAutXrKAos6/index.html"},
         {name: "家庭清洁馆", url: "https://pro.m.jd.com/mall/active/2xV4nJszqQKgQSie4PXYyoCWFHmB/index.html"},
         {name: "超市签到有礼", url: "https://pro.m.jd.com/mall/active/aNCM6yrzD6qp1Vvh5YTzeJtk7cM/index.html"},
         {name: "拍拍二手签到有礼", url: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"},
         {name: "珠宝馆", url: "https://pro.m.jd.com/mall/active/zHUHpTHNTaztSRfNBFNVZscyFZU/index.html"},
         {name: "美妆馆", url: "https://pro.m.jd.com/mall/active/2smCxzLNuam5L14zNJHYu43ovbAP/index.html"},
+        {name: "美食馆", url: "https://pro.m.jd.com/mall/active/4PzvVmLSBq5K63oq4oxKcDtFtzJo/index.html"},
 
-        {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/KcfFqWvhb5hHtaQkS4SD1UU6RcQ/index.html"},
+        {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html"},
         // ============================= 手动 ======================================},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 3},
         {name: "简单赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 0}, // class = indexSign
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
         {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes"},
+        {name: "进店签到领京豆", url: "https://bean.jd.com/myJingBean/list"},
     ];
 
     $(document).keydown(function (e) {
@@ -103,5 +106,26 @@ jQuery(function ($) {
     exec(/uf\.jr\.jd\.com\/activities\/sign\/v5\/index\.html.*/, '#adFloorCont', () => {
         $('#adMain').attr('id', '');
         $('#adFloorCont').css('width', 'auto');
+    });
+
+    // 摇一摇领京豆【https://vip.m.jd.com/newPage/reward/123dd 】
+    exec(/vip\.m\.jd\.com\/newPage\/reward\/123dd.*/, 'p.shakeNum', () => {
+        $('div.rewardBoxBot').click();
+    });
+
+    // 进店签到领京豆【https://bean.jd.com/myJingBean/list 】
+    exec(/bean\.jd\.com\/myJingBean\/list.*/, 'ul.bean-shop-list', ($this) => {
+        $this.find('li').show().find('a.s-btn')
+            .map((i, ele) => $(ele).attr('href'))
+            .each((i, ele) => GM.openInTab(ele, true));
+    });
+    exec(/\.jd\.com.*/, 'a.unsigned', ($this) => {
+        setTimeout(() => {
+            const url = $('a.unsigned').attr('url');
+            if(!!url) {
+                console.log(url);
+                location.href = url;
+            }
+        }, 2000);
     });
 });
