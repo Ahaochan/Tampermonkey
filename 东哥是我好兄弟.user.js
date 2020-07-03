@@ -97,9 +97,18 @@ jQuery(function ($) {
     });
 
     // 京东图书【https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html 】
-    exec(/pro\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module', () => {
+    exec(/pro\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module, span.chance-cn-num', () => {
         $('.signIn_btn').click();
         $('.signIn_bg').click();
+
+        let timer = setInterval(() => {
+            let $selector = $('span.chance-cn-num');
+            if ($selector.length > 0 && parseInt($selector.text()) === 0) {
+                clearInterval(timer);
+                return;
+            }
+            $('div.arrow').click();
+        }, 2000);
     });
 
     // 每日签到【https://uf.jr.jd.com/activities/sign/v5/index.html?channel= 】
@@ -128,4 +137,12 @@ jQuery(function ($) {
             }
         }, 2000);
     });
+
+
+    function sleep(millis) {
+        const date = new Date();
+        let curDate = null;
+        do { curDate = new Date(); }
+        while(curDate-date < millis);
+    }
 });
