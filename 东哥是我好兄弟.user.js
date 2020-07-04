@@ -75,19 +75,24 @@ jQuery(function ($) {
     // 加载依赖
     let exec = (reg, selector, fun) => {
         if (!reg.test(location.href)) {
-           return;
+            return;
         }
-        $('html, body').animate({scrollTop: document.body.scrollHeight}, 0);
-        // console.log("滚动:" + document.body.scrollHeight);
+        const $body = $('html, body');
+        $body.animate({scrollTop: document.body.scrollHeight}, 0);
+        let success = false;
         let timer = setInterval(() => {
             let $selector = $(selector);
             // console.log($selector);
             if ($selector.length > 0) {
                 $('html, body').animate({scrollTop: $selector.offset().top}, 0);
+                success = true;
                 fun($selector);
                 clearInterval(timer);
             }
         }, 300);
+        setTimeout(() => {
+            if (!success) $body.animate({scrollTop: 0}, 0)
+        }, 3000);
     };
 
     // 金币天天抽奖【https://m.jr.jd.com/activity/brief/jingdougangbeng/index.html 】
@@ -133,18 +138,10 @@ jQuery(function ($) {
     exec(/\.jd\.com.*/, 'a.unsigned', ($this) => {
         setTimeout(() => {
             const url = $('a.unsigned').attr('url');
-            if(!!url) {
+            if (!!url) {
                 console.log(url);
                 location.href = url;
             }
         }, 2000);
     });
-
-
-    function sleep(millis) {
-        const date = new Date();
-        let curDate = null;
-        do { curDate = new Date(); }
-        while(curDate-date < millis);
-    }
 });
