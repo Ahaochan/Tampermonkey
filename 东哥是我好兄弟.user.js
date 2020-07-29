@@ -49,11 +49,12 @@ jQuery(function ($) {
 
         {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html"},
         // ============================= 手动 ======================================},
-        {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 3},
+        {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 1},
         {name: "简单赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 0}, // class = indexSign
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
         {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes"},
         {name: "进店签到领京豆", url: "https://bean.jd.com/myJingBean/list"},
+        {name: "赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 4}
     ];
 
     $(document).keydown(function (e) {
