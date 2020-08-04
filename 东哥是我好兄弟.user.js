@@ -108,6 +108,7 @@ jQuery(function ($) {
     exec(/pro(dev)?\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module, span.chance-cn-num', () => {
         $('.signIn_btn').click();
         $('.signIn_bg').click();
+        $('.sign_btn').click();
 
         let timer = setInterval(() => {
             let $selector = $('span.chance-cn-num');
