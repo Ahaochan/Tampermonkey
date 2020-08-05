@@ -105,7 +105,7 @@ jQuery(function ($) {
     });
 
     // 京东图书【https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html 】
-    exec(/pro(dev)?\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module, span.chance-cn-num', () => {
+    exec(/pro(dev)?\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module, span.chance-cn-num, .sign_btn', () => {
         $('.signIn_btn').click();
         $('.signIn_bg').click();
         $('.sign_btn').click();
