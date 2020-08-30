@@ -6,7 +6,7 @@
 // @author      Ahaochan
 // @include     http*://*.imooc.com*
 // @match       https://coding.imooc.com/*
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
+// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
 // ==/UserScript==
 
 (function ($) {

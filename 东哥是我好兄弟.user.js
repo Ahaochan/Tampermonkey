@@ -9,7 +9,7 @@
 // @license     GPL-3.0
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @grant       GM.openInTab
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
+// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
 // @run-at      document-end
 // @noframes
 // ==/UserScript==

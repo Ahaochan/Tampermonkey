@@ -11,7 +11,7 @@
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @include     http*://greasyfork.org*
 // @include     http*://www.greasyfork.org/*
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
+// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
 // ==/UserScript==
 
 (function ($) {

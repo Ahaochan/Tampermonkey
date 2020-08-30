@@ -12,7 +12,7 @@
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @grant       GM.setClipboard
 // @grant       GM_setClipboard
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
+// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
 // @require     https://greasyfork.org/scripts/375359-gm4-polyfill-1-0-1/code/gm4-polyfill-101.js?version=652238
 // @run-at      document-end
 // @noframes
