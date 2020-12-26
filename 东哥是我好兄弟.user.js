@@ -23,12 +23,14 @@ jQuery(function ($) {
         {name: "点商品赚京豆", url: "https://jddx.jd.com/m/reward/product-list.html?from=kggicon&cu=true", multi: 0},
         {name: "逛商品赚京豆", url: "https://jddx.jd.com/m/reward/product-list.html?from=zqdhdljd", multi: 0},
         {name: "天天赚零钱", url: "https://m.jr.jd.com/btyingxiao/advertMoney/html/home.html?from=jddzqicon", multi: 0},
+        {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes", multi: 0},
 
 
         {name: "幸运大抽奖", url: "https://prodev.m.jd.com/mall/active/4U7xcDsnuNEm4D3DygUM5Dafwb2t/index.html", multi: 0},
         {name: "家庭清洁馆", url: "https://pro.m.jd.com/mall/active/2xV4nJszqQKgQSie4PXYyoCWFHmB/index.html", multi: 0},
         {name: "超市签到有礼", url: "https://pro.m.jd.com/mall/active/aNCM6yrzD6qp1Vvh5YTzeJtk7cM/index.html", multi: 0},
-        {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html", multi: 0},
+        {name: "美食馆", url: "https://pro.m.jd.com/mall/active/4PzvVmLSBq5K63oq4oxKcDtFtzJo/index.html", multi: 0},
+        {name: "京东电竞", url: "https://pro.m.jd.com/mall/active/CHdHQhA5AYDXXQN9FLt3QUAPRsB/index.html", multi: 0},
         // ============================= 京价保自动 ======================================},
         {name: "领京豆", url: "https://bean.m.jd.com/"},
         {name: "京豆大转盘", url: "https://turntable.m.jd.com/?actId=jgpqtzjhvaoym&appSource=jdhome"},
@@ -44,24 +46,26 @@ jQuery(function ($) {
         {name: "京东图书", url: "https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html"},
         {name: "京东清洁馆", url: "https://pro.m.jd.com/mall/active/2Tjm6ay1ZbZ3v7UbriTj6kHy9dn6/index.html"},
         {name: "京东母婴", url: "https://pro.m.jd.com/mall/active/3BbAVGQPDd6vTyHYjmAutXrKAos6/index.html"},
-        {name: "京东电竞", url: "https://pro.m.jd.com/mall/active/CHdHQhA5AYDXXQN9FLt3QUAPRsB/index.html"},
+        {name: "京东健康", url: "https://prodev.m.jd.com/mall/active/w2oeK5yLdHqHvwef7SMMy4PL8LF/index.html"},
+
+        {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html"},
 
         {name: "拍拍二手签到有礼", url: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"},
         {name: "珠宝馆", url: "https://pro.m.jd.com/mall/active/zHUHpTHNTaztSRfNBFNVZscyFZU/index.html"},
         {name: "美妆馆", url: "https://pro.m.jd.com/mall/active/2smCxzLNuam5L14zNJHYu43ovbAP/index.html"},
-        {name: "美食馆", url: "https://pro.m.jd.com/mall/active/4PzvVmLSBq5K63oq4oxKcDtFtzJo/index.html"},
+
         // ============================= 手动 ======================================},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 1},
-        {name: "简单赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 0}, // class = indexSign
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
-        {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes"},
+
         {name: "进店签到领京豆", url: "https://bean.jd.com/myJingBean/list"},
-        {name: "赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 4}
+        {name: "赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 1}
     ];
 
     $(document).keydown(function (e) {
-        // Alt+A 快捷键
-        if (e.keyCode == 65 && e.altKey) {
+        // Alt+Z 快捷键
+        console.log('e.keyCode:' + e.keyCode + ', e.altKey:' + e.altKey);
+        if (e.keyCode == 90 && e.altKey) {
             for (let idx in dong) {
                 if (!dong.hasOwnProperty(idx)) continue;
 
@@ -109,6 +113,8 @@ jQuery(function ($) {
     // 京东图书【https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html 】
     exec(/pro(dev)?\.m\.jd\.com\/mall\/active\/.*\/index\.html/, '.signIn_module, span.chance-cn-num, .sign_btn', () => {
         $('.signIn_btn').click();
+        $('.signIn_module').click();
+        $('.signIn_wrap').click();
         $('.signIn_bg').click();
         $('.sign_btn').click();
 
