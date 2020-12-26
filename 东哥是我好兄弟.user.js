@@ -59,6 +59,7 @@ jQuery(function ($) {
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
 
         {name: "进店签到领京豆", url: "https://bean.jd.com/myJingBean/list"},
+        {name: "天天加速", url: "https://h5.m.jd.com/babelDiy/Zeus/6yCQo2eDJPbyPXrC3eMCtMWZ9ey/index.html"},
         {name: "赚钱", url: "https://jddx.jd.com/m/jddnew/money/index.html?from=zqjdzfgzhqfl", multi: 1}
     ];
 
