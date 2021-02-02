@@ -43,10 +43,12 @@ jQuery(function ($) {
         {name: "宠物馆", url: "https://pro.m.jd.com/mall/active/37ta5sh5ocrMZF3Fz5UMJbTsL42/index.html"},
         {name: "女装馆", url: "https://pro.m.jd.com/mall/active/DpSh7ma8JV7QAxSE2gJNro8Q2h9/index.html"},
         {name: "京东个护", url: "https://pro.m.jd.com/mall/active/NJ1kd1PJWhwvhtim73VPsD1HwY3/index.html"},
+        {name: "京东个护V2", url: "https://prodev.m.jd.com/mall/active/2tZssTgnQsiUqhmg5ooLSHY9XSeN/index.html"},
         {name: "京东图书", url: "https://pro.m.jd.com/mall/active/3SC6rw5iBg66qrXPGmZMqFDwcyXi/index.html"},
         {name: "京东清洁馆", url: "https://pro.m.jd.com/mall/active/2Tjm6ay1ZbZ3v7UbriTj6kHy9dn6/index.html"},
         {name: "京东母婴", url: "https://pro.m.jd.com/mall/active/3BbAVGQPDd6vTyHYjmAutXrKAos6/index.html"},
         {name: "京东健康", url: "https://prodev.m.jd.com/mall/active/w2oeK5yLdHqHvwef7SMMy4PL8LF/index.html"},
+        {name: "酒饮馆", url: "https://prodev.m.jd.com/mall/active/zGwAUzL3pVGjptBBGeYfpKjYdtX/index.html"},
 
         {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html"},
 
