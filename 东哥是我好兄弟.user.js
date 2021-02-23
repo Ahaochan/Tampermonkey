@@ -116,7 +116,6 @@ jQuery(function ($) {
 
     // 加载依赖
     const match = (option) => {
-        return;
         const options = $.extend({
             regex: '',
             url: '',
@@ -195,7 +194,12 @@ jQuery(function ($) {
     // 摇一摇领京豆【https://vip.m.jd.com/newPage/reward/123dd 】
     match({
         url: 'vip.m.jd.com/newPage/reward/123dd',
-        $selector: $('div.rewardBoxBot'),
+        fun: () => {
+            if($('div.rewardPageTop p.shakeNum span').text() > 0) {
+                $('div.rewardBoxBot').click();
+            }
+            $('i.common-popup-close').click();
+        },
         keep: true
     })
 
