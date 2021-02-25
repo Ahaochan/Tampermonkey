@@ -701,7 +701,8 @@ jQuery(function ($) {
                 continue;
             }
             // 1. 添加新的一行的div
-            let $ahaoRow = $row.clone(), $ul = $ahaoRow.find('ul');
+            let $ahaoRow = $row.clone(), $ul = $ahaoRow.children('ul');
+            $ahaoRow.children(':not(ul)').remove();
             $ul.empty();
             $row.before($ahaoRow);
 
