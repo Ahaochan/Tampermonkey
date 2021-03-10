@@ -230,5 +230,18 @@ jQuery(function ($) {
     match({
         url: 'jingcai-h5.jd.com',
         $selector: $('ul.beans-list li.active')
-    })
+    });
+
+    match({
+        url: 'jddx.jd.com/m/jddnew/money/index.html',
+        fun: () => {
+            const $tip = $('div.start p.tip');
+            if($tip.length > 0 && $tip.text().replace(/[^0-9]/ig,"") <= 0) {
+                return true;
+            }
+            $('div.jr-popup-mask').click();
+            $('div.start').click();
+            return false;
+        }
+    });
 });
