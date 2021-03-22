@@ -163,6 +163,7 @@ jQuery(function ($) {
         switchImgSize:  'switch-img-size',              // 是否显示图片大小的开关
         switchImgPreload: 'switch-img-preload',         // 是否预下载的开关
         switchComment: 'switch-comment',                // 是否自动加载评论的开关
+        switchImgMulti: 'switchImgMulti',               // 是否自动加载多图的开关
         switchOrderByPopular: 'switch-order-by-popular',// 是否按收藏数排序的开关(单页排序)
 
         downloadName: 'download-name',  // 下载名pattern
@@ -616,7 +617,7 @@ jQuery(function ($) {
                 console.log('下载多图');
 
                 // 2. 查看全部图片
-                $shareBtn.parent('section').next('button').click();
+                GM.getValue(GMkeys.switchImgMulti, true).then(open => { if(open) { $shareBtn.parent('section').next('button').click(); } });
 
                 // 3. 初始化 图片数量, 图片url
                 let zip = new JSZip();
@@ -1024,6 +1025,7 @@ jQuery(function ($) {
                 <tr><th width="185">Pixiv增强配置</th><td width="500">
                     <label><input type="checkbox" name="${GMkeys.MO}">兼容PJAX(推荐)</label><br/>
                     <label><input type="checkbox" name="${GMkeys.switchComment}">自动加载评论</label><br/>
+                    <label><input type="checkbox" name="${GMkeys.switchImgMulti}">自动加载多图</label><br/>
                     <label><input type="checkbox" name="${GMkeys.switchImgSize}">显示图片尺寸大小</label><br/>
                     <label><input type="checkbox" name="${GMkeys.switchImgPreload}">预下载Gif、Zip(耗流量)</label><br/>
 
