@@ -54,6 +54,7 @@ jQuery(function ($) {
         {name: "珠宝馆", url: "https://pro.m.jd.com/mall/active/zHUHpTHNTaztSRfNBFNVZscyFZU/index.html"},
         {name: "美妆馆", url: "https://pro.m.jd.com/mall/active/2smCxzLNuam5L14zNJHYu43ovbAP/index.html"},
 
+        {name: "摇京豆", url: "https://spa.jd.com/home"},
         // ============================= 手动 ======================================},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 1},
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
@@ -150,9 +151,10 @@ jQuery(function ($) {
                     success |= true;
                 }
             }
-            if(options.fun()) {
+            if(options.fun) {
                 log('自定义处理');
-                success |= options.fun();
+                var a = options.fun();
+                success |= a;
             }
 
             const keep = options.keep || !success;
@@ -244,4 +246,33 @@ jQuery(function ($) {
             return false;
         }
     });
+
+    match({
+        url: 'spa.jd.com/home',
+        fun: () => {
+            const $times = $('.bottom-btn-times');
+            if($times.length > 0 && $times.text().replace(/[^0-9]/ig,"") > 0) {
+                $times.click();
+                return false;
+            }
+
+
+            const $dialog = $('body').children().last();
+            if($dialog && $dialog.attr('id') && $dialog.attr('id').indexOf('common-dialog-container-') >= 0) {
+                const $items = $dialog.find('.li_status.list_item_con');
+                if($items.length > 0) {
+                    $items.each((index, e) => {
+                        $(e).click()
+                    });
+                    return false;
+                } else {
+                    $('.common-dialog-close').click();
+                    return true;
+                }
+            } else {
+                $('.add-lottery-times-box').click();
+            }
+            return false;
+        }
+    })
 });
