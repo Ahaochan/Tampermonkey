@@ -18,18 +18,11 @@ jQuery(function ($) {
 
     let dong = [
         // ================================ 作废 ======================================},
-        {name: "狂欢九宫格", url: "https://red-e.jd.com/resources/lottery/index.html", multi: 0},
-        {name: "每日镚一镚", url: "https://red-e.jd.com/resources/pineapple/index.html", multi: 0},
-        {name: "天天赚零钱", url: "https://m.jr.jd.com/btyingxiao/advertMoney/html/home.html?from=jddzqicon", multi: 0},
-        {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes", multi: 0},
+        // {name: "狂欢九宫格", url: "https://red-e.jd.com/resources/lottery/index.html"},
+        // {name: "每日镚一镚", url: "https://red-e.jd.com/resources/pineapple/index.html"},
+        // {name: "天天赚零钱", url: "https://m.jr.jd.com/btyingxiao/advertMoney/html/home.html?from=jddzqicon"},
+        // {name: "京豆商城", url: "https://jdmall.m.jd.com/beansForPrizes"},
 
-
-        {name: "幸运大抽奖", url: "https://prodev.m.jd.com/mall/active/4U7xcDsnuNEm4D3DygUM5Dafwb2t/index.html", multi: 0},
-        {name: "家庭清洁馆", url: "https://pro.m.jd.com/mall/active/2xV4nJszqQKgQSie4PXYyoCWFHmB/index.html", multi: 0},
-        {name: "超市签到有礼", url: "https://pro.m.jd.com/mall/active/aNCM6yrzD6qp1Vvh5YTzeJtk7cM/index.html", multi: 0},
-        {name: "美食馆", url: "https://pro.m.jd.com/mall/active/4PzvVmLSBq5K63oq4oxKcDtFtzJo/index.html", multi: 0},
-        {name: "宠物馆", url: "https://pro.m.jd.com/mall/active/37ta5sh5ocrMZF3Fz5UMJbTsL42/index.html", multi: 0},
-        {name: "酒饮馆", url: "https://prodev.m.jd.com/mall/active/zGwAUzL3pVGjptBBGeYfpKjYdtX/index.html", multi: 0},
         // ============================= 京价保自动 ======================================},
         {name: "领京豆", url: "https://bean.m.jd.com/"},
         {name: "京豆大转盘", url: "https://turntable.m.jd.com/?actId=jgpqtzjhvaoym&appSource=jdhome"},
@@ -61,9 +54,17 @@ jQuery(function ($) {
         {name: "京东商城-美妆", url: "https://pro.m.jd.com/mall/active/2smCxzLNuam5L14zNJHYu43ovbAP/index.html"},
         {name: "京东商城-菜场", url: "https://pro.m.jd.com/mall/active/Wcu2LVCFMkBP3HraRvb7pgSpt64/index.html"},
 
+        // {name: "幸运大抽奖", url: "https://prodev.m.jd.com/mall/active/4U7xcDsnuNEm4D3DygUM5Dafwb2t/index.html"},
+        // {name: "家庭清洁馆", url: "https://pro.m.jd.com/mall/active/2xV4nJszqQKgQSie4PXYyoCWFHmB/index.html"},
+        // {name: "超市签到有礼", url: "https://pro.m.jd.com/mall/active/aNCM6yrzD6qp1Vvh5YTzeJtk7cM/index.html"},
+        // {name: "美食馆", url: "https://pro.m.jd.com/mall/active/4PzvVmLSBq5K63oq4oxKcDtFtzJo/index.html"},
+        // {name: "宠物馆", url: "https://pro.m.jd.com/mall/active/37ta5sh5ocrMZF3Fz5UMJbTsL42/index.html"},
+        // {name: "酒饮馆", url: "https://prodev.m.jd.com/mall/active/zGwAUzL3pVGjptBBGeYfpKjYdtX/index.html"},
+
         {name: "京东智能生活馆", url: "https://pro.m.jd.com/mall/active/UXg9JimBZwtnR83kjA45iBJjZWD/index.html"},
 
         {name: "摇京豆", url: "https://spa.jd.com/home"},
+        {name: "幸运大抽奖", url: 'https://jdda.jd.com/app/hd'},
         // ============================= 手动 ======================================},
         {name: "每日签到", url: "https://uf.jr.jd.com/activities/sign/v5/index.html?channel=", multi: 1},
         {name: "今日刮大奖", url: "https://prodev.m.jd.com/mall/active/4YCspTbG36PSi8BW31mp71NR1GQP/index.html&?from=gwddf"},
@@ -283,5 +284,11 @@ jQuery(function ($) {
             }
             return false;
         }
+    })
+
+    match({
+        url: 'jdda.jd.com/app/hd',
+        $selector: $('div.clickBtn'),
+        keep: true
     })
 });
