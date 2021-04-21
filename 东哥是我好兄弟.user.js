@@ -53,6 +53,7 @@ jQuery(function ($) {
         {name: "京东商城-珠宝", url: "https://pro.m.jd.com/mall/active/zHUHpTHNTaztSRfNBFNVZscyFZU/index.html"},
         {name: "京东商城-美妆", url: "https://pro.m.jd.com/mall/active/2smCxzLNuam5L14zNJHYu43ovbAP/index.html"},
         {name: "京东商城-菜场", url: "https://pro.m.jd.com/mall/active/Wcu2LVCFMkBP3HraRvb7pgSpt64/index.html"},
+        {name: "深夜有故事", url: "https://pro.m.jd.com/mall/active/UcyW9Znv3xeyixW1gofhW2DAoz4/index.html"},
 
         // {name: "幸运大抽奖", url: "https://prodev.m.jd.com/mall/active/4U7xcDsnuNEm4D3DygUM5Dafwb2t/index.html"},
         // {name: "家庭清洁馆", url: "https://pro.m.jd.com/mall/active/2xV4nJszqQKgQSie4PXYyoCWFHmB/index.html"},
