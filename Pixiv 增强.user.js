@@ -555,7 +555,7 @@ jQuery(function ($) {
                                             img.width = illust().width;
                                             img.height = illust().height;
                                             img.onload = function () {
-                                                gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
+                                                gifFrames[frameIdx] = {frame: img, option: {delay: frames[frameIdx].delay}};
                                                 if (Object.keys(gifFrames).length >= framesLen) {
                                                     $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
                                                     gifFactory.render();
