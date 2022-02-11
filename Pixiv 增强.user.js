@@ -674,7 +674,7 @@ jQuery(function ($) {
                         // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
                         GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
                             zip.generateAsync({type: 'blob', base64: true})
-                                .then(content => saveAs(content, getDownloadName(name)));
+                                .then(content => saveAs(content, getDownloadName(name) + addSuffixOrNo(isNeedAddSuffix(), ".zip")));
                         });
                     }
                 });
@@ -687,6 +687,21 @@ jQuery(function ($) {
             }
         });
     })();
+    function addSuffixOrNo(isNeed, suffixName) {// 暂无测试gif格式的情况，所以保留这个函数与让它可通过传入后缀名
+        if (isNeed) {
+            return suffixName
+        } else {
+            return ""
+        }
+    }
+    function isNeedAddSuffix() {
+        // 暂时只知道fireFox会出现下载压缩包时没有后缀的情况
+        if (navigator.userAgent.indexOf("Firefox") > -1) {
+            return true
+        } else {
+            return false
+        }
+    }
 
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
     observerFactory(function (mutations, observer) {
