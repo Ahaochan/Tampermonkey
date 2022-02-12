@@ -533,7 +533,7 @@ jQuery(function ($) {
                                     gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
 
                                 for (let frameIdx = 0, frames = response.body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
-                                    let frame = frames[i],
+                                    let frame = frames[frameIdx],
                                         url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
                                     GM.xmlHttpRequest({
                                         method: 'GET', url: url,
