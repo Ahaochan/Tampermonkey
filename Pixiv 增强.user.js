@@ -533,7 +533,7 @@ jQuery(function ($) {
                                     gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
 
                                 for (let frameIdx = 0, frames = response.body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
-                                    let frame = frames[i],
+                                    let frame = frames[frameIdx],
                                         url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
                                     GM.xmlHttpRequest({
                                         method: 'GET', url: url,
@@ -555,7 +555,7 @@ jQuery(function ($) {
                                             img.width = illust().width;
                                             img.height = illust().height;
                                             img.onload = function () {
-                                                gifFrames[frameIdx] = {frame: img, option: {delay: frames[frameIdx].delay}};
+                                                gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
                                                 if (Object.keys(gifFrames).length >= framesLen) {
                                                     $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
                                                     gifFactory.render();
