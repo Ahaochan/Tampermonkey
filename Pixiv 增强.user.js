@@ -27,7 +27,7 @@
 // @grant       GM_setClipboard
 // @grant       GM_setValue
 // @grant       GM_getValue
-// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
+// @require     https://code.jquery.com/jquery-2.2.4.min.js
 // @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
 // @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
 // @require     https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
