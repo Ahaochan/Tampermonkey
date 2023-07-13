@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Fuck重定向
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.0.1
+// @version     0.0.2
 // @description 屏蔽链接自动跳转，目前支持QQ
 // @author      Ahaochan
 // @include     http*://c.pc.qq.com/middlem.html?pfurl=*
