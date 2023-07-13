@@ -5,6 +5,7 @@
 // @description 屏蔽链接自动跳转，目前支持QQ
 // @author      Ahaochan
 // @include     http*://c.pc.qq.com/middlem.html?pfurl=*
+// @license     GPL-3.0
 // @supportURL  https://github.com/Ahaochan/Tampermonkey
 // @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
 // @run-at      document-end
