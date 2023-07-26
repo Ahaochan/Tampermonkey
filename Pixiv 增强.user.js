@@ -251,7 +251,8 @@ jQuery(function ($) {
 
         // 2. 删除动态添加的广告
         let adSelectors = ['iframe', '._premium-lead-promotion-banner',
-            'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]' // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
+            'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]', // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
+            'a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"]'
         ];
 
         observerFactory(function (mutations, observer) {
