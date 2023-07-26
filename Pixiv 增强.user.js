@@ -256,15 +256,15 @@ jQuery(function ($) {
         ];
 
         observerFactory(function (mutations, observer) {
-            mutations.forEach(function (mutation) {
-                if (mutation.type !== 'childList') {
-                    return;
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        for (const selector of adSelectors) {
+                            $(node).find(selector).hide();
+                        }
+                    }
                 }
-                let $parent = $(mutation.target).parent();
-                // 2.1. 隐藏广告
-                let $ad = $parent.find(adSelectors.join(','));
-                $ad.hide();
-            });
+            }
         });
     })();
 
