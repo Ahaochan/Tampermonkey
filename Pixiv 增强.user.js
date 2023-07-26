@@ -844,7 +844,6 @@ jQuery(function ($) {
         if(!open || !isArtworkPage()){
             return;
         }
-        let moreCommentSelector = '._1Hom0qN';
         let moreReplaySelector = '._28zR1MQ';
         observerFactory(function (mutations, observer) {
             for (let i = 0, len = mutations.length; i < len; i++) {
@@ -853,9 +852,12 @@ jQuery(function ($) {
                 if (mutation.type !== 'childList') {
                     continue;
                 }
+
                 // 2. 模拟点击加载按钮
-                let $moreCommentBtn = $(mutation.target).find(moreCommentSelector);
-                $moreCommentBtn.click();
+                const $moreCommentBtn = $("div > div:eq(2) > div div[role='button']")[0];
+                if($moreCommentBtn) {
+                    $moreCommentBtn.click();
+                }
 
                 let $moreReplayBtn = $(mutation.target).find(moreReplaySelector);
                 $moreReplayBtn.click();
