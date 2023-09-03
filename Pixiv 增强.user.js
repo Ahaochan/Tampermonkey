@@ -281,7 +281,7 @@ jQuery(function ($) {
                 console.log("搜索增强 初始化");
 
                 // 2. 修改父级grid布局
-                $form.parent().parent().css('grid-template-columns', '2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
+                $form.parent().parent().css('grid-template-columns', '2fr 2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
 
                 // 3. 搜索UID和PID
                 (function ($form) {
@@ -323,6 +323,7 @@ jQuery(function ($) {
                     };
                     initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/'});
                     initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/'});
+                    initSearch({$form: $form, placeholder: '作者',url: "https://www.pixiv.net/search_user.php?nick="})
                 })($form);
 
                 // 4. 搜索条件
