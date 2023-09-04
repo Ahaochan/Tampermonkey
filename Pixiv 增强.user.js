@@ -502,7 +502,7 @@ jQuery($ => {
                 GM.getValue(GMkeys.switchImgSize, true).then(open => {
                     if (!!open) {
                         // 1. 找到 显示图片大小 的 span, 没有则添加
-                        const $span = $img.next('span');
+                        let $span = $img.next('span');
                         if ($span.length <= 0) {
                             // 添加前 去除失去依赖的 span
                             $('body').find('.ahao-img-size').each(function () {
@@ -514,6 +514,7 @@ jQuery($ => {
                             });
                             $img.after(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
                     color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>`);
+                            $span = $img.next('span');
                         }
                         // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
                         if ($img.prop('tagName') === 'IMG') {
@@ -581,7 +582,7 @@ jQuery($ => {
                         $link.each(function () {
                             const $this = $(this);
                             const href = $this.parent('a').attr('href');
-                            if (!!href && href.endsWith('jpg')) {
+                            if (!!href && (href.endsWith('jpg') || href.endsWith('png'))) {
                                 replaceImg($this, 'src', href);
                                 addImgSize({ $img: $this }); // 显示图片大小
                             }
