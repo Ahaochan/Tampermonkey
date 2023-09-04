@@ -184,6 +184,7 @@ jQuery($ => {
     // ============================ i18n 国际化 ===============================
     const i18nLib = {
         ja: {
+            load_origin: 'load_origin',
             ad_disable: 'ad_disable',
             search_enhance: 'search_enhance',
             download_able: 'download_able',
@@ -196,6 +197,7 @@ jQuery($ => {
             author: '創作家',
         },
         en: {
+            load_origin: 'load_origin',
             ad_disable: 'ad_disable',
             search_enhance: 'search_enhance',
             download_able: 'download_able',
@@ -220,6 +222,7 @@ jQuery($ => {
         },
         ko: {},
         zh: {
+            load_origin: '加载原图',
             ad_disable: '屏蔽广告',
             search_enhance: '搜索增强',
             download_able: '开启下载',
@@ -244,6 +247,7 @@ jQuery($ => {
         },
         'zh-cn': {},
         'zh-tw': {
+            load_origin: '加載原圖',
             ad_disable: '屏蔽廣告',
             search_enhance: '搜索增強',
             download_able: '開啟下載',
@@ -292,6 +296,7 @@ jQuery($ => {
             ['comment_load', true],
             ['artwork_tag', true],
             ['redirect_cancel', true],
+            ['load_origin', true]
         ];
         const len = menu.length;
         for (let i = 0; i < len; i++) {
@@ -419,7 +424,7 @@ jQuery($ => {
                                 $input.val('');
                             });
                         };
-                        initSearch({ $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/' , searchType: idSearch});
+                        initSearch({ $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
                         initSearch({ $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
                         initSearch({ $form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch })
                     })($form);
@@ -583,7 +588,9 @@ jQuery($ => {
                             const $this = $(this);
                             const href = $this.parent('a').attr('href');
                             if (!!href && (href.endsWith('jpg') || href.endsWith('png'))) {
-                                replaceImg($this, 'src', href);
+                                if (config.load_origin) {
+                                    replaceImg($this, 'src', href);
+                                }
                                 addImgSize({ $img: $this }); // 显示图片大小
                             }
                         });
