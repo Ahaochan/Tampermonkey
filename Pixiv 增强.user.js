@@ -566,23 +566,23 @@ jQuery($ => {
                     for (let i = 0, len = mutations.length; i < len; i++) {
                         const mutation = mutations[i];
                         const $target = $(mutation.target);
+                        const originReg = new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`);
                         const replaceImg = ($target, attr, value) => {
                             const oldValue = $target.attr(attr);
                             if (new RegExp(`https?://i(-f|-cf)?\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) &&
-                                !new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`).test(oldValue)) {
+                                !originReg.test(oldValue)) {
                                 $target.attr(attr, value).css('filter', 'none');
                                 $target.fitWindow();
                             }
                         };
 
                         // 1. 单图、多图 DOM 结构都为 <a href=""><img/></a>
-                        const $link = $target.find('img[srcset]');
+                        const $link = $target.find('img[src$=jpg]');
                         $link.each(function () {
                             const $this = $(this);
                             const href = $this.parent('a').attr('href');
-                            if (!!href) {
+                            if (!!href && href.endsWith('jpg')) {
                                 replaceImg($this, 'src', href);
-                                replaceImg($this, 'srcset', href);
                                 addImgSize({ $img: $this }); // 显示图片大小
                             }
                         });
@@ -591,7 +591,7 @@ jQuery($ => {
                         // $('.e2p8rxc2').hide(); // 懒得适配了, 自行去个人资料设置 https://www.pixiv.net/setting_user.php
                     }
                 },
-                option: { attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'srcset', 'href'] }
+                option: { attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href'] }
             });
             // 下载动图帧zip, gif图
             const c = () => observerFactory((mutations, observer) => {
