@@ -378,12 +378,14 @@ jQuery($ => {
                     log("搜索增强 初始化");
 
                     // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '2fr 2fr 2fr 2fr minmax(auto, 528px) 1fr 2fr');
+                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
 
                     // 3. 搜索UID，PID和作者
                     ($form => {
+                        const idSearch = true;
+                        const otherSearch = false;
                         const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', url: '' }, option);
+                            const options = $.extend({ $form: null, placeholder: '', url: '', searchType: idSearch }, option);
 
                             if (!options.$form) {
                                 error('搜索UID和PID 初始化失败, form元素获取失败');
@@ -403,10 +405,9 @@ jQuery($ => {
                             // 2. 绑定submit事件
                             $form.submit(e => {
                                 e.preventDefault();
-
-                                const id = $input.val();
+                                const id = encodeURIComponent($input.val());
                                 // 2.1. ID 必须为纯数字
-                                if (!/^[0-9]+$/.test(id)) {
+                                if (options.searchType && !/^[0-9]+$/.test(id)) {
                                     const label = options.placeholder + i18n('illegal');
                                     alert(label);
                                     return;
@@ -418,11 +419,10 @@ jQuery($ => {
                                 $input.val('');
                             });
                         };
-                        initSearch({ $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/' });
-                        initSearch({ $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/' });
-                        initSearch({ $form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=" })
+                        initSearch({ $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/' , searchType: idSearch});
+                        initSearch({ $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
+                        initSearch({ $form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch })
                     })($form);
-
                     // 4. 搜索条件
                     ($form => {
                         const label = i18n('favorites'); // users入り
@@ -440,11 +440,12 @@ jQuery($ => {
                         <option value="100users入り"  >  100users入り</option>
                         <option value="50users入り"   >   50users入り</option>
                     </select>`);
-                        $select.on('change', () => { if (!!$input.val()) { $form.submit(); } });
+                        $select.on('change', () => {
+                            if (!!$input.val()) { $form.submit(); }
+                        });
                         $form.parent().after($select);
                         $form.submit(e => {
                             e.preventDefault();
-
                             if (!!$select.val()) {
                                 // 2.4.1. 去除旧的搜索选项
                                 $input.val((index, val) => val.replace(/\d*users入り/g, ''));
@@ -455,8 +456,7 @@ jQuery($ => {
                                 // 2.4.3. 添加新的搜索选项
                                 $input.val((index, val) => `${val}${$select.val()}`);
                             }
-
-                            const value = $input.val();
+                            const value = encodeURIComponent($input.val());
                             if (!!value) {
                                 location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
                             }
@@ -1092,10 +1092,11 @@ jQuery($ => {
                 if (observers[i][1] !== null) {
                     // ob组处理
                     if (observers[i][1] instanceof Array) {
-                        for (const ob of observers[i][1]) {
-                            if (ob !== null) {
-                                ob.disconnect();
-                                ob = null;
+                        const _len = observers[i][1];
+                        for (let j = 0; j < _len; j++) {
+                            if (observers[i][1][j][0] !== null) {
+                                observers[i][1][j][0].disconnect();
+                                observers[i][1][j][0] = null;
                             }
                         }
                     } else {
@@ -1108,10 +1109,10 @@ jQuery($ => {
                 if (!(observers[i][3])()) {
                     if (observers[i][1] !== null) {
                         if (observers[i][1] instanceof Array) {
-                            for (const v of observers[i][1]) {
-                                const ob = v[0];
-                                ob.disconnect();
-                                ob = null
+                            const _len = observers[i][1];
+                            for (let j = 0; j < _len; j++) {
+                                observers[i][1][j][0].disconnect();
+                                observers[i][1][j][0] = null
                             }
                         } else {
                             observers[i][1].disconnect();
@@ -1122,15 +1123,15 @@ jQuery($ => {
                     // 如果没有直接重新创建
                     if (observers[i][1] instanceof Array) {
                         // ob组特殊处理
-                        for (const v of observers[i][1]) {
-                            const ob = v[0];
-                            if (!(v[2])()) {
-                                if (ob !== null) {
-                                    ob.disconnect();
-                                    ob = null;
+                        const _len = observers[i][1];
+                        for (let j = 0; j < _len; j++) {
+                            if (!(observers[i][1][j][2])()) {
+                                if (observers[i][1][j][0] !== null) {
+                                    observers[i][1][j][0].disconnect();
+                                    observers[i][1][j][0] = null;
                                 }
-                            } else if (ob === null) {
-                                ob = (v[1])();
+                            } else if (observers[i][1][j][0] === null) {
+                                observers[i][1][j][0] = (observers[i][1][j][1])();
                             }
                         }
                     } else if (observers[i][1] === null) {
@@ -1269,5 +1270,4 @@ jQuery($ => {
 
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
-    //TODO 搜索框ui混乱 https://www.pixiv.net/member_illust.php?mode=medium&illust_id=899657
 });
