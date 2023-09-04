@@ -301,7 +301,7 @@ jQuery($ => {
                 GM_setValue(item, true);
                 menu[i][1] = true;
             }
-            menuId[i] = GM_registerMenuCommand(`${i18n(item)}${menu[i][1] ? '✅' : '❌'}`, () => {
+            menuId[i] = GM_registerMenuCommand(`${menu[i][1] ? '✅' : '❌'} ${i18n(item)}`, () => {
                 GM_setValue(item, !menu[i][1]);
                 registerMenu();
             });
