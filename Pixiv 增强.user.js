@@ -279,9 +279,9 @@ jQuery($ => {
 
 
     // ============================ 功能配置 ==============================
-    let config;
     let menuId = [];
     const registerMenu = () => {
+        // 用于刷新设置
         if (menuId.length) {
             const len = menuId.length;
             for (let i = 0; i < len; i++) {
@@ -321,7 +321,7 @@ jQuery($ => {
             redirect_cancel: menu[6][1],
         });
     };
-    config = registerMenu();
+    const config = registerMenu();
     // ============================ url 页面判断 ==============================
     const isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
@@ -1102,9 +1102,10 @@ jQuery($ => {
                     if (observers[i][1] instanceof Array) {
                         const _len = observers[i][1];
                         for (let j = 0; j < _len; j++) {
-                            if (observers[i][1][j][0] !== null) {
-                                observers[i][1][j][0].disconnect();
-                                observers[i][1][j][0] = null;
+                            const v = observers[i][1][j];
+                            if (v[0] !== null) {
+                                v[0].disconnect();
+                                v[0] = null;
                             }
                         }
                     } else {
@@ -1119,8 +1120,9 @@ jQuery($ => {
                         if (observers[i][1] instanceof Array) {
                             const _len = observers[i][1];
                             for (let j = 0; j < _len; j++) {
-                                observers[i][1][j][0].disconnect();
-                                observers[i][1][j][0] = null
+                                const v = observers[i][1][j];
+                                v[0].disconnect();
+                                v[0] = null
                             }
                         } else {
                             observers[i][1].disconnect();
@@ -1133,13 +1135,14 @@ jQuery($ => {
                         // ob组特殊处理
                         const _len = observers[i][1];
                         for (let j = 0; j < _len; j++) {
-                            if (!(observers[i][1][j][2])()) {
-                                if (observers[i][1][j][0] !== null) {
-                                    observers[i][1][j][0].disconnect();
-                                    observers[i][1][j][0] = null;
+                            const v = observers[i][1][j];
+                            if (!(v[2])()) {
+                                if ([0] !== null) {
+                                    v[0].disconnect();
+                                    v[0] = null;
                                 }
-                            } else if (observers[i][1][j][0] === null) {
-                                observers[i][1][j][0] = (observers[i][1][j][1])();
+                            } else if (v[0] === null) {
+                                v[0] = (v[1])();
                             }
                         }
                     } else if (observers[i][1] === null) {
