@@ -318,6 +318,7 @@ jQuery($ => {
             comment_load: menu[4][1],
             artwork_tag: menu[5][1],
             redirect_cancel: menu[6][1],
+            load_origin: menu[7][1],
         });
     };
     const config = registerMenu();
@@ -508,7 +509,7 @@ jQuery($ => {
                 options.$shareButtonContainer.after($downloadButtonContainer);
                 return $downloadButtonContainer;
             };
-            // TODO 单图显示图片尺寸异常 https://www.pixiv.net/artworks/109953681
+            // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
             // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
             const addImgSize = async option => {
                 // 从 $img 获取图片大小, after 到 $img
@@ -589,18 +590,17 @@ jQuery($ => {
                     for (let i = 0, len = mutations.length; i < len; i++) {
                         const mutation = mutations[i];
                         const $target = $(mutation.target);
-                        const originReg = new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`);
                         const replaceImg = function ($target, attr, value) {
                             let oldValue = $target.attr(attr);
                             if (new RegExp(`https?://i(-f|-cf)?\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) &&
-                                !originReg.test(oldValue)) {
+                                !new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`).test(oldValue)) {
                                 $target.attr(attr, value).css('filter', 'none');
                                 $target.fitWindow();
                             }
                         };
 
                         // 1. 单图、多图 DOM 结构都为 <a href=""><img/></a>
-                        const $link = $target.find('img[srcset]');
+                        const $link = $target.find('img[src]');
                         $link.each(function () {
                             let $this = $(this);
                             let href = $this.parent('a').attr('href');
