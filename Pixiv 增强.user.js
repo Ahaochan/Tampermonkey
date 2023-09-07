@@ -416,38 +416,25 @@ jQuery($ => {
                             // 2. 绑定submit事件
                             $form.submit(e => {
                                 e.preventDefault();
-                                const id = encodeURIComponent($input.val());
+                                const val = encodeURIComponent($input.val());
                                 // 2.1. ID 必须为纯数字
-                                if (!/^[0-9]+$/.test(id)) {
+                                if (options.searchType && !/^[0-9]+$/.test(val)) {
                                     let label = options.placeholder + i18n('illegal');
                                     alert(label);
                                     return;
                                 }
                                 // 2.2. 新窗口打开url
-                                const url = option.url + id;
+                                const url = option.url + val;
                                 window.open(url);
                                 // 2.3. 清空input等待下次输入
                                 $input.val('');
                             });
                         };
-                        initSearch({
-                            $form: $form,
-                            placeholder: 'UID',
-                            url: 'https://www.pixiv.net/users/',
-                            searchType: idSearch
-                        });
-                        initSearch({
-                            $form: $form,
-                            placeholder: 'PID',
-                            url: 'https://www.pixiv.net/artworks/',
-                            searchType: idSearch
-                        });
-                        initSearch({
-                            $form,
-                            placeholder: i18n('author'),
-                            url: "https://www.pixiv.net/search_user.php?nick=",
-                            searchType: otherSearch
-                        });
+                        initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch});
+                        initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch});
+                        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
+                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
+                        initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch});
                     })($form);
                     // 4. 搜索条件
                     (function ($form) {
@@ -521,6 +508,8 @@ jQuery($ => {
                 options.$shareButtonContainer.after($downloadButtonContainer);
                 return $downloadButtonContainer;
             };
+            // TODO 单图显示图片尺寸异常 https://www.pixiv.net/artworks/109953681
+            // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
             const addImgSize = async option => {
                 // 从 $img 获取图片大小, after 到 $img
                 const options = $.extend({
