@@ -983,7 +983,7 @@ jQuery($ => {
                 const skipButton = i18n('watchlist');
                 const moreReplaySelector = '._28zR1MQ';
                 t = observerFactory((mutations, observer) => {
-                    if (!isArtworkPage()) {
+                    if (!open || !isArtworkPage()) {
                         return;
                     }
                     for (let i = 0, len = mutations.length; i < len; i++) {
@@ -1014,8 +1014,7 @@ jQuery($ => {
                 });
             });
             return t;
-            // TODO 获取不到open
-        }, () => open && isArtworkPage()],
+        }, () => true],
         // 7. 对主页动态中的图片标记作品类型
         ['artwork_tag', null, () => {
             log('标记作品 初始化');
