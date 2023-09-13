@@ -384,7 +384,7 @@ jQuery($ => {
                     log("搜索增强 初始化");
 
                     // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
+                    $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
 
                     // 3. 搜索UID，PID和作者
                     ($form => {
@@ -425,7 +425,6 @@ jQuery($ => {
                                 $input.val('');
                             });
                         };
-                        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
                         initSearch({ $form, placeholder: 'UID', urlhandler: (url) => `https://www.pixiv.net/users/${url}`, searchType: idSearch });
                         initSearch({ $form, placeholder: 'PID', urlhandler: (url) => `https://www.pixiv.net/artworks/${url}`, searchType: idSearch });
                         initSearch({ $form, placeholder: i18n('author'), urlhandler: (url) => `https://www.pixiv.net/search_user.php?nick=${url}&s_mode=s_usr`, searchType: otherSearch })
