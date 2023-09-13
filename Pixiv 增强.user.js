@@ -391,7 +391,7 @@ jQuery($ => {
                         const idSearch = true;
                         const otherSearch = false;
                         const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', url: '', searchType: idSearch }, option);
+                            const options = $.extend({ $form: null, placeholder: '', urlhandler: (url) => { return '' }, searchType: idSearch }, option);
 
                             if (!options.$form) {
                                 error('搜索UID和PID 初始化失败, form元素获取失败');
@@ -425,11 +425,10 @@ jQuery($ => {
                                 $input.val('');
                             });
                         };
-                        initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
-                        initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
                         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
-                        initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
+                        initSearch({ $form, placeholder: 'UID', urlhandler: (url) => `https://www.pixiv.net/users/${url}`, searchType: idSearch });
+                        initSearch({ $form, placeholder: 'PID', urlhandler: (url) => `https://www.pixiv.net/artworks/${url}`, searchType: idSearch });
+                        initSearch({ $form, placeholder: i18n('author'), urlhandler: (url) => `https://www.pixiv.net/search_user.php?nick=${url}&s_mode=s_usr`, searchType: otherSearch })
                     })($form);
                     // 4. 搜索条件
                     ($form => {
@@ -1139,7 +1138,7 @@ jQuery($ => {
                         for (let j = 0; j < _len; j++) {
                             const v = observers[i][1][j];
                             if (!(v[2])()) {
-                                if ([0] !== null) {
+                                if (v[0] !== null) {
                                     v[0].disconnect();
                                     v[0] = null;
                                 }
