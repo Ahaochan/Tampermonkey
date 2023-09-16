@@ -143,8 +143,7 @@ jQuery($ => {
             };
         } else {
             options = $.extend({
-                callback: () => {
-                },
+                callback: () => { },
                 node: document.getElementsByTagName('body')[0],
                 option: { childList: true, subtree: true }
             }, option);
@@ -187,7 +186,7 @@ jQuery($ => {
             load_origin: 'load_origin',
             ad_disable: 'ad_disable',
             search_enhance: 'search_enhance',
-            download_able: 'download_able',
+            download_enable: 'download_enable',
             artist_info: 'artist_info',
             comment_load: 'comment_load',
             artwork_tag: 'artwork_tag',
@@ -200,7 +199,7 @@ jQuery($ => {
             load_origin: 'load_origin',
             ad_disable: 'ad_disable',
             search_enhance: 'search_enhance',
-            download_able: 'download_able',
+            download_enable: 'download_enable',
             artist_info: 'artist_info',
             comment_load: 'comment_load',
             artwork_tag: 'artwork_tag',
@@ -225,7 +224,7 @@ jQuery($ => {
             load_origin: '加载原图',
             ad_disable: '屏蔽广告',
             search_enhance: '搜索增强',
-            download_able: '开启下载',
+            download_enable: '开启下载',
             artist_info: '显示作者信息',
             comment_load: '加载评论',
             artwork_tag: '作品标记',
@@ -250,7 +249,7 @@ jQuery($ => {
             load_origin: '加載原圖',
             ad_disable: '屏蔽廣告',
             search_enhance: '搜索增強',
-            download_able: '開啟下載',
+            download_enable: '開啟下載',
             artist_info: '顯示作者信息',
             comment_load: '加載評論',
             artwork_tag: '作品標記',
@@ -291,7 +290,7 @@ jQuery($ => {
         const menu = [
             ['ad_disable', true],
             ['search_enhance', true],
-            ['download_able', true],
+            ['download_enable', true],
             ['artist_info', true],
             ['comment_load', true],
             ['artwork_tag', true],
@@ -314,7 +313,7 @@ jQuery($ => {
         return Object.freeze({
             ad_disable: menu[0][1],
             search_enhance: menu[1][1],
-            download_able: menu[2][1],
+            download_enable: menu[2][1],
             artist_info: menu[3][1],
             comment_load: menu[4][1],
             artwork_tag: menu[5][1],
@@ -475,7 +474,7 @@ jQuery($ => {
             })
             , () => true],
         // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-        ['download_able', null, async () => {
+        ['download_enable', null, async () => {
             // 1. 初始化方法
             const initDownloadBtn = option => {
                 // 下载按钮, 复制分享按钮并旋转180度
@@ -495,7 +494,6 @@ jQuery($ => {
                 return $downloadButtonContainer;
             };
             // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
-            // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
             const addImgSize = async option => {
                 // 从 $img 获取图片大小, after 到 $img
                 const options = $.extend({
@@ -543,13 +541,12 @@ jQuery($ => {
                 const lib = { png: "image/png", jpg: "image/jpeg", gif: "image/gif" };
                 return lib[suffix] || `mimeType[${suffix}] not found`;
             };
-            const getDownloadName = (name) => {
-                name = name.replace('{pid}', illust().illustId);
-                name = name.replace('{uid}', illust().userId);
-                name = name.replace('{pname}', illust().illustTitle);
-                name = name.replace('{uname}', illust().userName);
-                return name;
-            };
+            const getDownloadName = (name = '') =>
+                name.replace('{pid}', illust().illustId)
+                    .replace('{uid}', illust().userId)
+                    .replace('{pname}', illust().illustTitle)
+                    .replace('{uname}', illust().userName);
+            ;
             const isMoreMode = () => illust().pageCount > 1;
             const isGifMode = () => illust().illustType === 2;
             const isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
@@ -1092,7 +1089,12 @@ jQuery($ => {
         }
     }
     // 页面跳转不触发脚本重载时，用监听器关闭ob避免页面卡死和cpu占用飙升
-    window.navigation.addEventListener('navigate', () => {
+    const onpushstate = history.onpushstate;
+    history.onpushstate = () => {
+        if (typeof onpushstate === 'function') {
+            onpushstate();
+        }
+        log(location.href)
         for (let i = 0; i < len; i++) {
             // 功能设置没开启，关闭对应ob
             if (!config[observers[i][0]]) {
@@ -1151,7 +1153,7 @@ jQuery($ => {
                 }
             }
         }
-    });
+    };
     // 9. 单页排序
     (() => {
         if (!isSearchPage() || true) {
