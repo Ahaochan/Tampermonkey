@@ -1206,7 +1206,8 @@ jQuery($ => {
     const len = observers.length;
     // 初始化ob
     for (let i = 0; i < len; i++) {
-        if ((((typeof observers[i][0] === 'Array' && observers[i][0].some(v => config[v])) || !config[observers[i][0]]) || config[observers[i][0]]) && observers[i][1] === null) {
+        if (((observers[i][0] instanceof Array && observers[i][0].some(v => config[v])) || config[observers[i][0]] === true) && observers[i][1] === null) {
+
             const _observer = (observers[i][2])();
             // 有一个ob组特殊处理
             if (_observer instanceof Promise) {
@@ -1224,7 +1225,7 @@ jQuery($ => {
         }
         for (let i = 0; i < len; i++) {
             // 功能设置没开启，关闭对应ob
-            if ((typeof observers[i][0] === 'Array' && !observers[i][0].some(v => config[v])) || !config[observers[i][0]]) {
+            if ((observers[i][0] instanceof Array && observers[i][0].some(v => !config[v])) || config[observers[i][0]] === false) {
                 // ob已创建
                 if (observers[i][1] !== null) {
                     // ob组处理
