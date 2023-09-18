@@ -317,7 +317,7 @@ jQuery($ => {
     }
     const config = initConfig();
     const settingsPanel = () => {
-        var $panel = $(`
+        const $panel = $(`
         <style>
             #pixiv-plus-panel-wrap {
                 position: fixed;
@@ -390,7 +390,7 @@ jQuery($ => {
                 </div>
             </div>
         </div>
-        `)
+        `);
         const $items_wrap = $panel.find('#pixiv-plus-settings-items-wrap');
         for (const name of settingNames) {
             $items_wrap.append($(`
@@ -482,7 +482,7 @@ jQuery($ => {
                         const idSearch = true;
                         const otherSearch = false;
                         const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', urlhandler: (url) => { return '' }, searchType: idSearch }, option);
+                            const options = $.extend({ $form: null, placeholder: '', urlhandler: url => '', searchType: idSearch }, option);
 
                             if (!options.$form) {
                                 error('搜索UID和PID 初始化失败, form元素获取失败');
@@ -771,7 +771,8 @@ jQuery($ => {
                                         const frame = frames[frameIdx];
                                         const url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
                                         GM.xmlHttpRequest({
-                                            method: 'GET', url: url,
+                                            method: 'GET',
+                                            url,
                                             headers: { referer: 'https://www.pixiv.net/' },
                                             overrideMimeType: 'text/plain; charset=x-user-defined',
                                             onload ({ responseText }) {
@@ -877,7 +878,8 @@ jQuery($ => {
                                 $(this).attr('start', true);
                                 $.each(imgUrls, (index, url) => {
                                     GM.xmlHttpRequest({
-                                        method: 'GET', url: url,
+                                        method: 'GET',
+                                        url,
                                         headers: { referer: 'https://www.pixiv.net/' },
                                         overrideMimeType: 'text/plain; charset=x-user-defined',
                                         onload ({ responseText }) {
