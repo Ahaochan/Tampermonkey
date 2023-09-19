@@ -384,7 +384,7 @@ jQuery($ => {
                     log("搜索增强 初始化");
 
                     // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
+                    $form.parent().parent().css('grid-template-columns', '1fr minmax(60px, auto) minmax(60px, auto) minmax(60px, auto) 2fr minmax(30px, auto) 2fr 1fr 2fr');
 
                     // 3. 搜索UID，PID和作者
                     ($form => {
