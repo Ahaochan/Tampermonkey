@@ -510,7 +510,7 @@ jQuery($ => {
                                     return;
                                 }
                                 // 2.2. 新窗口打开url
-                                const url = option.url + val;
+                                const url = option.urlhandler(val);
                                 window.open(url);
                                 // 2.3. 清空input等待下次输入
                                 $input.val('');
