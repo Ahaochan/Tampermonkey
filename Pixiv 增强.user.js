@@ -143,8 +143,7 @@ jQuery($ => {
             };
         } else {
             options = $.extend({
-                callback: () => {
-                },
+                callback: () => { },
                 node: document.getElementsByTagName('body')[0],
                 option: { childList: true, subtree: true }
             }, option);
@@ -184,10 +183,13 @@ jQuery($ => {
     // ============================ i18n 国际化 ===============================
     const i18nLib = {
         ja: {
+            settings: '設定',
             load_origin: 'load_origin',
             ad_disable: 'ad_disable',
-            search_enhance: 'search_enhance',
-            download_able: 'download_able',
+            download_enable: 'download_enable',
+            search_enhance_UID: 'search_enhance(UID)',
+            search_enhance_PID: 'search_enhance(PID)',
+            search_enhance_Author: 'search_enhance(Author)',
             artist_info: 'artist_info',
             comment_load: 'comment_load',
             artwork_tag: 'artwork_tag',
@@ -197,10 +199,13 @@ jQuery($ => {
             author: '創作家',
         },
         en: {
+            settings: 'Settings',
             load_origin: 'load_origin',
             ad_disable: 'ad_disable',
-            search_enhance: 'search_enhance',
-            download_able: 'download_able',
+            download_enable: 'download_enable',
+            search_enhance_UID: 'search_enhance(UID)',
+            search_enhance_PID: 'search_enhance(PID)',
+            search_enhance_Author: 'search_enhance(Author)',
             artist_info: 'artist_info',
             comment_load: 'comment_load',
             artwork_tag: 'artwork_tag',
@@ -222,10 +227,13 @@ jQuery($ => {
         },
         ko: {},
         zh: {
+            settings: '设置',
             load_origin: '加载原图',
             ad_disable: '屏蔽广告',
-            search_enhance: '搜索增强',
-            download_able: '开启下载',
+            download_enable: '开启下载',
+            search_enhance_UID: '搜索增强(UID)',
+            search_enhance_PID: '搜索增强(PID)',
+            search_enhance_Author: '搜索增强(作者)',
             artist_info: '显示作者信息',
             comment_load: '加载评论',
             artwork_tag: '作品标记',
@@ -247,10 +255,13 @@ jQuery($ => {
         },
         'zh-cn': {},
         'zh-tw': {
+            settings: '設置',
             load_origin: '加載原圖',
             ad_disable: '屏蔽廣告',
-            search_enhance: '搜索增強',
-            download_able: '開啟下載',
+            download_enable: '開啟下載',
+            search_enhance_UID: '搜索增強(UID)',
+            search_enhance_PID: '搜索增強(PID)',
+            search_enhance_Author: '搜索增強(作者)',
             artist_info: '顯示作者信息',
             comment_load: '加載評論',
             artwork_tag: '作品標記',
@@ -279,50 +290,133 @@ jQuery($ => {
 
 
     // ============================ 功能配置 ==============================
-    let menuId = [];
-    const registerMenu = () => {
-        // 用于刷新设置
-        if (menuId.length) {
-            const len = menuId.length;
-            for (let i = 0; i < len; i++) {
-                GM_unregisterMenuCommand(menuId[i]);
+    const settingNames = [
+        'ad_disable',
+        'download_enable',
+        'search_enhance_UID',
+        'search_enhance_PID',
+        'search_enhance_Author',
+        'artist_info',
+        'comment_load',
+        'artwork_tag',
+        'redirect_cancel',
+        'load_origin'
+    ];
+
+    const initConfig = () => {
+        const config = {};
+        for (const k of settingNames) {
+            let enable = GM_getValue(k)
+            if (enable === null || enable === undefined) {
+                GM.setValue(k, true);
+                enable = true;
             }
+            config[k] = enable;
         }
-        const menu = [
-            ['ad_disable', true],
-            ['search_enhance', true],
-            ['download_able', true],
-            ['artist_info', true],
-            ['comment_load', true],
-            ['artwork_tag', true],
-            ['redirect_cancel', true],
-            ['load_origin', true]
-        ];
-        const len = menu.length;
-        for (let i = 0; i < len; i++) {
-            const item = menu[i][0];
-            menu[i][1] = GM_getValue(item);
-            if (menu[i][1] === null || menu[i][1] === undefined) {
-                GM_setValue(item, true);
-                menu[i][1] = true;
+        return config;
+    }
+    const config = initConfig();
+    const settingsPanel = () => {
+        const $panel = $(`
+        <style>
+            #pixiv-plus-panel-wrap {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                z-index: 99;
+                background-color: rgba(0, 0, 0, 0.32);
+                user-select: none;
             }
-            menuId[i] = GM_registerMenuCommand(`${menu[i][1] ? '✅' : '❌'} ${i18n(item)}`, () => {
-                GM_setValue(item, !menu[i][1]);
-                registerMenu();
+            #pixiv-plus-panel {
+                position: relative;
+                background-color: #fff;
+                border-radius: 24px;
+                margin: auto;
+                padding: 20px 40px 30px 40px;
+                font-size: 16px;
+            }
+            #pixiv-plus-header-wrap {
+                display:flex;
+            }
+            #pixiv-plus-settings-items-wrap {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(5, 1fr);
+                grid-gap: 10px;
+                justify-items: start;
+                align-items: center;
+            }
+            #pixiv-plus-settings-item-wrap {
+                display: flex;
+                align-items: center;
+                margin: 12px 0;
+                gap: 12px;
+            }
+            #pixiv-plus-settings-checkbox {
+                width: 2em;
+                height: 2em;
+                accent-color: #987bd5;
+                font-weight: bold;
+            }
+            #pixiv-plus-settings-close-button {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                margin: 0;
+                padding: 0;
+                width: 25px;
+                height: 25px;
+                border: none;
+                cursor: pointer;
+                border-radius: 50%;
+                background-color: transparent;
+                transform: rotate(45deg);
+                transition: 0.25s background-color;
+                background: linear-gradient(rgb(125, 125, 125) 0%, rgb(125, 125, 125) 100%) center/18px 2px no-repeat, linear-gradient(rgb(125, 125, 125) 0%, rgb(125, 125, 125) 100%) center/2px 18px no-repeat;
+            }
+        </style>
+        <div id="pixiv-plus-panel-wrap" style="">
+            <div id="pixiv-plus-panel" >
+                <div id="pixiv-plus-header-wrap">
+                    <h1>${i18n('settings')}</h1>
+                    <div style:"flex:1"></div>
+                    <button id="pixiv-plus-settings-close-button" type=""></button>
+                </div>
+                <hr/>
+                <div id="pixiv-plus-settings-items-wrap">
+                </div>
+            </div>
+        </div>
+        `);
+        const $items_wrap = $panel.find('#pixiv-plus-settings-items-wrap');
+        for (const name of settingNames) {
+            $items_wrap.append($(`
+            <div id="pixiv-plus-settings-item-wrap">
+                <input id="pixiv-plus-settings-checkbox" type="checkbox" name=${name} />
+                <label for=${name} style="font-weight: bold;">${i18n(name)}</label>
+            </div>
+            `))
+        }
+        $panel.find('input[type="checkbox"]').each(function () {
+            const $checkbox = $(this);
+            const name = $checkbox.attr('name');
+            GM.getValue(name, true).then(value => {
+                $checkbox.prop('checked', value);
             });
-        }
-        return Object.freeze({
-            ad_disable: menu[0][1],
-            search_enhance: menu[1][1],
-            download_able: menu[2][1],
-            artist_info: menu[3][1],
-            comment_load: menu[4][1],
-            artwork_tag: menu[5][1],
-            redirect_cancel: menu[6][1],
-            load_origin: menu[7][1],
+            $checkbox.on('change', () => {
+                const checked = $checkbox.prop('checked');
+                $checkbox.prop(checked, checked);
+                GM.setValue(name, checked);
+                config[name] = checked;
+            });
         });
-    };
-    const config = registerMenu();
+        $('body').append($panel);
+        $('#pixiv-plus-settings-close-button').on('click', () => $panel.remove());
+    }
+    GM_registerMenuCommand(`${i18n('settings')}`, () => settingsPanel());
     // ============================ url 页面判断 ==============================
     const isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
@@ -372,7 +466,7 @@ jQuery($ => {
             });
         }, () => true],
         // 2/3. 搜索增强
-        ['search_enhance', null, () =>
+        [['search_enhance_UID', 'search_enhance_PID', 'search_enhance_Author'], null, () =>
             observerFactory((mutations, observer) => {
                 for (let i = 0, len = mutations.length; i < len; i++) {
                     const mutation = mutations[i];
@@ -383,15 +477,12 @@ jQuery($ => {
                     }
                     log("搜索增强 初始化");
 
-                    // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
-
-                    // 3. 搜索UID，PID和作者
+                    // 2. 搜索UID，PID和作者
                     ($form => {
                         const idSearch = true;
                         const otherSearch = false;
                         const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', url: '', searchType: idSearch }, option);
+                            const options = $.extend({ $form: null, placeholder: '', urlhandler: url => '', searchType: idSearch }, option);
 
                             if (!options.$form) {
                                 error('搜索UID和PID 初始化失败, form元素获取失败');
@@ -419,17 +510,49 @@ jQuery($ => {
                                     return;
                                 }
                                 // 2.2. 新窗口打开url
-                                const url = option.url + val;
+                                const url = option.urlhandler(val);
                                 window.open(url);
                                 // 2.3. 清空input等待下次输入
                                 $input.val('');
                             });
                         };
-                        initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
-                        initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
-                        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
-                        initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
+                        // 按设置加入搜索框
+                        const searchers = [
+                            [() => initSearch({ $form, placeholder: 'UID', urlhandler: (url) => `https://www.pixiv.net/users/${url}`, searchType: idSearch }), () => config['search_enhance_UID']],
+                            [() => initSearch({ $form, placeholder: 'PID', urlhandler: (url) => `https://www.pixiv.net/artworks/${url}`, searchType: idSearch }), () => config['search_enhance_PID']],
+                            [() => initSearch({ $form, placeholder: i18n('author'), urlhandler: (url) => `https://www.pixiv.net/search_user.php?nick=${url}&s_mode=s_usr`, searchType: otherSearch }), () => config['search_enhance_Author']]];
+                        // 统计加入的搜索框
+                        let cnt = 0;
+                        for (const searcher of searchers) {
+                            if ((searcher[1])()) {
+                                (searcher[0])();
+                                cnt++;
+                            }
+                        }
+                        // 3. 修改父级grid布局
+                        // 分类设置布局
+                        const $parent = $form.parent().parent();
+                        switch (cnt) {
+                            case 0: {
+                                $parent.css('grid-template-columns', '1fr minmax(0px, 800px) minmax(0px, 350px) 2fr');
+                                break;
+                            }
+                            case 1: {
+                                $parent.css('grid-template-columns', '1fr minmax(0px, 600px) minmax(0px, 600px) minmax(0px, 250px) 2fr');
+                                break;
+                            }
+                            case 2: {
+                                $parent.css('grid-template-columns', '1fr minmax(0px, 243px) minmax(0px, 586px) minmax(0px, 586px) minmax(0px, 243px) 2fr');
+                                break;
+                            }
+                            case 3: {
+                                $parent.css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
                     })($form);
                     // 4. 搜索条件
                     ($form => {
@@ -477,7 +600,7 @@ jQuery($ => {
             })
             , () => true],
         // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-        ['download_able', null, async () => {
+        ['download_enable', null, async () => {
             // 1. 初始化方法
             const initDownloadBtn = option => {
                 // 下载按钮, 复制分享按钮并旋转180度
@@ -497,7 +620,6 @@ jQuery($ => {
                 return $downloadButtonContainer;
             };
             // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
-            // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
             const addImgSize = async option => {
                 // 从 $img 获取图片大小, after 到 $img
                 const options = $.extend({
@@ -545,13 +667,12 @@ jQuery($ => {
                 const lib = { png: "image/png", jpg: "image/jpeg", gif: "image/gif" };
                 return lib[suffix] || `mimeType[${suffix}] not found`;
             };
-            const getDownloadName = (name) => {
-                name = name.replace('{pid}', illust().illustId);
-                name = name.replace('{uid}', illust().userId);
-                name = name.replace('{pname}', illust().illustTitle);
-                name = name.replace('{uname}', illust().userName);
-                return name;
-            };
+            const getDownloadName = (name = '') =>
+                name.replace('{pid}', illust().illustId)
+                    .replace('{uid}', illust().userId)
+                    .replace('{pname}', illust().illustTitle)
+                    .replace('{uname}', illust().userName);
+            ;
             const isMoreMode = () => illust().pageCount > 1;
             const isGifMode = () => illust().illustType === 2;
             const isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
@@ -650,7 +771,8 @@ jQuery($ => {
                                         const frame = frames[frameIdx];
                                         const url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
                                         GM.xmlHttpRequest({
-                                            method: 'GET', url: url,
+                                            method: 'GET',
+                                            url,
                                             headers: { referer: 'https://www.pixiv.net/' },
                                             overrideMimeType: 'text/plain; charset=x-user-defined',
                                             onload ({ responseText }) {
@@ -756,7 +878,8 @@ jQuery($ => {
                                 $(this).attr('start', true);
                                 $.each(imgUrls, (index, url) => {
                                     GM.xmlHttpRequest({
-                                        method: 'GET', url: url,
+                                        method: 'GET',
+                                        url,
                                         headers: { referer: 'https://www.pixiv.net/' },
                                         overrideMimeType: 'text/plain; charset=x-user-defined',
                                         onload ({ responseText }) {
@@ -1083,7 +1206,8 @@ jQuery($ => {
     const len = observers.length;
     // 初始化ob
     for (let i = 0; i < len; i++) {
-        if (config[observers[i][0]] && observers[i][1] === null) {
+        if (((observers[i][0] instanceof Array && observers[i][0].some(v => config[v])) || config[observers[i][0]] === true) && observers[i][1] === null) {
+
             const _observer = (observers[i][2])();
             // 有一个ob组特殊处理
             if (_observer instanceof Promise) {
@@ -1094,10 +1218,14 @@ jQuery($ => {
         }
     }
     // 页面跳转不触发脚本重载时，用监听器关闭ob避免页面卡死和cpu占用飙升
-    window.navigation.addEventListener('navigate', () => {
+    const onpushstate = history.onpushstate;
+    history.onpushstate = () => {
+        if (typeof onpushstate === 'function') {
+            onpushstate();
+        }
         for (let i = 0; i < len; i++) {
             // 功能设置没开启，关闭对应ob
-            if (!config[observers[i][0]]) {
+            if ((observers[i][0] instanceof Array && observers[i][0].some(v => !config[v])) || config[observers[i][0]] === false) {
                 // ob已创建
                 if (observers[i][1] !== null) {
                     // ob组处理
@@ -1139,7 +1267,7 @@ jQuery($ => {
                         for (let j = 0; j < _len; j++) {
                             const v = observers[i][1][j];
                             if (!(v[2])()) {
-                                if ([0] !== null) {
+                                if (v[0] !== null) {
                                     v[0].disconnect();
                                     v[0] = null;
                                 }
@@ -1153,7 +1281,7 @@ jQuery($ => {
                 }
             }
         }
-    });
+    };
     // 9. 单页排序
     (() => {
         if (!isSearchPage() || true) {
