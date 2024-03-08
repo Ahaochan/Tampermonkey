@@ -433,8 +433,6 @@ jQuery($ => {
                         initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
                         initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
                         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        //done 现在可以精确搜到作者，provide by QiuLiang99, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD&s_mode=s_usr
-                        
                         initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
                     })($form);
                     // 4. 搜索条件
@@ -1231,6 +1229,9 @@ jQuery($ => {
 
     // 10. 兼容模式检测是否PJAX并刷新页面, https://stackoverflow.com/a/4585031/6335926
     (history => {
+        // 关闭此功能
+        return;
+
         const pushState = history.pushState;
         history.pushState = function (state) {
             if (typeof history.onpushstate == "function") {
@@ -1246,6 +1247,8 @@ jQuery($ => {
 
     // 11. 控制面板
     (() => {
+        // 关闭此功能
+        return;
         if (!/.+setting_user\.php.*/.test(location.href)) {
             return;
         }
