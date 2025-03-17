@@ -438,6 +438,7 @@ jQuery($ => {
                         const $select = $(`
                     <select id="select-ahao-favorites">
                         <option value=""></option>
+                        <option value="50000users入り">50000users入り</option>
                         <option value="30000users入り">30000users入り</option>
                         <option value="20000users入り">20000users入り</option>
                         <option value="10000users入り">10000users入り</option>
@@ -456,13 +457,9 @@ jQuery($ => {
                             e.preventDefault();
                             if (!!$select.val()) {
                                 // 2.4.1. 去除旧的搜索选项
-                                $input.val((index, val) => val.replace(/\d*users入り/g, ''));
-                                $input.val((index, val) => val.replace(/\d*$/g, ''));
-                                // 2.4.2. 去除多余空格
-                                $input.val((index, val) => val.replace(/\s\s*/g, ''));
-                                $input.val((index, val) => `${val} `);
-                                // 2.4.3. 添加新的搜索选项
-                                $input.val((index, val) => `${val}${$select.val()}`);
+                                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                                // 2.4.2. 添加新的搜索选项
+                                $input.val((index, val) => `${val} ${$select.val()}`);
                             }
                             const value = encodeURIComponent($input.val());
                             if (!!value) {
