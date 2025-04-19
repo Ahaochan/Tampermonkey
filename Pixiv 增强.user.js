@@ -409,7 +409,12 @@ jQuery($ => {
                                     return;
                                 }
                                 // 2.2. 新窗口打开url
-                                const url = option.url + val;
+                                if (options.searchType == idSearch){
+                                    const url = option.url + val;
+                                }
+                                if (options.searchType == otherSearch){
+                                    const url = option.url + val + '&s_mode=s_usr';
+                                }
                                 window.open(url);
                                 // 2.3. 清空input等待下次输入
                                 $input.val('');
@@ -418,7 +423,6 @@ jQuery($ => {
                         initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
                         initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
                         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
                         initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
                     })($form);
                     // 4. 搜索条件
@@ -452,8 +456,13 @@ jQuery($ => {
                                 $input.val((index, val) => `${val} ${$select.val()}`);
                             }
                             const value = encodeURIComponent($input.val());
+                            // location.href = location.href.replace(/\d*users入り/g, $select.val());
                             if (!!value) {
-                                location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
+                                // 抛弃所有参数，会导致Search option设置失效
+                                // location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
+
+                                // 改为使用正则替换keywords（使用 /\d*users入り/g 难以判断原本是否有'users入り'以及是否需要修改还是直接添加，所以我干脆直接写成如下）
+                                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, 'tags\/' + value + '\/artworks');
                             }
                         });
                     })($form);
