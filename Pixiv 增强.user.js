@@ -103,13 +103,27 @@ jQuery($ => {
         if (!globalData) { initData(); }
         return globalData;
     };
+    let authorDetails = {};
+    const getAuthorDetails = (authorId) => {
+        if (!authorDetails || String(authorDetails.userId) !== String(authorId)) {
+            $.ajax({
+                url: `/ajax/user/${authorId}`,
+                dataType: 'json',
+                async: false,
+                success: (response) => {
+                    authorDetails = response.body;
+                },
+            });
+        }
+        return authorDetails;
+    }
     const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
     let illustJson = {};
 
     const illust = () => {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         const preIllustId = $('body').attr('ahao_illust_id');
-        const paramRegex = location.href.match(/artworks\/(\d*)$/);
+        const paramRegex = location.href.match(/artworks\/(\d*)/);
         const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
         // 2. 如果illust_id没变, 则不更新json
         if (parseInt(preIllustId) === parseInt(urlIllustId)) {
@@ -377,7 +391,12 @@ jQuery($ => {
                 for (let i = 0, len = mutations.length; i < len; i++) {
                     const mutation = mutations[i];
                     // 1. 判断是否改变节点, 或者是否有[form]节点
-                    const $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
+                    // const $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
+                    const $form = $('form:not([action])').filter(function () {
+                        if ($(this).find('.charcoal-text-field-root').length > 0) {
+                            return true;
+                        };
+                    });
                     if (mutation.type !== 'childList' || !$form.length) {
                         continue;
                     }
@@ -433,6 +452,7 @@ jQuery($ => {
                         initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
                         initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
                         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
+                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
                         initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
                     })($form);
                     // 4. 搜索条件
@@ -442,6 +462,7 @@ jQuery($ => {
                         const $select = $(`
                     <select id="select-ahao-favorites">
                         <option value=""></option>
+                        <option value="50000users入り">50000users入り</option>
                         <option value="30000users入り">30000users入り</option>
                         <option value="20000users入り">20000users入り</option>
                         <option value="10000users入り">10000users入り</option>
@@ -459,17 +480,22 @@ jQuery($ => {
                         $form.submit(e => {
                             e.preventDefault();
                             if (!!$select.val()) {
+                                // // // 2.4.1. 去除旧的搜索选项
+                                // $input.val((index, val) => val.replace(/\d*users入り/g, ''));
+                                //
+                                // // 没能理解这一行的含义，但是已知搜索关键字为数字时会导致输入框被清空，于是擅自先注释掉了
+                                // // $input.val((index, val) => val.replace(/\d*$/g, ''));
+                                //
+                                // // 2.4.2. 去除多余空格
+                                // $input.val((index, val) => val.replace(/\s\s*/g, ''));
+                                // $input.val((index, val) => `${val} `);
+                                // // 2.4.3. 添加新的搜索选项
+                                // $input.val((index, val) => `${val}${$select.val()}`);
+
                                 // 2.4.1. 去除旧的搜索选项
-                                $input.val((index, val) => val.replace(/\d*users入り/g, ''));
-
-                                // 没能理解这一行的含义，但是已知搜索关键字为数字时会导致输入框被清空，于是擅自先注释掉了
-                                // $input.val((index, val) => val.replace(/\d*$/g, ''));
-
-                                // 2.4.2. 去除多余空格
-                                $input.val((index, val) => val.replace(/\s\s*/g, ''));
-                                $input.val((index, val) => `${val} `);
-                                // 2.4.3. 添加新的搜索选项
-                                $input.val((index, val) => `${val}${$select.val()}`);
+                                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                                // 2.4.2. 添加新的搜索选项
+                                $input.val((index, val) => `${val} ${$select.val()}`);
                             }
                             const value = encodeURIComponent($input.val());
                             // location.href = location.href.replace(/\d*users入り/g, $select.val());
@@ -854,7 +880,9 @@ jQuery($ => {
                     $row.before($ahaoRow);
 
                     // 2. 显示画师id, 点击自动复制到剪贴板
-                    const uid = getUid();
+                    // const uid = getUid();
+                    const $data = $row.find('[data-gtm-value]');
+                    const uid = $($data[0]).data('gtm-value');
                     const $uid = $(`<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`)
                         .on('click', function () {
                             const $this = $(this);
@@ -867,7 +895,8 @@ jQuery($ => {
                     $ul.append($uid);
 
                     // 3. 显示画师背景图
-                    const background = preloadData.user[uid].background;
+                    // const background = preloadData.user[uid].background;
+                    const background = getAuthorDetails(uid).background;
                     const url = (background && background.url) || '';
                     const $bgli = $('<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>');
                     const $bg = $bgli.find('div');
@@ -898,8 +927,11 @@ jQuery($ => {
                     }
 
                     // 2. 显示画师背景图
-                    const uid = getUid();
-                    const background = preloadData.user[uid].background;
+                    // const uid = getUid();
+                    // const background = preloadData.user[uid].background;
+                    const $data = $row.find('[data-gtm-value]');
+                    const uid = $($data[0]).data('gtm-value');
+                    const background = getAuthorDetails(uid).background;
                     const url = (background && background.url) || '';
                     const $bgDiv = $row.clone().attr('id', 'ahao-background');
                     $bgDiv.children('a').remove();
@@ -1301,3 +1333,4 @@ jQuery($ => {
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
 });
+
