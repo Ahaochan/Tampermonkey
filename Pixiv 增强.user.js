@@ -460,7 +460,7 @@ jQuery($ => {
 
                                 // 没能理解这一行的含义，但是已知搜索关键字为数字时会导致输入框被清空，于是擅自先注释掉了
                                 // $input.val((index, val) => val.replace(/\d*$/g, ''));
-                                
+
                                 // 2.4.2. 去除多余空格
                                 $input.val((index, val) => val.replace(/\s\s*/g, ''));
                                 $input.val((index, val) => `${val} `);
@@ -474,7 +474,7 @@ jQuery($ => {
                                 // location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
 
                                 // 改为使用正则替换keywords（使用 /\d*users入り/g 难以判断原本是否有'users入り'以及是否需要修改还是直接添加，所以我干脆直接写成如下）
-                                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, 'tags\/' + $input.val() + '\/artworks');
+                                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, 'tags\/' + value + '\/artworks');
                             }
                         });
                     })($form);
