@@ -148,20 +148,20 @@ jQuery($ => {
         return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
     };
     const observerFactory = function (option) {
+        // 初始化 MutationObserver 所需参数
+        // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+        const defaults = {
+            callback: () => {},
+            node: document.body,
+            option: { childList: true, subtree: true }
+        };
         let options;
         if (typeof option === 'function') {
-            options = {
-                callback: option,
-                node: document.getElementsByTagName('body')[0],
-                option: { childList: true, subtree: true }
-            };
+            options = { ...defaults, callback: option };
         } else {
-            options = $.extend({
-                callback: () => {
-                },
-                node: document.getElementsByTagName('body')[0],
-                option: { childList: true, subtree: true }
-            }, option);
+            options = Object.assign({}, defaults, option);
+            // 确保最终 node 值为有效 DOM 节点
+            options.node = options.node || document.body;
         }
         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
@@ -170,7 +170,12 @@ jQuery($ => {
             // GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
         });
 
-        observer.observe(options.node, options.option);
+        try {
+            observer.observe(options.node, options.option);
+        } catch (e) {
+            console.error('MutationObserver 初始化失败:', e);
+            throw new Error('MutationObserver 初始化失败');
+        }
         return observer;
     };
     const isLogin = () => {
