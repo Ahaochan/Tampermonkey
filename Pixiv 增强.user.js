@@ -80,29 +80,21 @@ jQuery($ => {
     const debug = true;
     const [log, error] = [debug ? console.log : () => { }, console.error];
 
+    let authorDetails = {};
+    const getAuthorDetails = (authorId) => {
+        if (!authorDetails || String(authorDetails.userId) !== String(authorId)) {
+            $.ajax({
+                url: `/ajax/user/${authorId}`,
+                dataType: 'json',
+                async: false,
+                success: (response) => {
+                    authorDetails = response.body;
+                },
+            });
+        }
+        return authorDetails;
+    }
 
-    let globalData;
-
-    let preloadData;
-    const initData = () => {
-        $.ajax({
-            url: location.href, async: false,
-            success: response => {
-                const html = document.createElement('html');
-                html.innerHTML = response;
-                globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
-                preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
-            }
-        });
-    };
-    const getPreloadData = () => {
-        if (!preloadData) { initData(); }
-        return preloadData;
-    };
-    const getGlobalData = () => {
-        if (!globalData) { initData(); }
-        return globalData;
-    };
     const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
     let illustJson = {};
 
@@ -126,12 +118,6 @@ jQuery($ => {
             });
         }
         return illustJson;
-    };
-    const getUid = () => {
-        if (!preloadData || !preloadData.user || !Object.keys(preloadData.user)[0]) {
-            initData();
-        }
-        return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
     };
     const observerFactory = function (option) {
         let options;
@@ -843,7 +829,8 @@ jQuery($ => {
                     $row.before($ahaoRow);
 
                     // 2. 显示画师id, 点击自动复制到剪贴板
-                    const uid = getUid();
+                    const $data = $row.find('[data-gtm-value]');
+                    const uid = $($data[0]).data('gtm-value');
                     const $uid = $(`<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`)
                         .on('click', function () {
                             const $this = $(this);
@@ -856,7 +843,7 @@ jQuery($ => {
                     $ul.append($uid);
 
                     // 3. 显示画师背景图
-                    const background = preloadData.user[uid].background;
+                    const background = getAuthorDetails(uid).background;
                     const url = (background && background.url) || '';
                     const $bgli = $('<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>');
                     const $bg = $bgli.find('div');
@@ -887,8 +874,9 @@ jQuery($ => {
                     }
 
                     // 2. 显示画师背景图
-                    const uid = getUid();
-                    const background = preloadData.user[uid].background;
+                    const $data = $row.find('[data-gtm-value]');
+                    const uid = $($data[0]).data('gtm-value');
+                    const background = getAuthorDetails(uid).background;
                     const url = (background && background.url) || '';
                     const $bgDiv = $row.clone().attr('id', 'ahao-background');
                     $bgDiv.children('a').remove();
