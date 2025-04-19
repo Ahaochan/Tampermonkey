@@ -391,134 +391,6 @@ jQuery($ => {
             });
         }, () => true],
         // 2/3. 搜索增强
-        ['search_enhance', null, () =>
-            observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点, 或者是否有[form]节点
-                    // const $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
-                    const $form = $('form:not([action])').filter(function () {
-                        if ($(this).find('.charcoal-text-field-root').length > 0) {
-                            return true;
-                        };
-                    });
-                    if (mutation.type !== 'childList' || !$form.length) {
-                        continue;
-                    }
-                    log("搜索增强 初始化");
-
-                    // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
-
-                    // 3. 搜索UID，PID和作者
-                    ($form => {
-                        const idSearch = true;
-                        const otherSearch = false;
-                        const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', url: '', searchType: idSearch }, option);
-
-                            if (!options.$form) {
-                                error('搜索UID和PID 初始化失败, form元素获取失败');
-                            }
-
-                            // 1. 初始化表单UI
-                            const $parent = options.$form.parent().clone();
-                            const $form = $parent.find('form');
-                            $form.children('div').eq(1).remove();
-                            $form.attr('class', 'ahao-search');
-                            options.$form.parent().before($parent);
-
-                            const $input = $form.find('input[type="text"]:first');
-                            $input.attr('placeholder', options.placeholder);
-                            $input.val('');
-
-                            // 2. 绑定submit事件
-                            $form.submit(e => {
-                                e.preventDefault();
-                                const val = encodeURIComponent($input.val());
-                                // 2.1. ID 必须为纯数字
-                                if (options.searchType && !/^[0-9]+$/.test(val)) {
-                                    const label = options.placeholder + i18n('illegal');
-                                    alert(label);
-                                    return;
-                                }
-                                // 2.2. 新窗口打开url
-                                if (options.searchType == idSearch){
-                                    const url = option.url + val;
-                                }
-                                if (options.searchType == otherSearch){
-                                    const url = option.url + val + '&s_mode=s_usr';
-                                }
-                                window.open(url);
-                                // 2.3. 清空input等待下次输入
-                                $input.val('');
-                            });
-                        };
-                        initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
-                        initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
-                        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        // TODO 无法精确搜索到作者, https://www.pixiv.net/search_user.php?nick=%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E3%82%AD
-                        initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
-                    })($form);
-                    // 4. 搜索条件
-                    ($form => {
-                        const label = i18n('favorites'); // users入り
-                        const $input = $form.find('input[type="text"]:first');
-                        const $select = $(`
-                    <select id="select-ahao-favorites">
-                        <option value=""></option>
-                        <option value="50000users入り">50000users入り</option>
-                        <option value="30000users入り">30000users入り</option>
-                        <option value="20000users入り">20000users入り</option>
-                        <option value="10000users入り">10000users入り</option>
-                        <option value="5000users入り" > 5000users入り</option>
-                        <option value="1000users入り" > 1000users入り</option>
-                        <option value="500users入り"  >  500users入り</option>
-                        <option value="300users入り"  >  300users入り</option>
-                        <option value="100users入り"  >  100users入り</option>
-                        <option value="50users入り"   >   50users入り</option>
-                    </select>`);
-                        $select.on('change', () => {
-                            if (!!$input.val()) { $form.submit(); }
-                        });
-                        $form.parent().after($select);
-                        $form.submit(e => {
-                            e.preventDefault();
-                            if (!!$select.val()) {
-                                // // // 2.4.1. 去除旧的搜索选项
-                                // $input.val((index, val) => val.replace(/\d*users入り/g, ''));
-                                //
-                                // // 没能理解这一行的含义，但是已知搜索关键字为数字时会导致输入框被清空，于是擅自先注释掉了
-                                // // $input.val((index, val) => val.replace(/\d*$/g, ''));
-                                //
-                                // // 2.4.2. 去除多余空格
-                                // $input.val((index, val) => val.replace(/\s\s*/g, ''));
-                                // $input.val((index, val) => `${val} `);
-                                // // 2.4.3. 添加新的搜索选项
-                                // $input.val((index, val) => `${val}${$select.val()}`);
-
-                                // 2.4.1. 去除旧的搜索选项
-                                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
-                                // 2.4.2. 添加新的搜索选项
-                                $input.val((index, val) => `${val} ${$select.val()}`);
-                            }
-                            const value = encodeURIComponent($input.val());
-                            // location.href = location.href.replace(/\d*users入り/g, $select.val());
-                            if (!!value) {
-                                // 抛弃所有参数，会导致Search option设置失效
-                                // location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
-
-                                // 改为使用正则替换keywords（使用 /\d*users入り/g 难以判断原本是否有'users入り'以及是否需要修改还是直接添加，所以我干脆直接写成如下）
-                                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, 'tags\/' + value + '\/artworks');
-                            }
-                        });
-                    })($form);
-
-                    observer.disconnect();
-                    break;
-                }
-            })
-            , () => true],
         // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
         ['download_able', null, async () => {
             // 1. 初始化方法
@@ -1203,6 +1075,102 @@ jQuery($ => {
             }
         }
     });
+
+    // 2. 搜索增强
+    const searchPlus = () => {
+        // 1. 找到基础的form表单
+        log("搜索增强 初始化");
+        const $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
+
+        // 2. 修改父级grid布局
+        $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
+
+        // 3. 搜索UID，PID和作者
+        const initSearch = option => {
+            const options = Object.assign({
+                $form: null, field: '搜索字段', placeholder: '请输入', template: '***', validNumber: false,
+            }, option);
+            if (!options.$form) {
+                error(`搜索组件[${options.field}]初始化失败, form元素获取失败`);
+            }
+
+            // 1. 初始化表单UI
+            const $parent = options.$form.parent().clone();
+            const $form = $parent.find('form');
+            $form.children('div').eq(1).remove();
+            $form.attr('class', `ahao-search-${options.field}`);
+            options.$form.parent().before($parent);
+            const $input = $form.find('input[type="text"]:first');
+            $input.attr('placeholder', options.placeholder);
+            $input.attr('value', '');
+            $input.val('');
+
+            // 2. 绑定submit事件
+            $form.submit(e => {
+                // 阻止默认的表单提交
+                e.preventDefault();
+
+                // 重写表单提交逻辑
+                const val = encodeURIComponent($input.val());
+                // 输入校验
+                if (options.validNumber && !/^[0-9]+$/.test(val)) {
+                    const label = options.placeholder + i18n('illegal');
+                    alert(label);
+                    return;
+                }
+                // 新窗口打开url
+                const url = options.template.replaceAll('***', val);
+                window.open(url);
+                // 清空input等待下次输入
+                $input.val('');
+            });
+        };
+        initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true });
+        initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true });
+        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
+        initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false });
+        // 4. 搜索条件
+        const label = i18n('favorites'); // users入り
+        const $input = $form.find('input[type="text"]:first');
+        const $select = $(`
+                    <select id="select-ahao-favorites">
+                        <option value=""></option>
+                        <option value="50000users入り">50000users入り</option>
+                        <option value="30000users入り">30000users入り</option>
+                        <option value="20000users入り">20000users入り</option>
+                        <option value="10000users入り">10000users入り</option>
+                        <option value="5000users入り" > 5000users入り</option>
+                        <option value="1000users入り" > 1000users入り</option>
+                        <option value="500users入り"  >  500users入り</option>
+                        <option value="300users入り"  >  300users入り</option>
+                        <option value="100users入り"  >  100users入り</option>
+                        <option value="50users入り"   >   50users入り</option>
+                    </select>`);
+        $select.on('change', () => {
+            if (!!$input.val()) {
+                $form.submit();
+            }
+        });
+        $form.parent().after($select);
+        $form.submit(e => {
+            // 阻止默认的表单提交
+            e.preventDefault();
+
+            // 重写表单提交逻辑
+            if (!!$select.val()) {
+                // 去除旧的搜索选项
+                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                // 添加新的搜索选项
+                $input.val((index, val) => `${val} ${$select.val()}`);
+            }
+            const value = encodeURIComponent($input.val());
+            if (!!value) {
+                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, `tags/${value}/artworks`);
+            }
+        });
+    };
+    setTimeout(() => searchPlus(), 1000);
+
     // 9. 单页排序
     (() => {
         if (!isSearchPage() || true) {
