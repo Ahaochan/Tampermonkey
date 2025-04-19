@@ -377,7 +377,11 @@ jQuery($ => {
                 for (let i = 0, len = mutations.length; i < len; i++) {
                     const mutation = mutations[i];
                     // 1. 判断是否改变节点, 或者是否有[form]节点
-                    const $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
+                    const $form = $('form:not([action])').filter(function () {
+                        if ($(this).find('.charcoal-text-field-root').length > 0) {
+                            return true;
+                        };
+                    });
                     if (mutation.type !== 'childList' || !$form.length) {
                         continue;
                     }
