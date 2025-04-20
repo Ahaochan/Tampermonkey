@@ -887,6 +887,7 @@ jQuery($ => {
     backgroundUrlPlus();
 
     // 5. 自动加载评论
+    // https://www.pixiv.net/artworks/72414258
     const commentAutoLoad = () => {
         if(!isArtworkPage()) {
             return;
