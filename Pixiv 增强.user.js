@@ -364,33 +364,6 @@ jQuery($ => {
      * [3] => 判断是否处于对应页面的函数
      */
     const observers = [
-        // 1. 屏蔽广告, 全局进行css处理
-        ['ad_disable', null, () => {
-            // 1. 删除静态添加的广告
-            $('.ad').remove();
-            $('._premium-lead-tag-search-bar').hide();
-            $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
-            $('.ad-footer').remove();//移除页脚广告
-
-            // 2. 删除动态添加的广告
-            const adSelectors = ['iframe', '._premium-lead-promotion-banner',
-                'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]', // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
-                'a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"]'
-            ];
-
-            return observerFactory((mutations, observer) => {
-                for (const mutation of mutations) {
-                    for (const node of mutation.addedNodes) {
-                        if (node.nodeType === Node.ELEMENT_NODE) {
-                            for (const selector of adSelectors) {
-                                $(node).find(selector).hide();
-                            }
-                        }
-                    }
-                }
-            });
-        }, () => true],
-        // 2/3. 搜索增强
         // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
         ['download_able', null, async () => {
             // 1. 初始化方法
@@ -1014,6 +987,33 @@ jQuery($ => {
             }
         }
     });
+
+    // 1. 屏蔽广告, 全局进行css处理
+    const adPlus = () => {
+        // 1. 删除静态添加的广告
+        $('.ad').remove();
+        $('._premium-lead-tag-search-bar').hide();
+        $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
+        $('.ad-footer').remove();//移除页脚广告
+
+        // 2. 删除动态添加的广告
+        const adSelectors = ['iframe', '._premium-lead-promotion-banner',
+            'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]', // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
+            'a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"]'
+        ];
+        return observerFactory((mutations, observer) => {
+            for (const mutation of mutations) {
+                for (const addedNode of mutation.addedNodes) {
+                    if (addedNode.nodeType === Node.ELEMENT_NODE) {
+                        for (const selector of adSelectors) {
+                            $(addedNode).find(selector).hide();
+                        }
+                    }
+                }
+            }
+        });
+    };
+    adPlus();
 
     // 2. 搜索增强
     const searchPlus = () => {
