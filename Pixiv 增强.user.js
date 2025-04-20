@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.9.0
+// @version     0.9.1
 // @icon        https://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -250,12 +250,12 @@ jQuery($ => {
 
         commentLoad: {i18n: i18n('comment_load'), isEnable: () => GM_getValue('commentLoad', true)},
 
-
-        download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
-        artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
-        artwork_tag: {i18n: i18n('artwork_tag'), isEnable: () => GM_getValue('artwork_tag', true)},
-        redirect_cancel: {i18n: i18n('redirect_cancel'), isEnable: () => GM_getValue('redirect_cancel', true)},
-        load_origin: {i18n: i18n('load_origin'), isEnable: () => GM_getValue('load_origin', true)},
+        // TODO 功能开关改造
+        // download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
+        // artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
+        // artwork_tag: {i18n: i18n('artwork_tag'), isEnable: () => GM_getValue('artwork_tag', true)},
+        // redirect_cancel: {i18n: i18n('redirect_cancel'), isEnable: () => GM_getValue('redirect_cancel', true)},
+        // load_origin: {i18n: i18n('load_origin'), isEnable: () => GM_getValue('load_origin', true)},
     };
 
     // ============================ 配置信息 ====================================
