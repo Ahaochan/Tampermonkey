@@ -123,7 +123,7 @@ jQuery($ => {
     const illust = () => {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         const preIllustId = $('body').attr('ahao_illust_id');
-        const paramRegex = location.href.match(/artworks\/(\d*)/);
+        const paramRegex = location.href.match(/artworks\/(\d*)(#\d*)?$/);
         const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
         // 2. 如果illust_id没变, 则不更新json
         if (parseInt(preIllustId) === parseInt(urlIllustId)) {
@@ -1059,7 +1059,13 @@ jQuery($ => {
     const searchPlus = () => {
         // 1. 找到基础的form表单
         log("搜索增强 初始化");
-        const $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
+        let $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
+        if (!$form.length) {
+            // 新版本的 Pixiv 搜索栏表单不存在，查找旧版本的 Pixiv 搜索栏表单
+            $form = $(
+                '#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])'
+            );
+        }
 
         // 2. 修改父级grid布局
         $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
