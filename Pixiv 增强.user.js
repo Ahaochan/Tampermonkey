@@ -418,7 +418,11 @@ jQuery($ => {
             }
             const value = encodeURIComponent($input.val());
             if (!!value) {
-                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, `tags/${value}/artworks`);
+                if(/\/tags\/(.*?)\/artworks/.test(location.href)) {
+                    location.href = location.href.replace(/\/tags\/(.*?)\/artworks/g, `/tags/${value}/artworks`);
+                } else {
+                    location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`
+                }
             }
         });
 
