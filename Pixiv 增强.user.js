@@ -1171,6 +1171,31 @@ jQuery($ => {
     };
     setTimeout(() => searchPlus(), 1000);
 
+    // 6. 自动加载评论
+    const commentAutoLoad = () => {
+        const observerOption = {childList: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        // 模拟点击加载评论按钮
+                        const $moreCommentBtn = $(addedNode).filter('[class^="CommentList_buttonArea"]').find("div[role='button']");
+                        $moreCommentBtn.click();
+
+                        const $moreReplayBtn = $(mutation.target).find('._28zR1MQ');
+                        $moreReplayBtn.click();
+                    }
+                }
+            }
+        }, observerOption);
+    };
+    GM.getValue(GMkeys.switchComment, true).then(open => {
+        if (!open || !isArtworkPage()) {
+            return;
+        }
+        commentAutoLoad();
+    });
+
     // 9. 单页排序
     (() => {
         if (!isSearchPage() || true) {
