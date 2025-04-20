@@ -425,7 +425,7 @@ jQuery($ => {
     };
 
     // 3. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-    // UI优化
+    // TODO 解耦ImgSize和原图显示功能 https://www.pixiv.net/artworks/112167219
     const addImgSizeSpan = (option) => {
         // 从 $ 获取图片大小, after 到 $
         const options = Object.assign({$: undefined, position: 'relative',}, option);
