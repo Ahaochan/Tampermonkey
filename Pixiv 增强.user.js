@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.8.6
+// @version     0.9.0
 // @icon        https://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -42,11 +42,11 @@ jQuery($ => {
     // 加载依赖
     // ============================ jQuery插件 ====================================
     $.fn.extend({
-        fitWindow () {
+        fitWindow() {
             this.css('width', 'auto').css('height', 'auto')
                 .css('max-width', '').css('max-height', $(window).height());
         },
-        replaceTagName (replaceWith) {
+        replaceTagName(replaceWith) {
             const tags = [];
             let i = this.length;
             while (i--) {
@@ -63,123 +63,18 @@ jQuery($ => {
             }
             return $(tags);
         },
-        getBackgroundUrl () {
+        getBackgroundUrl() {
             const imgUrls = [];
-            this.each(function (index, { style }) {
+            this.each(function (index, {style}) {
                 let bgUrl = $(this).css('background-image') || style.backgroundImage || 'url("")';
                 const matchArr = bgUrl.match(/url\((['"])(.*?)\1\)/);
                 bgUrl = matchArr && matchArr.length >= 2 ? matchArr[2] : '';
                 imgUrls.push(bgUrl);
             });
             return imgUrls.length === 1 ? imgUrls[0] : imgUrls;
-        }
+        },
+        // TODO 抽取公共的ahao-done方法
     });
-
-
-    // ============================ 全局参数 ====================================
-    const debug = true;
-    const [log, error] = [debug ? console.log : () => { }, console.error];
-
-
-    let globalData;
-
-    let preloadData;
-    const initData = () => {
-        $.ajax({
-            url: location.href, async: false,
-            success: response => {
-                const html = document.createElement('html');
-                html.innerHTML = response;
-                globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
-                preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
-            }
-        });
-    };
-    const getPreloadData = () => {
-        if (!preloadData) { initData(); }
-        return preloadData;
-    };
-    const getGlobalData = () => {
-        if (!globalData) { initData(); }
-        return globalData;
-    };
-    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
-    let illustJson = {};
-
-    const illust = () => {
-        // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
-        const preIllustId = $('body').attr('ahao_illust_id');
-        const paramRegex = location.href.match(/artworks\/(\d*)$/);
-        const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
-        // 2. 如果illust_id没变, 则不更新json
-        if (parseInt(preIllustId) === parseInt(urlIllustId)) {
-            return illustJson;
-        }
-        // 3. 如果illust_id变化, 则持久化illust_id, 且同步更新json
-        if (!!urlIllustId) {
-            $('body').attr('ahao_illust_id', urlIllustId);
-            $.ajax({
-                url: `/ajax/illust/${urlIllustId}`,
-                dataType: 'json',
-                async: false,
-                success: ({ body }) => illustJson = body
-            });
-        }
-        return illustJson;
-    };
-    const getUid = () => {
-        if (!preloadData || !preloadData.user || !Object.keys(preloadData.user)[0]) {
-            initData();
-        }
-        return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
-    };
-    const observerFactory = function (option) {
-        let options;
-        if (typeof option === 'function') {
-            options = {
-                callback: option,
-                node: document.getElementsByTagName('body')[0],
-                option: { childList: true, subtree: true }
-            };
-        } else {
-            options = $.extend({
-                callback: () => {
-                },
-                node: document.getElementsByTagName('body')[0],
-                option: { childList: true, subtree: true }
-            }, option);
-        }
-        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-
-        const observer = new MutationObserver((mutations, observer) => {
-            options.callback.call(this, mutations, observer);
-            // GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
-        });
-
-        observer.observe(options.node, options.option);
-        return observer;
-    };
-    const isLogin = () => {
-        let status = 0;
-        $.ajax({ url: 'https://www.pixiv.net/setting_user.php', async: false })
-            .done((data, statusText, xhr) => status = xhr.status);
-        return status === 200;
-    };
-
-    // ============================ 配置信息 ====================================
-    const GMkeys = {
-        MO: 'MO',                                   // MutationObserver 的开关
-        selectorShareBtn: 'selectorShareBtn',       // 下载按钮的selector
-        selectorRightColumn: 'selectorRightColumn', // 作品页面的作者信息selector
-
-        switchImgSize: 'switch-img-size',              // 是否显示图片大小的开关
-        switchImgPreload: 'switch-img-preload',         // 是否预下载的开关
-        switchComment: 'switch-comment',                // 是否自动加载评论的开关
-        switchImgMulti: 'switchImgMulti',               // 是否自动加载多图的开关
-        switchOrderByPopular: 'switch-order-by-popular',// 是否按收藏数排序的开关(单页排序)
-
-        downloadName: 'download-name',  // 下载名pattern
-    };
 
     // ============================ i18n 国际化 ===============================
     const i18nLib = {
@@ -271,177 +166,229 @@ jQuery($ => {
             sort_by_popularity: '按收藏數搜索(單頁)'
         }
     };
-    i18nLib['zh-cn'] = $.extend({}, i18nLib.zh);
+    i18nLib['zh-cn'] = Object.assign({}, i18nLib.zh);
     // TODO 待翻译
-    i18nLib.ja = $.extend({}, i18nLib.en, i18nLib.ja);
-    i18nLib.ko = $.extend({}, i18nLib.en, i18nLib.ko);
+    i18nLib.ja = Object.assign({}, i18nLib.en, i18nLib.ja);
+    i18nLib.ko = Object.assign({}, i18nLib.en, i18nLib.ko);
     const i18n = key => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
+    // ============================ i18n 国际化 ===============================
 
+    // ============================ 全局参数 ====================================
+    const debug = true;
+    const [log, error] = [debug ? console.log : () => {
+    }, console.error];
 
-    // ============================ 功能配置 ==============================
-    let menuId = [];
-    const registerMenu = () => {
-        // 用于刷新设置
-        if (menuId.length) {
-            const len = menuId.length;
-            for (let i = 0; i < len; i++) {
-                GM_unregisterMenuCommand(menuId[i]);
-            }
-        }
-        const menu = [
-            ['ad_disable', true],
-            ['search_enhance', true],
-            ['download_able', true],
-            ['artist_info', true],
-            ['comment_load', true],
-            ['artwork_tag', true],
-            ['redirect_cancel', true],
-            ['load_origin', true]
-        ];
-        const len = menu.length;
-        for (let i = 0; i < len; i++) {
-            const item = menu[i][0];
-            menu[i][1] = GM_getValue(item);
-            if (menu[i][1] === null || menu[i][1] === undefined) {
-                GM_setValue(item, true);
-                menu[i][1] = true;
-            }
-            menuId[i] = GM_registerMenuCommand(`${menu[i][1] ? '✅' : '❌'} ${i18n(item)}`, () => {
-                GM_setValue(item, !menu[i][1]);
-                registerMenu();
+    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
+    const userApi = (userId) => {
+        const key = 'ahao_user';
+        const user = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!user || String(user.userId) !== String(userId)) {
+            $.ajax({
+                url: `/ajax/user/${userId}`,
+                dataType: 'json',
+                async: false,
+                success: ({body}) => {
+                    localStorage.setItem(key, JSON.stringify(body));
+                },
             });
         }
-        return Object.freeze({
-            ad_disable: menu[0][1],
-            search_enhance: menu[1][1],
-            download_able: menu[2][1],
-            artist_info: menu[3][1],
-            comment_load: menu[4][1],
-            artwork_tag: menu[5][1],
-            redirect_cancel: menu[6][1],
-            load_origin: menu[7][1],
-        });
+        return user;
+    }
+    const illustApi = () => {
+        const urlIllustId = location.href.match(/artworks\/(\d*)(#\d*)?$/)?.[1] || '';
+
+        // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
+        const key = 'ahao_illust';
+        const illust = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!illust || String(illust?.illustId) !== String(urlIllustId)) {
+            $.ajax({
+                url: `/ajax/illust/${urlIllustId}`,
+                dataType: 'json',
+                async: false,
+                success: ({body}) => {
+                    localStorage.setItem(key, JSON.stringify(body));
+                },
+            });
+        }
+        return illust;
     };
-    const config = registerMenu();
+    const observerFactory = function (option) {
+        // 初始化 MutationObserver 所需参数
+        // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+        const defaults = {
+            callback: () => {
+            },
+            node: document.body,
+            option: {childList: true, subtree: true}
+        };
+        let options;
+        if (typeof option === 'function') {
+            options = {...defaults, callback: option};
+        } else {
+            options = Object.assign({}, defaults, option);
+            // 确保最终 node 值为有效 DOM 节点
+            options.node = options.node || document.body; // TODO 性能优化，最少限度监听节点
+        }
+        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
+        const observer = new MutationObserver((mutations, observer) => {
+            options.callback.call(this, mutations, observer);
+            // GM.getValue('MO', true).then(function (v) { if(!v) observer.disconnect(); });
+        });
+
+        try {
+            observer.observe(options.node, options.option);
+        } catch (e) {
+            console.error('MutationObserver 初始化失败:', e);
+            throw new Error('MutationObserver 初始化失败');
+        }
+        return observer;
+    };
+    const features = {
+        adDisable: {i18n: i18n('ad_disable'), isEnable: () => GM_getValue('adDisable', true)},
+        searchEnhance: {i18n: i18n('search_enhance'), isEnable: () => GM_getValue('searchEnhance', true)},
+
+        commentLoad: {i18n: i18n('comment_load'), isEnable: () => GM_getValue('commentLoad', true)},
+
+
+        download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
+        artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
+        artwork_tag: {i18n: i18n('artwork_tag'), isEnable: () => GM_getValue('artwork_tag', true)},
+        redirect_cancel: {i18n: i18n('redirect_cancel'), isEnable: () => GM_getValue('redirect_cancel', true)},
+        load_origin: {i18n: i18n('load_origin'), isEnable: () => GM_getValue('load_origin', true)},
+    };
+
+    // ============================ 配置信息 ====================================
+    const GMkeys = {
+        MO: 'MO',                                   // MutationObserver 的开关
+        selectorShareBtn: 'selectorShareBtn',       // 下载按钮的selector
+        selectorRightColumn: 'selectorRightColumn', // 作品页面的作者信息selector
+
+        switchImgSize: 'switch-img-size',              // 是否显示图片大小的开关
+        switchImgPreload: 'switch-img-preload',         // 是否预下载的开关
+        switchComment: 'switch-comment',                // 是否自动加载评论的开关
+        switchImgMulti: 'switchImgMulti',               // 是否自动加载多图的开关
+        switchOrderByPopular: 'switch-order-by-popular',// 是否按收藏数排序的开关(单页排序)
+
+        downloadName: 'download-name',  // 下载名pattern
+    };
+
     // ============================ url 页面判断 ==============================
     const isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
-
     const isMemberIndexPage = () => /.+\/users\/\d+.*/.test(location.href);
     const isMemberIllustPage = () => /.+\/member_illust\.php\?id=\d+/.test(location.href);
     const isMemberBookmarkPage = () => /.+\/bookmark\.php\?id=\d+/.test(location.href);
     const isMemberFriendPage = () => /.+\/mypixiv_all\.php\?id=\d+/.test(location.href);
-    const isMemberDynamicPage = () => /.+\/stacc.+/.test(location.href);
+    const isStaccPage = () => /.+\/stacc.+/.test(location.href);
     const isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage();
     const isSearchPage = () => /.+\/search\.php.*/.test(location.href) || /.+\/tags\/.*\/artworks.*/.test(location.href);
+    const isMoreMode = () => illustApi().pageCount > 1;
+    const isGifMode = () => illustApi().illustType === 2;
+    const isSingleMode = () => (illustApi().illustType === 0 || illustApi().illustType === 1) && illustApi().pageCount === 1;
 
-    // 判断是否登录
+    // 0. 判断是否登录
+    const isLogin = () => {
+        let status = 0;
+        $.ajax({url: 'https://www.pixiv.net/setting_user.php', async: false})
+            .done((data, statusText, xhr) => status = xhr.status);
+        return status === 200;
+    };
     if (!isLogin()) {
         alert(i18n('loginWarning'));
     }
-    /**
-     * [0] => 功能配置
-     * [1] => ob / ob组[ob, ob创建函数，判断是否处于对应页面的函数(可选)]
-     * [2] => 创建ob / ob组的函数
-     * [3] => 判断是否处于对应页面的函数
-     */
-    const observers = [
-        // 1. 屏蔽广告, 全局进行css处理
-        ['ad_disable', null, () => {
-            // 1. 删除静态添加的广告
-            $('.ad').remove();
-            $('._premium-lead-tag-search-bar').hide();
-            $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
-            $('.ad-footer').remove();//移除页脚广告
 
-            // 2. 删除动态添加的广告
-            const adSelectors = ['iframe', '._premium-lead-promotion-banner',
-                'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]', // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
-                'a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"]'
-            ];
+    // 1. 屏蔽广告, 全局进行css处理
+    const adDisable = () => {
+        // 1. 删除静态添加的广告
+        $('.ad').remove();
+        $('._premium-lead-tag-search-bar').hide();
+        $('.popular-introduction-overlay').hide();// 移除热门图片遮罩层
+        $('.ad-footer').remove();//移除页脚广告
 
-            return observerFactory((mutations, observer) => {
-                for (const mutation of mutations) {
-                    for (const node of mutation.addedNodes) {
-                        if (node.nodeType === Node.ELEMENT_NODE) {
-                            for (const selector of adSelectors) {
-                                $(node).find(selector).hide();
-                            }
+        // 2. 删除动态添加的广告
+        const adSelectors = ['iframe', '._premium-lead-promotion-banner',
+            'a[href="/premium/lead/lp/?g=anchor&i=popular_works_list&p=popular&page=visitor"]', // https://www.pixiv.net/tags/%E6%9D%B1%E6%96%B9/artworks?s_mode=s_tag 热门作品
+            'a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"]'
+        ];
+        return observerFactory((mutations, observer) => {
+            for (const mutation of mutations) {
+                for (const addedNode of mutation.addedNodes) {
+                    if (addedNode.nodeType === Node.ELEMENT_NODE) {
+                        for (const selector of adSelectors) {
+                            $(addedNode).find(selector).hide();
                         }
                     }
                 }
+            }
+        });
+    };
+
+    // 2. 搜索增强
+    const searchEnhance = () => {
+        // 1. 找到基础的form表单
+        log("搜索增强 初始化");
+        let $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
+        if (!$form.length) {
+            // 新版本的 Pixiv 搜索栏表单不存在，查找旧版本的 Pixiv 搜索栏表单
+            $form = $(
+                '#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])'
+            );
+        }
+
+        // 2. 修改父级grid布局
+        $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
+
+        // 3. 搜索UID，PID和作者
+        const initSearch = option => {
+            const options = Object.assign({
+                $form: null, field: '搜索字段', placeholder: '请输入', template: '***', validNumber: false,
+            }, option);
+            if (!options.$form) {
+                error(`搜索组件[${options.field}]初始化失败, form元素获取失败`);
+            }
+
+            // 1. 初始化表单UI
+            const $parent = options.$form.parent().clone();
+            const $form = $parent.find('form');
+            $form.children('div').eq(1).remove();
+            $form.attr('class', `ahao-search-${options.field}`);
+            options.$form.parent().before($parent);
+            const $input = $form.find('input[type="text"]:first');
+            $input.attr('placeholder', options.placeholder);
+            $input.attr('value', '');
+            $input.val('');
+
+            // 2. 绑定submit事件
+            $form.submit(e => {
+                // 阻止默认的表单提交
+                e.preventDefault();
+
+                // 重写表单提交逻辑
+                const val = encodeURIComponent($input.val());
+                // 输入校验
+                if (options.validNumber && !/^[0-9]+$/.test(val)) {
+                    const label = options.placeholder + i18n('illegal');
+                    alert(label);
+                    return;
+                }
+                // 新窗口打开url
+                const url = options.template.replaceAll('***', val);
+                window.open(url);
+                // 清空input等待下次输入
+                $input.val('');
             });
-        }, () => true],
-        // 2/3. 搜索增强
-        ['search_enhance', null, () =>
-            observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点, 或者是否有[form]节点
-                    const $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
-                    if (mutation.type !== 'childList' || !$form.length) {
-                        continue;
-                    }
-                    log("搜索增强 初始化");
-
-                    // 2. 修改父级grid布局
-                    $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
-
-                    // 3. 搜索UID，PID和作者
-                    ($form => {
-                        const idSearch = true;
-                        const otherSearch = false;
-                        const initSearch = option => {
-                            const options = $.extend({ $form: null, placeholder: '', url: '', searchType: idSearch }, option);
-
-                            if (!options.$form) {
-                                error('搜索UID和PID 初始化失败, form元素获取失败');
-                            }
-
-                            // 1. 初始化表单UI
-                            const $parent = options.$form.parent().clone();
-                            const $form = $parent.find('form');
-                            $form.children('div').eq(1).remove();
-                            $form.attr('class', 'ahao-search');
-                            options.$form.parent().before($parent);
-
-                            const $input = $form.find('input[type="text"]:first');
-                            $input.attr('placeholder', options.placeholder);
-                            $input.val('');
-
-                            // 2. 绑定submit事件
-                            $form.submit(e => {
-                                e.preventDefault();
-                                const val = encodeURIComponent($input.val());
-                                // 2.1. ID 必须为纯数字
-                                if (options.searchType && !/^[0-9]+$/.test(val)) {
-                                    const label = options.placeholder + i18n('illegal');
-                                    alert(label);
-                                    return;
-                                }
-                                // 2.2. 新窗口打开url
-                                if (options.searchType == idSearch){
-                                    const url = option.url + val;
-                                }
-                                if (options.searchType == otherSearch){
-                                    const url = option.url + val + '&s_mode=s_usr';
-                                }
-                                window.open(url);
-                                // 2.3. 清空input等待下次输入
-                                $input.val('');
-                            });
-                        };
-                        initSearch({$form: $form, placeholder: 'UID', url: 'https://www.pixiv.net/users/', searchType: idSearch });
-                        initSearch({$form: $form, placeholder: 'PID', url: 'https://www.pixiv.net/artworks/', searchType: idSearch });
-                        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-                        initSearch({$form, placeholder: i18n('author'), url: "https://www.pixiv.net/search_user.php?nick=", searchType: otherSearch });
-                    })($form);
-                    // 4. 搜索条件
-                    ($form => {
-                        const label = i18n('favorites'); // users入り
-                        const $input = $form.find('input[type="text"]:first');
-                        const $select = $(`
+        };
+        initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true});
+        initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
+        // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
+        initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
+        // 4. 搜索条件
+        const label = i18n('favorites'); // users入り
+        const $input = $form.find('input[type="text"]:first');
+        const $select = $(`
                     <select id="select-ahao-favorites">
                         <option value=""></option>
+                        <option value="50000users入り">50000users入り</option>
                         <option value="30000users入り">30000users入り</option>
                         <option value="20000users入り">20000users入り</option>
                         <option value="10000users入り">10000users入り</option>
@@ -452,221 +399,152 @@ jQuery($ => {
                         <option value="100users入り"  >  100users入り</option>
                         <option value="50users入り"   >   50users入り</option>
                     </select>`);
-                        $select.on('change', () => {
-                            if (!!$input.val()) { $form.submit(); }
-                        });
-                        $form.parent().after($select);
-                        $form.submit(e => {
-                            e.preventDefault();
-                            if (!!$select.val()) {
-                                // 2.4.1. 去除旧的搜索选项
-                                $input.val((index, val) => val.replace(/\d*users入り/g, ''));
+        $select.on('change', () => {
+            if (!!$input.val()) {
+                $form.submit();
+            }
+        });
+        $form.parent().after($select);
+        $form.submit(e => {
+            // 阻止默认的表单提交
+            e.preventDefault();
 
-                                // 没能理解这一行的含义，但是已知搜索关键字为数字时会导致输入框被清空，于是擅自先注释掉了
-                                // $input.val((index, val) => val.replace(/\d*$/g, ''));
+            // 重写表单提交逻辑
+            if (!!$select.val()) {
+                // 去除旧的搜索选项
+                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                // 添加新的搜索选项
+                $input.val((index, val) => `${val} ${$select.val()}`);
+            }
+            const value = encodeURIComponent($input.val());
+            if (!!value) {
+                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, `tags/${value}/artworks`);
+            }
+        });
 
-                                // 2.4.2. 去除多余空格
-                                $input.val((index, val) => val.replace(/\s\s*/g, ''));
-                                $input.val((index, val) => `${val} `);
-                                // 2.4.3. 添加新的搜索选项
-                                $input.val((index, val) => `${val}${$select.val()}`);
-                            }
-                            const value = encodeURIComponent($input.val());
-                            // location.href = location.href.replace(/\d*users入り/g, $select.val());
-                            if (!!value) {
-                                // 抛弃所有参数，会导致Search option设置失效
-                                // location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`;
+    };
 
-                                // 改为使用正则替换keywords（使用 /\d*users入り/g 难以判断原本是否有'users入り'以及是否需要修改还是直接添加，所以我干脆直接写成如下）
-                                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, 'tags\/' + value + '\/artworks');
-                            }
-                        });
-                    })($form);
+    // 3. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
+    // UI优化
+    const addImgSizeSpan = (option) => {
+        // 从 $ 获取图片大小, after 到 $
+        const options = Object.assign({$: undefined, position: 'relative',}, option);
+        const $img = options.$;
+        const position = options.position;
 
-                    observer.disconnect();
-                    break;
-                }
-            })
-            , () => true],
-        // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-        ['download_able', null, async () => {
-            // 1. 初始化方法
-            const initDownloadBtn = option => {
-                // 下载按钮, 复制分享按钮并旋转180度
-                const options = $.extend({ $shareButtonContainer: undefined, id: '', text: '', clickFun: () => { } }, option);
-                const $downloadButtonContainer = options.$shareButtonContainer.clone();
-                $downloadButtonContainer.addClass('ahao-download-btn')
-                    .attr('id', options.id)
-                    .removeClass(options.$shareButtonContainer.attr('class'))
-                    .css('margin-right', '10px')
-                    .css('position', 'relative')
-                    .css('border', '1px solid')
-                    .css('padding', '1px 10px')
-                    .append(`<p style="display: inline">${options.text}</p>`);
-                $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
-                    .on('click', options.clickFun);
-                options.$shareButtonContainer.after($downloadButtonContainer);
-                return $downloadButtonContainer;
-            };
-            // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
-            // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
-            const addImgSize = async option => {
-                // 从 $img 获取图片大小, after 到 $img
-                const options = $.extend({
-                    $img: undefined,
-                    position: 'absolute',
-                }, option);
-                const $img = options.$img;
-                const position = options.position;
-                if ($img.length !== 1) {
-                    return;
-                }
-                GM.getValue(GMkeys.switchImgSize, true).then(open => {
-                    if (!!open) {
-                        // 1. 找到 显示图片大小 的 span, 没有则添加
-                        let $span = $img.next('span');
-                        if ($span.length <= 0) {
-                            // 添加前 去除失去依赖的 span
-                            $('body').find('.ahao-img-size').each(function () {
-                                const $this = $(this);
-                                const $prev = $this.prev('canvas, img');
-                                if ($prev.length <= 0) {
-                                    $this.remove();
-                                }
-                            });
-                            $img.after(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
+        // 1. 找到 显示图片大小 的 span, 没有则添加
+        let $span = $img.next('span');
+        if ($span.length <= 0) {
+            $span = $(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
                     color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>`);
-                            $span = $img.next('span');
+            $img.before($span);
+        }
+        // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
+        const tagName = $img.prop('tagName').toLowerCase();
+        if (tagName === 'img') {
+            const img = new Image();
+            img.src = $img.attr('src');
+            img.onload = function () {
+                $span.text(`${this.width}x${this.height}`); // 重新加载图片, 以获取图片大小
+            };
+        } else if (tagName === 'canvas') {
+            const width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
+            const height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
+            $span.text(`${width}x${height}`);
+        } else {
+            $span.text(`${tagName}暂不支持获取图片大小`);
+        }
+    };
+    const addImageDownloadBtn = option => {
+        // 下载按钮, 复制分享按钮并旋转180度
+        const options = Object.assign({
+            $shareButtonContainer: undefined, id: '', text: '', clickFun: () => {
+            }
+        }, option);
+        const $downloadButtonContainer = options.$shareButtonContainer.clone();
+        $downloadButtonContainer.addClass('ahao-download-btn')
+            .attr('id', options.id)
+            .removeClass(options.$shareButtonContainer.attr('class'))
+            .css('margin-right', '10px')
+            .css('position', 'relative')
+            .css('border', '1px solid')
+            .css('padding', '1px 10px')
+            .append(`<p style="display: inline">${options.text}</p>`);
+        $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
+            .on('click', options.clickFun);
+        options.$shareButtonContainer.after($downloadButtonContainer);
+        return $downloadButtonContainer;
+    };
+    const getDownloadName = (name) => {
+        const illust = illustApi();
+        name = name.replace('{pid}', illust.illustId);
+        name = name.replace('{uid}', illust.userId);
+        name = name.replace('{pname}', illust.illustTitle);
+        name = name.replace('{uname}', illust.userName);
+        return name;
+    };
+    const artworkOriginalImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback(mutations, observer) {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        // 单图、多图 DOM 结构都为 <a href=""><img/></a>
+                        let $img = $(addedNode).filter('img[src^="https://i.pximg.net/img-master"]'); // 多图的场景
+                        if ($img.length === 0) {
+                            $img = $(addedNode).find('img[src^="https://i.pximg.net/img-master"]')       // 单图的场景
                         }
-                        // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
-                        if ($img.prop('tagName') === 'IMG') {
-                            const img = new Image();
-                            img.src = $img.attr('src');
-                            img.onload = function () {
-                                $span.text(`${this.width}x${this.height}`);
-                            };
-                        } else {
-                            const width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
-                            const height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
-                            $span.text(`${width}x${height}`);
-                        }
-                    }
-                });
-            };
-            const mimeType = suffix => {
-                const lib = { png: "image/png", jpg: "image/jpeg", gif: "image/gif" };
-                return lib[suffix] || `mimeType[${suffix}] not found`;
-            };
-            const getDownloadName = (name) => {
-                name = name.replace('{pid}', illust().illustId);
-                name = name.replace('{uid}', illust().userId);
-                name = name.replace('{pname}', illust().illustTitle);
-                name = name.replace('{uname}', illust().userName);
-                return name;
-            };
-            const isMoreMode = () => illust().pageCount > 1;
-            const isGifMode = () => illust().illustType === 2;
-            const isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
-            const selectorShareBtn = await GM.getValue(GMkeys.selectorShareBtn, '.UXmvz'); // section 下的 div
-
-            // 热修复下载按钮的className
-            const a = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
-                    if ($target.prop('tagName').toLowerCase() !== 'section') continue;
-                    const $section = $target.find('section');
-                    if ($section.length <= 0) continue;
-                    const className = $section.eq(0).children('div').eq(1).attr('class').split(' ')[1];
-                    GM.setValue(GMkeys.selectorShareBtn, `.${className}`);
-                    observer.disconnect();
-                    return;
-                }
-            });
-            // 显示单图、多图原图
-            const b = () => observerFactory({
-                callback (mutations, observer) {
-                    for (let i = 0, len = mutations.length; i < len; i++) {
-                        const mutation = mutations[i];
-                        const $target = $(mutation.target);
-                        const replaceImg = ($target, attr, value) => {
-                            const oldValue = $target.attr(attr);
-                            if (new RegExp(`https?://i(-f|-cf)?\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) &&
-                                !new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`).test(oldValue)) {
-                                $target.attr(attr, value).css('filter', 'none');
-                                $target.fitWindow();
-                            }
-                        };
-
-                        // 1. 单图、多图 DOM 结构都为 <a href=""><img/></a>
-                        const $link = $target.find('img[src]');
-                        $link.each(function () {
+                        $img.attr('ahao-done', true); // 标记只执行一次
+                        $img.each(function () {
                             const $this = $(this);
                             const href = $this.parent('a').attr('href');
-                            if (!!href && (href.endsWith('jpg') || href.endsWith('png'))) {
-                                if (config.load_origin) {
-                                    replaceImg($this, 'src', href);
-                                }
-                                addImgSize({ $img: $this }); // 显示图片大小
+                            const isExpand = $img.parent('a').attr('class') === 'gtm-expand-full-size-illust'; // 多图展开模式有且只有一个class
+                            if (href?.endsWith('jpg') || href?.endsWith('png')) {
+                                $this.attr('src', href).css('filter', 'none');
+                                $this.fitWindow();
+                                addImgSizeSpan({$: $this, position: isExpand ? 'relative' : 'absolute'}); // 显示图片大小
                             }
                         });
-
-                        // 2. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
-                        // $('.e2p8rxc2').hide(); // 懒得适配了, 自行去个人资料设置 https://www.pixiv.net/setting_user.php
                     }
-                },
-                option: { attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href'] }
-            });
-            // 下载动图帧zip, gif图
-            const c = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
+                }
+            },
+            option: observerOptions
+        })
+    };
+    const artworkDownloadMultiImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for(const addedNode of mutation.addedNodes) {
+                        // 1. 找到分享按钮, 用于复制UI
+                        const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
 
-                    // 1. 单图、多图、gif图三种模式
-                    const $shareBtn = $target.find(selectorShareBtn);
+                        // 2. 初始化 图片数量, 图片url
+                        const zip = new JSZip();
+                        let downloaded = 0;        // 下载完成数量
+                        const illust = illustApi();
+                        const num = illust.pageCount;       // 下载目标数量
+                        const url = illust.urls.original;
+                        const imgUrls = Array(parseInt(num)).fill()
+                            .map((value, index) => url.replace(/_p\d\./, `_p${index}.`));
 
-                    const $canvas = $target.find('canvas');
-                    // 2. 显示图片大小
-                    addImgSize({ $img: $canvas })
-                    if (!isGifMode() || mutation.type !== 'childList' ||
-                        $shareBtn.length <= 0 ||
-                        $target.find('#ahao-download-zip').length > 0) {
-                        continue
-                    }
-                    log('下载gif图');
-
-                    // 3. 初始化 下载按钮
-                    const $zipBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-zip',
-                        text: 'zip',
-                    });
-                    const $gifBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-gif',
-                        text: 'gif',
-                        clickFun () {
-                            // 从 pixiv 官方 api 获取 gif 的数据
-                            $.ajax({
-                                url: `/ajax/illust/${illust().illustId}/ugoira_meta`, dataType: 'json',
-                                success: ({ body }) => {
-                                    // 1. 初始化 gif 下载按钮 点击事件
-                                    // GIF_worker_URL 来自 https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
-                                    let gifUrl;
-
-                                    const gifFrames = [];
-                                    const gifFactory = new GIF({ workers: 1, quality: 10, workerScript: GIF_worker_URL });
-
-                                    for (let frameIdx = 0, frames = body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
-                                        const frame = frames[frameIdx];
-                                        const url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
+                        // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
+                        const $zipBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-zip',
+                            text: `${i18n('download')}`,
+                            clickFun() {
+                                // 3.1. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
+                                if ($(this).attr('start') !== 'true') {
+                                    $(this).attr('start', true);
+                                    $.each(imgUrls, (index, url) => {
                                         GM.xmlHttpRequest({
                                             method: 'GET', url: url,
-                                            headers: { referer: 'https://www.pixiv.net/' },
+                                            headers: {referer: 'https://www.pixiv.net/'},
                                             overrideMimeType: 'text/plain; charset=x-user-defined',
-                                            onload ({ responseText }) {
-                                                // 2. 转为blob类型
+                                            onload({responseText}) {
+                                                // 3.2. 转为blob类型
                                                 const r = responseText;
 
                                                 const data = new Uint8Array(r.length);
@@ -676,186 +554,211 @@ jQuery($ => {
                                                     i++;
                                                 }
                                                 const suffix = url.split('.').splice(-1);
-                                                const blob = new Blob([data], { type: mimeType(suffix) });
+                                                const mimeType = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"}[suffix];
+                                                const blob = new Blob([data], {type: mimeType});
 
-                                                // 3. 压入gifFrames数组中, 手动同步sync
-                                                const img = document.createElement('img');
-                                                img.src = URL.createObjectURL(blob);
-                                                img.width = illust().width;
-                                                img.height = illust().height;
-                                                img.onload = () => {
-                                                    gifFrames[frameIdx] = { frame: img, option: { delay: frame.delay } };
-                                                    if (Object.keys(gifFrames).length >= framesLen) {
-                                                        $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
-                                                        gifFactory.render();
-                                                    }
-                                                };
+                                                // 3.3. 压缩图片
+                                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                                    zip.file(`${getDownloadName(name)}_${index}.${suffix}`, blob, {binary: true});
+                                                });
+
+
+                                                // 3.4. 手动sync, 避免下载不完全的情况
+                                                downloaded++;
+                                                $zipBtn.find('p').html(`${i18n('download')}${downloaded}/${num}`);
                                             }
                                         });
-                                    }
-                                    gifFactory.on('progress', pct => {
-                                        $gifBtn.find('p').text(`gif ${parseInt(pct * 100)}%`);
                                     });
-                                    gifFactory.on('finished', blob => {
-                                        gifUrl = URL.createObjectURL(blob);
-                                        GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                            const $a = $(`<a href="${gifUrl}" download="${getDownloadName(name)}"></a>`);
-                                            $gifBtn.find('button').wrap($a);
-                                        });
-
-                                    });
-                                    $gifBtn.find('button').off('click').on('click', () => {
-                                        if (!gifUrl) {
-                                            alert('Gif未加载完毕, 请稍等片刻!');
-                                            return;
-                                        }
-                                        // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
-                                        // window.open(gifUrl);
-                                    });
+                                    return;
                                 }
-                            });
-                        }
-                    });
 
-                    // 4. 控制是否预下载, 避免多个页面导致爆内存, 直接下载 zip
-                    $.ajax({
-                        url: `/ajax/illust/${illust().illustId}/ugoira_meta`, dataType: 'json',
-                        success: ({ body }) => {
-                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                const $a = $(`<a href="${body.originalSrc}" download="${getDownloadName(name)}"></a>`);
-                                $zipBtn.find('button').wrap($a);
-                            });
-                        }
-                    });
-                    GM.getValue(GMkeys.switchImgPreload, true).then(open => { if (open) { $gifBtn.find('button').click(); } });
+                                // 3.2. 手动sync, 避免下载不完全
+                                if (downloaded < num) {
+                                    alert(i18n('download_wait'));
+                                    return;
+                                }
+                                // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
+                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                    zip.generateAsync({type: 'blob', base64: true})
+                                        .then(content => saveAs(content, getDownloadName(name)));
+                                });
+                            }
+                        });
 
-                    // 5. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => { if (!v) observer.disconnect(); });
-                }
-            });
-            // 下载多图zip
-            const d = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
-
-                    // 1. 单图、多图、gif图三种模式
-                    const $shareBtn = $target.find(selectorShareBtn);
-                    if (!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
-                        continue
+                        // 4. 控制是否预下载, 避免多个页面导致爆内存 // TODO 统一控制
+                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
+                            if (open) {
+                                // $zipBtn.find('button').click();
+                            }
+                        });
                     }
-                    log('下载多图');
+                }
+            },
+            option: observerOptions
+        })
+    };
+    const artworkDownloadGifImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for(const addedNode of mutation.addedNodes) {
+                        // 1. 显示git尺寸大小
+                        const $canvas = $(addedNode).find('canvas');
+                        if($canvas.length > 0) {
+                            addImgSizeSpan({$: $canvas});
+                        }
 
-                    // 2. 查看全部图片
-                    GM.getValue(GMkeys.switchImgMulti, true).then(open => { if (open) { $shareBtn.parent('section').next('button').click(); } });
+                        // 2. 找到分享按钮, 用于复制UI
+                        const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
 
-                    // 3. 初始化 图片数量, 图片url
-                    const zip = new JSZip();
-                    let downloaded = 0;           // 下载完成数量
-                    const num = illust().pageCount; // 下载目标数量
-                    const url = illust().urls.original;
-                    const imgUrls = Array(parseInt(num)).fill()
-                        .map((value, index) => url.replace(/_p\d\./, `_p${index}.`));
+                        // 3. 初始化 下载按钮
+                        const $zipBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-zip',
+                            text: 'zip',
+                        });
+                        const $gifBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-gif',
+                            text: 'gif',
+                            clickFun() {
+                                // 从 pixiv 官方 api 获取 gif 的数据
+                                $.ajax({
+                                    url: `/ajax/illust/${illustApi().illustId}/ugoira_meta`, dataType: 'json',
+                                    success: ({body}) => {
+                                        // 1. 初始化 gif 下载按钮 点击事件
+                                        // GIF_worker_URL 来自 https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
+                                        let gifUrl;
 
-                    // 4. 初始化 下载按钮, 复制分享按钮并旋转180度
-                    const $zipBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-zip',
-                        text: `${i18n('download')}`,
-                        clickFun () {
-                            // 3.1. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
-                            if ($(this).attr('start') !== 'true') {
-                                $(this).attr('start', true);
-                                $.each(imgUrls, (index, url) => {
-                                    GM.xmlHttpRequest({
-                                        method: 'GET', url: url,
-                                        headers: { referer: 'https://www.pixiv.net/' },
-                                        overrideMimeType: 'text/plain; charset=x-user-defined',
-                                        onload ({ responseText }) {
-                                            // 4.1. 转为blob类型
-                                            const r = responseText;
+                                        const gifFrames = [];
+                                        const gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
 
-                                            const data = new Uint8Array(r.length);
-                                            let i = 0;
-                                            while (i < r.length) {
-                                                data[i] = r.charCodeAt(i);
-                                                i++;
-                                            }
-                                            const suffix = url.split('.').splice(-1);
-                                            const blob = new Blob([data], { type: mimeType(suffix) });
+                                        for (let frameIdx = 0, frames = body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
+                                            const frame = frames[frameIdx];
+                                            const url = illustApi().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
+                                            GM.xmlHttpRequest({
+                                                method: 'GET', url: url,
+                                                headers: {referer: 'https://www.pixiv.net/'},
+                                                overrideMimeType: 'text/plain; charset=x-user-defined',
+                                                onload({responseText}) {
+                                                    // 2. 转为blob类型
+                                                    const r = responseText;
 
-                                            // 4.2. 压缩图片
+                                                    const data = new Uint8Array(r.length);
+                                                    let i = 0;
+                                                    while (i < r.length) {
+                                                        data[i] = r.charCodeAt(i);
+                                                        i++;
+                                                    }
+                                                    const suffix = url.split('.').splice(-1);
+                                                    const mimeType = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"}[suffix];
+                                                    const blob = new Blob([data], {type: mimeType});
+
+                                                    // 3. 压入gifFrames数组中, 手动同步sync
+                                                    const img = document.createElement('img');
+                                                    img.src = URL.createObjectURL(blob);
+                                                    img.width = illustApi().width;
+                                                    img.height = illustApi().height;
+                                                    img.onload = () => {
+                                                        gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
+                                                        if (Object.keys(gifFrames).length >= framesLen) {
+                                                            $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
+                                                            gifFactory.render();
+                                                        }
+                                                    };
+                                                }
+                                            });
+                                        }
+                                        gifFactory.on('progress', pct => {
+                                            $gifBtn.find('p').text(`gif ${parseInt(pct * 100)}%`);
+                                        });
+                                        gifFactory.on('finished', blob => {
+                                            gifUrl = URL.createObjectURL(blob);
                                             GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                                zip.file(`${getDownloadName(name)}_${index}.${suffix}`, blob, { binary: true });
+                                                const $a = $(`<a href="${gifUrl}" download="${getDownloadName(name)}"></a>`);
+                                                $gifBtn.find('button').wrap($a);
                                             });
 
-
-                                            // 4.3. 手动sync, 避免下载不完全的情况
-                                            downloaded++;
-                                            $zipBtn.find('p').html(`${i18n('download')}${downloaded}/${num}`);
-                                        }
-                                    });
+                                        });
+                                        $gifBtn.find('button').off('click').on('click', () => {
+                                            if (!gifUrl) {
+                                                alert('Gif未加载完毕, 请稍等片刻!');
+                                                return;
+                                            }
+                                            // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
+                                            // window.open(gifUrl);
+                                        });
+                                    }
                                 });
-                                return;
                             }
+                        });
 
-                            // 3.2. 手动sync, 避免下载不完全
-                            if (downloaded < num) {
-                                alert(i18n('download_wait'));
-                                return;
+                        // 4. 控制是否预下载, 避免多个页面导致爆内存, 直接下载 zip
+                        $.ajax({
+                            url: `/ajax/illust/${illustApi().illustId}/ugoira_meta`, dataType: 'json',
+                            success: ({body}) => {
+                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                    const $a = $(`<a href="${body.originalSrc}" download="${getDownloadName(name)}"></a>`);
+                                    $zipBtn.find('button').wrap($a);
+                                });
                             }
-                            // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
-                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                zip.generateAsync({ type: 'blob', base64: true })
-                                    .then(content => saveAs(content, getDownloadName(name)));
-                            });
-                        }
-                    });
-
-                    // 4. 控制是否预下载, 避免多个页面导致爆内存
-                    GM.getValue(GMkeys.switchImgPreload, true).then(open => { if (open) { $zipBtn.find('button').click(); } });
-
-                    // 5. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => { if (!v) observer.disconnect(); });
+                        });
+                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
+                            if (open) {
+                                $gifBtn.find('button').click();
+                            }
+                        });
+                    }
                 }
-            });
+            },
+            option: observerOptions
+        })
+    };
+    if (isArtworkPage()) {
+        // https://www.pixiv.net/artworks/65424837#1
+        // https://www.pixiv.net/artworks/71005633
+        // https://www.pixiv.net/artworks/72414258
+        artworkOriginalImage();
+        // https://www.pixiv.net/artworks/65424837
+        if(isMoreMode()) {
+            artworkDownloadMultiImage();
+        }
+        // https://www.pixiv.net/artworks/71005633
+        if(isGifMode()) {
+            artworkDownloadGifImage();
+        }
+    }
 
-
-            // 这里的页面判断可以去除, 判断在第1次就结束了
-            return [
-                [a(), a],
-                [b(), b],
-                [c(), c],
-                [d(), d]
-            ];
-        }, () => isArtworkPage()],
-        // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
-        ['artist_info', null, () => {
-            // 画师页面UI
-            const a = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-
-                    // 1. 判断是否改变节点, 或者是否有[section]节点
-                    const $target = $(mutation.target); // 多个反混淆externalLinksContainer
-
-                    const externalLinksContainer = '_2AOtfl9';
-                    const $row = $(`ul.${externalLinksContainer}`).parent();
-                    if (mutation.type !== 'childList' || $row.length <= 0 || $('body').find('#uid').length > 0) {
+    // 4. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
+    const memberIndexPagePlus = () => {
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    // 1. 找到关注数量的div, 用于接下来的clone
+                    const uid = location.href.match(/\/users\/(\d+)/)?.[1];
+                    const $row = $(mutation.target).find(`div:has(> a[href$="/users/${uid}/following"])`);
+                    if ($row.length <= 0 || $row.attr('ahao-done')) {
                         continue;
                     }
+                    $row.attr('ahao-done', true); // 标记已处理, 避免重复执行
 
-                    // 1. 添加新的一行的div
-                    const $ahaoRow = $row.clone();
+                    // 2. 显示画师背景图
+                    const $bg = $row.clone();
+                    $bg.children('a').remove()
+                    const bgUrl = userApi(uid)?.background?.url || '';
+                    if (bgUrl && bgUrl !== 'none') {
+                        $bg.append(`<img src="${bgUrl}" width="30px"><a target="_blank" href="${bgUrl}" style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">${i18n('background')}</a>`);
+                    } else {
+                        $bg.append(`<span>${i18n('background_not_found')}</span>`);
+                    }
+                    $row.parent().append($bg);
 
-                    const $ul = $ahaoRow.children('ul');
-                    $ahaoRow.children(':not(ul)').remove();
-                    $ul.empty();
-                    $row.before($ahaoRow);
-
-                    // 2. 显示画师id, 点击自动复制到剪贴板
-                    const uid = getUid();
-                    const $uid = $(`<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`)
+                    // 3. 显示画师id, 点击自动复制到剪贴板
+                    const $uid = $row.clone();
+                    $uid.children('a').remove();
+                    $uid.append($(`<div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div>`)
                         .on('click', function () {
                             const $this = $(this);
                             $this.html(`<span>UID${i18n('copy_to_clipboard')}</span>`);
@@ -863,57 +766,49 @@ jQuery($ => {
                             setTimeout(() => {
                                 $this.html(`<span>UID${uid}</span>`);
                             }, 2000);
-                        });
-                    $ul.append($uid);
-
-                    // 3. 显示画师背景图
-                    const background = preloadData.user[uid].background;
-                    const url = (background && background.url) || '';
-                    const $bgli = $('<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>');
-                    const $bg = $bgli.find('div');
-                    if (!!url && url !== 'none') {
-                        $bg.append(`<img src="${url}" width="30px"><a target="_blank" href="${url}">${i18n('background')}</a>`);
-                    } else {
-                        $bg.append(`<span>${i18n('background_not_found')}</span>`);
-                    }
-                    $ul.append($bgli);
-
-                    // 4. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => { if (!v) observer.disconnect(); });
+                        }));
+                    $row.parent().append($uid);
                 }
-            });
-            // 作品页面UI
-            const b = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点, 或者是否有[section]节点
-                    const $aside = $(mutation.target).parent().find('main').next('aside');
-                    if (mutation.type !== 'childList' || $aside.length <= 0) {
+            }, option: observerOption
+        });
+    }
+    if (isMemberIndexPage()) {
+        // 测试链接：https://www.pixiv.net/artworks/72414258
+        memberIndexPagePlus();
+    }
+    const artworkPagePlus = () => {
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    // 1. 找到作者名称的h2, 用于接下来的clone
+                    const $row = $(mutation.target).filter('aside').find('section:first h2');
+                    if ($row.length <= 0 || $row.attr('ahao-done')) {
                         continue;
                     }
-
-                    const $row = $aside.find('section:first').find('h2');
-                    if ($row.length <= 0 || $aside.find('#ahao-background').length > 0) {
-                        continue;
-                    }
+                    $row.attr('ahao-done', true); // 标记已处理, 避免重复执行
 
                     // 2. 显示画师背景图
-                    const uid = getUid();
-                    const background = preloadData.user[uid].background;
-                    const url = (background && background.url) || '';
-                    const $bgDiv = $row.clone().attr('id', 'ahao-background');
-                    $bgDiv.children('a').remove();
-                    $bgDiv.children('div').children('div').remove();
-                    $bgDiv.prepend(`<img src="${url}" width="10%"/>`);
-                    $bgDiv.find('div a').attr('href', !!url ? url : 'javascript:void(0)').attr('target', '_blank')
-                        .text(!!url ? i18n('background') : i18n('background_not_found'));
-                    $row.after($bgDiv);
+                    const uid = $row.find('[data-gtm-value]:first').data('gtm-value');
+                    const bgUrl = userApi(uid)?.background?.url || '';
+                    const $bg = $row.clone();
+                    $bg.children('a').remove();
+                    $bg.children('div').children('div').remove();
+                    $bg.prepend(`<img src="${bgUrl}" width="10%"/>`);
+                    $bg.find('div a')
+                        .attr('href', !!bgUrl ? bgUrl : 'javascript:void(0)')
+                        .attr('target', '_blank')
+                        .text(!!bgUrl ? i18n('background') : i18n('background_not_found'));
+                    $row.after($bg);
 
                     // 3. 显示画师id, 点击自动复制到剪贴板
                     const $uid = $row.clone();
                     $uid.children('a').remove();
                     $uid.children('div').children('div').remove();
-                    $uid.find('a').attr('href', 'javascript:void(0)').attr('id', 'ahao-uid').text(`UID: ${uid}`);
+                    $uid.find('a')
+                        .attr('href', 'javascript:void(0)')
+                        .attr('id', 'ahao-uid')
+                        .text(`UID: ${uid}`);
                     $uid.on('click', function () {
                         const $this = $(this);
                         $this.find('a').text(`UID${i18n('copy_to_clipboard')}`);
@@ -922,23 +817,28 @@ jQuery($ => {
                             $this.find('a').text(`UID: ${uid}`);
                         }, 2000);
                     });
-                    $bgDiv.after($uid);
-
-                    // 4. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => { if (!v) observer.disconnect(); });
+                    $bg.after($uid);
                 }
-            });
-            // 解除 用户头像 的background 限制, 方便保存用户头像
-            const c = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    if (mutation.type !== 'childList') {
-                        continue;
-                    }
-
+            },
+            option: observerOption
+        });
+    };
+    if (isArtworkPage()) {
+        // 测试链接：https://www.pixiv.net/artworks/72414258
+        artworkPagePlus();
+    }
+    const backgroundUrlPlus = () => {
+        // TODO 待修复
+        return;
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
                     // 2. 将作者头像由 background 转为 <img>
                     const $target = $(mutation.target);
+                    if ($target.find('div.Bxamj').length > 0) {
+                        debugger
+                    }
                     $target.find('div[role="img"]').each(function () {
                         const $this = $(this);
                         const tagName = $this.prop('tagName');
@@ -980,66 +880,51 @@ jQuery($ => {
                         }
                     });
                 }
-            })
-            return [
-                [a(), a, () => isMemberIndexPage()],
-                [b(), b, () => isArtworkPage()],
-                [c(), c, () => true]
-            ]
-        }, () => true],
-        // 6. 自动加载评论
-        ['comment_load', null, () => {
-            let t = null;
-            log('加载评论 初始化');
-            GM.getValue(GMkeys.switchComment, true).then(open => {
-                const skipButton = i18n('watchlist');
-                const moreReplaySelector = '._28zR1MQ';
-                t = observerFactory((mutations, observer) => {
-                    if (!open || !isArtworkPage()) {
-                        return;
-                    }
-                    for (let i = 0, len = mutations.length; i < len; i++) {
-                        const mutation = mutations[i];
-                        // 1. 判断是否改变节点
-                        if (mutation.type !== 'childList') {
-                            continue;
-                        }
+            },
+            option: observerOption
+        });
+    };
+    backgroundUrlPlus();
 
-                        // 2. 模拟点击加载按钮
-                        const $moreCommentBtns = $("div > div:eq(2) > div div[role='button']");
-                        let $moreCommentBtn = $moreCommentBtns[0];
+    // 5. 自动加载评论
+    // https://www.pixiv.net/artworks/72414258
+    const commentAutoLoad = () => {
+        if(!isArtworkPage()) {
+            return;
+        }
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        // 第一次加载【浏览更多】按钮的场景
+                        $(addedNode).filter('[class^="CommentList_buttonArea"]').find("div[role='button']").click();
+                        // 第二次加载【浏览更多】按钮的场景
+                        $(mutation.target).filter('[class^="CommentList_buttonArea"]').find("div[role='button']").click();
 
-                        if ($moreCommentBtn) {
-                            if ($moreCommentBtn.textContent === skipButton) {
-                                if ($moreCommentBtns.length > 1) {
-                                    $moreCommentBtn = $moreCommentBtns[1];
-                                    $moreCommentBtn.click();
-                                }
-                            } else {
-                                $moreCommentBtn.click();
-                            }
-                        }
-
-                        const $moreReplayBtn = $(mutation.target).find(moreReplaySelector);
+                        const $moreReplayBtn = $(mutation.target).find('._28zR1MQ');
                         $moreReplayBtn.click();
                     }
-                });
-            });
-            return t;
-        }, () => true],
-        // 7. 对主页动态中的图片标记作品类型
-        ['artwork_tag', null, () => {
-            log('标记作品 初始化');
-            const illustTitleSelector = '.stacc_ref_illust_title';
-            return observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    const $title = $(mutation.target).find(illustTitleSelector);
-                    if (mutation.type !== 'childList' || !$title.length) {
-                        continue;
-                    }
+                }
+            },
+            option: observerOption,
+            node: document.querySelector('main')[0]
+        });
+    };
 
+    // 6. 对主页动态中的图片标记作品类型
+    // https://www.pixiv.net/stacc?mode=unify
+    const artworkTag = () => {
+        if (!isStaccPage()) {
+            return;
+        }
+        log('标记作品 初始化');
+        const observerOption = {childList: true};
+        return observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    // 1. 判断是否改变节点
+                    const $title = $(mutation.target).find('.stacc_ref_illust_title');
                     $title.each(function () {
                         const $a = $(this).find('a');
                         // 1. 已经添加过标记的就不再添加
@@ -1052,7 +937,7 @@ jQuery($ => {
                         // 3. 调用官方api, 判断作品类型
                         $.ajax({
                             url: `/ajax/illust/${illustId}`, dataType: 'json',
-                            success: ({ body }) => {
+                            success: ({body}) => {
                                 const illustType = parseInt(body.illustType);
                                 const isMultiPic = parseInt(body.pageCount) > 1;
                                 switch (illustType) {
@@ -1068,190 +953,33 @@ jQuery($ => {
                         });
                     })
                 }
-            });
-        }, () => isMemberDynamicPage()],
-        // 8. 对jump.php取消重定向
-        ['redirect_cancel', null, () => {
-            const jumpSelector = 'a[href*="jump.php"]';
+            },
+            option: observerOption,
+            node: document.getElementById('stacc_timeline')
+        });
+    };
 
-            return observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    if (mutation.type !== 'childList') {
-                        continue;
+    // 7. 对jump.php取消重定向
+    // https://www.pixiv.net/artworks/72300449
+    // https://www.pixiv.net/users/1039353
+    const antiRedirect = () => {
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        const jumpSelector = 'a[href*="jump.php"]';
+                        const $jump = $(addedNode).find(jumpSelector);
+                        $jump.each(function (i, e) {
+                            const $this = $(this);
+                            const url = $this.attr('href').match(/jump\.php\?(url=)?(.*)$/)[2];
+                            $this.attr('href', decodeURIComponent(url));
+                        });
                     }
-                    // 2. 修改href
-                    const $jump = $(mutation.target).find(jumpSelector);
-                    $jump.each(function () {
-                        const $this = $(this);
-                        const url = $this.attr('href').match(/jump\.php\?(url=)?(.*)$/)[2];
-                        $this.attr('href', decodeURIComponent(url));
-                    });
                 }
-            });
-        }, () => true]
-    ];
-    const len = observers.length;
-    // 初始化ob
-    for (let i = 0; i < len; i++) {
-        if (config[observers[i][0]] && observers[i][1] === null) {
-            const _observer = (observers[i][2])();
-            // 有一个ob组特殊处理
-            if (_observer instanceof Promise) {
-                _observer.then(v => observers[i][1] = v);
-            } else {
-                observers[i][1] = _observer;
             }
-        }
+        }, observerOption);
     }
-    // 页面跳转不触发脚本重载时，用监听器关闭ob避免页面卡死和cpu占用飙升
-    window.navigation.addEventListener('navigate', () => {
-        for (let i = 0; i < len; i++) {
-            // 功能设置没开启，关闭对应ob
-            if (!config[observers[i][0]]) {
-                // ob已创建
-                if (observers[i][1] !== null) {
-                    // ob组处理
-                    if (observers[i][1] instanceof Array) {
-                        const _len = observers[i][1];
-                        for (let j = 0; j < _len; j++) {
-                            const v = observers[i][1][j];
-                            if (v[0] !== null) {
-                                v[0].disconnect();
-                                v[0] = null;
-                            }
-                        }
-                    } else {
-                        observers[i][1].disconnect();
-                        observers[i][1] = null
-                    }
-                }
-            } else {
-                // 不处于功能对应页面
-                if (!(observers[i][3])()) {
-                    if (observers[i][1] !== null) {
-                        if (observers[i][1] instanceof Array) {
-                            const _len = observers[i][1];
-                            for (let j = 0; j < _len; j++) {
-                                const v = observers[i][1][j];
-                                v[0].disconnect();
-                                v[0] = null
-                            }
-                        } else {
-                            observers[i][1].disconnect();
-                            observers[i][1] = null;
-                        }
-                    }
-                } else {
-                    // 如果没有直接重新创建
-                    if (observers[i][1] instanceof Array) {
-                        // ob组特殊处理
-                        const _len = observers[i][1];
-                        for (let j = 0; j < _len; j++) {
-                            const v = observers[i][1][j];
-                            if (!(v[2])()) {
-                                if ([0] !== null) {
-                                    v[0].disconnect();
-                                    v[0] = null;
-                                }
-                            } else if (v[0] === null) {
-                                v[0] = (v[1])();
-                            }
-                        }
-                    } else if (observers[i][1] === null) {
-                        observers[i][1] = (observers[i][2])();
-                    }
-                }
-            }
-        }
-    });
-    // 9. 单页排序
-    (() => {
-        if (!isSearchPage() || true) {
-            return;
-        }
-        // 9.1. 生成按收藏数排序的按钮
-        observerFactory((mutations, observer) => {
-            for (let i = 0, len = mutations.length; i < len; i++) {
-                const mutation = mutations[i];
-                // 1. 判断是否改变节点
-                const $section = $('section');
-                if (mutation.type !== 'childList' || $section.length <= 0) {
-                    continue;
-                }
-                const $div = $section.prev().find('div').eq(0);
-
-                // 2. 添加按收藏数排序的按钮
-                const $sort = $(`<span class="sc-LzLvL">${i18n('sort_by_popularity')}</span>`);
-                $sort.on('click', function () {
-                    const value = !$(this).hasClass('bNPzQX');
-                    log(value);
-                    GM.setValue(GMkeys.switchOrderByPopular, value);
-                    if (value) {
-                        $sort.attr('class', 'sc-LzLvL bNPzQX');
-                    } else {
-                        $sort.attr('class', 'sc-LzLvL lfAMBc');
-                    }
-                });
-                $div.prepend($sort);
-                GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
-                    if (value) {
-                        $sort.attr('class', 'sc-LzLvL bNPzQX');
-                    } else {
-                        $sort.attr('class', 'sc-LzLvL lfAMBc');
-                    }
-                });
-
-                observer.disconnect();
-                break;
-            }
-        });
-
-        // 9.2. 按收藏数排序 // TODO 页面没有展示收藏数, 关闭单页排序
-        observerFactory((mutations, observer) => {
-            for (let i = 0, len = mutations.length; i < len; i++) {
-                const mutation = mutations[i];
-                // 1. 判断是否改变节点
-                const $div = $(mutation.target);
-                if (mutation.type !== 'childList' || $div.find('.count-list').length > 0) {
-                    continue;
-                }
-
-                // 2. 获取所有的item, 排序并填充
-                GM.getValue(GMkeys.switchOrderByPopular, true).then(value => {
-                    if (!value) {
-                        return;
-                    }
-                    const $container = $('section#js-react-search-mid').find('div:first');
-                    const $list = $container.children();
-                    const getCount = $ => parseInt($.find('ul.count-list a').text()) || 0;
-                    $list.sort((a, b) => getCount($(b)) - getCount($(a)));
-                    $container.html($list);
-
-                });
-                return; // 本次变更只排序一次
-            }
-        });
-    })();
-
-    // 10. 兼容模式检测是否PJAX并刷新页面, https://stackoverflow.com/a/4585031/6335926
-    (history => {
-        // 关闭此功能
-        return;
-
-        const pushState = history.pushState;
-        history.pushState = function (state) {
-            if (typeof history.onpushstate == "function") {
-                history.onpushstate({ state });
-            }
-            GM.getValue(GMkeys.MO, true).then(enableMO => {
-                if (enableMO) { return; }
-                location.reload();
-            });
-            return pushState.apply(history, arguments);
-        };
-    })(window.history);
 
     // 11. 控制面板
     (() => {
@@ -1281,7 +1009,9 @@ jQuery($ => {
         $table.find('input[type="checkbox"]').each(function () {
             const $checkbox = $(this);
             const name = $checkbox.attr('name');
-            GM.getValue(name, true).then(value => { $checkbox.prop('checked', value); });
+            GM.getValue(name, true).then(value => {
+                $checkbox.prop('checked', value);
+            });
             $checkbox.on('change', () => {
                 const checked = $checkbox.prop('checked');
                 $checkbox.prop(checked, checked);
@@ -1291,7 +1021,9 @@ jQuery($ => {
         $table.find('input[type="text"]').each(function () {
             const $input = $(this);
             const name = $input.attr('name');
-            GM.getValue(name).then(value => { $input.val(value); });
+            GM.getValue(name).then(value => {
+                $input.val(value);
+            });
             $input.on('change', () => {
                 GM.setValue(name, $input.val());
             });
@@ -1300,4 +1032,34 @@ jQuery($ => {
 
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
+
+    // ============================ 主函数 ==============================
+    // TODO 改造为 https://wiki.greasespot.net/GM_config
+    const menuId = [];
+    const registerMenu = () => {
+        // 用于刷新设置
+        if (menuId.length > 0) {
+            menuId.forEach(id => GM_unregisterMenuCommand(id));
+            menuId.length = 0; // 清空数组
+        }
+        for (const key in features) {
+            const feature = features[key];
+            const value = GM_getValue(key, true);
+            menuId.push(GM_registerMenuCommand(`${value ? '✅' : '❌'} ${feature.i18n}`, () => {
+                GM_setValue(key, !value);
+                registerMenu();
+            }));
+        }
+    };
+    registerMenu();
+
+    features.adDisable.isEnable() && adDisable();
+    features.searchEnhance.isEnable() && setTimeout(() => searchEnhance(), 1000);
+
+
+
+    features.commentLoad.isEnable() && commentAutoLoad();
+    artworkTag();
+    antiRedirect();
 });
+
