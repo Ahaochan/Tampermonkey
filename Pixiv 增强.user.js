@@ -1030,6 +1030,7 @@ jQuery($ => {
     //TODO 日语化
 
     // ============================ 主函数 ==============================
+    // TODO 改造为 https://wiki.greasespot.net/GM_config
     const menuId = [];
     const registerMenu = () => {
         // 用于刷新设置
