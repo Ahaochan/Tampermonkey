@@ -80,38 +80,15 @@ jQuery($ => {
     const debug = true;
     const [log, error] = [debug ? console.log : () => { }, console.error];
 
-
-    let globalData;
-
-    let preloadData;
-    const initData = () => {
-        $.ajax({
-            url: location.href, async: false,
-            success: response => {
-                const html = document.createElement('html');
-                html.innerHTML = response;
-                globalData = JSON.parse($(html).find('meta[name="global-data"]').attr('content') || '{}');
-                preloadData = JSON.parse($(html).find('meta[name="preload-data"]').attr('content') || '{}');
-            }
-        });
-    };
-    const getPreloadData = () => {
-        if (!preloadData) { initData(); }
-        return preloadData;
-    };
-    const getGlobalData = () => {
-        if (!globalData) { initData(); }
-        return globalData;
-    };
-    let authorDetails = {};
     const getAuthorDetails = (authorId) => {
+        const authorDetails = JSON.parse(localStorage.getItem('ahao_author_details') || '{}');
         if (!authorDetails || String(authorDetails.userId) !== String(authorId)) {
             $.ajax({
                 url: `/ajax/user/${authorId}`,
                 dataType: 'json',
                 async: false,
-                success: (response) => {
-                    authorDetails = response.body;
+                success: ({body}) => {
+                    localStorage.setItem('ahao_author_details', JSON.stringify(body));
                 },
             });
         }
