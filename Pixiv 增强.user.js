@@ -953,8 +953,10 @@ jQuery($ => {
                         });
                     })
                 }
-            }
-        }, observerOption);
+            },
+            option: observerOption,
+            node: document.getElementById('stacc_timeline')
+        });
     };
 
     // 7. 对jump.php取消重定向
