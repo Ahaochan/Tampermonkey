@@ -72,8 +72,60 @@ jQuery($ => {
                 imgUrls.push(bgUrl);
             });
             return imgUrls.length === 1 ? imgUrls[0] : imgUrls;
-        }
+        },
+        // TODO 抽取公共的ahao-done方法
     });
+
+    // UI优化
+    const addImgSizeSpan = (option) => {
+        // 从 $ 获取图片大小, after 到 $
+        const options = Object.assign({$: undefined, position: 'relative',}, option);
+        const $img = options.$;
+        const position = options.position;
+
+        // 1. 找到 显示图片大小 的 span, 没有则添加
+        let $span = $img.next('span');
+        if ($span.length <= 0) {
+            $span = $(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
+                    color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>`);
+            $img.before($span);
+        }
+        // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
+        const tagName = $img.prop('tagName').toLowerCase();
+        if (tagName === 'img') {
+            const img = new Image();
+            img.src = $img.attr('src');
+            img.onload = function () {
+                $span.text(`${this.width}x${this.height}`); // 重新加载图片, 以获取图片大小
+            };
+        } else if (tagName === 'canvas') {
+            const width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
+            const height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
+            $span.text(`${width}x${height}`);
+        } else {
+            $span.text(`${tagName}暂不支持获取图片大小`);
+        }
+    };
+    const addImageDownloadBtn = option => {
+        // 下载按钮, 复制分享按钮并旋转180度
+        const options = Object.assign({
+            $shareButtonContainer: undefined, id: '', text: '', clickFun: () => {
+            }
+        }, option);
+        const $downloadButtonContainer = options.$shareButtonContainer.clone();
+        $downloadButtonContainer.addClass('ahao-download-btn')
+            .attr('id', options.id)
+            .removeClass(options.$shareButtonContainer.attr('class'))
+            .css('margin-right', '10px')
+            .css('position', 'relative')
+            .css('border', '1px solid')
+            .css('padding', '1px 10px')
+            .append(`<p style="display: inline">${options.text}</p>`);
+        $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
+            .on('click', options.clickFun);
+        options.$shareButtonContainer.after($downloadButtonContainer);
+        return $downloadButtonContainer;
+    };
 
 
     // ============================ 全局参数 ====================================
@@ -81,49 +133,41 @@ jQuery($ => {
     const [log, error] = [debug ? console.log : () => {
     }, console.error];
 
-    const getAuthorDetails = (authorId) => {
-        const authorDetails = JSON.parse(localStorage.getItem('ahao_author_details') || '{}');
-        if (!authorDetails || String(authorDetails.userId) !== String(authorId)) {
+    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
+    const userApi = (userId) => {
+        const key = 'ahao_user';
+        const user = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!user || String(user.userId) !== String(userId)) {
             $.ajax({
-                url: `/ajax/user/${authorId}`,
+                url: `/ajax/user/${userId}`,
                 dataType: 'json',
                 async: false,
                 success: ({body}) => {
-                    localStorage.setItem('ahao_author_details', JSON.stringify(body));
+                    localStorage.setItem(key, JSON.stringify(body));
                 },
             });
         }
-        return authorDetails;
+        return user;
     }
-    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
-    let illustJson = {};
-
-    const illust = () => {
+    const illustApi = () => {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
-        const preIllustId = $('body').attr('ahao_illust_id');
-        const paramRegex = location.href.match(/artworks\/(\d*)(#\d*)?$/);
-        const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
-        // 2. 如果illust_id没变, 则不更新json
-        if (parseInt(preIllustId) === parseInt(urlIllustId)) {
-            return illustJson;
-        }
-        // 3. 如果illust_id变化, 则持久化illust_id, 且同步更新json
-        if (!!urlIllustId) {
-            $('body').attr('ahao_illust_id', urlIllustId);
+        const key = 'ahao_illust';
+        const preIllustId = $('body').attr(key);
+        const urlIllustId = location.href.match(/artworks\/(\d*)(#\d*)?$/)?.[1] || '';
+
+        const illust = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!illust || String(preIllustId) !== String(urlIllustId)) {
             $.ajax({
                 url: `/ajax/illust/${urlIllustId}`,
                 dataType: 'json',
                 async: false,
-                success: ({body}) => illustJson = body
+                success: ({body}) => {
+                    $('body').attr(key, urlIllustId);
+                    localStorage.setItem(key, JSON.stringify(body));
+                },
             });
         }
-        return illustJson;
-    };
-    const getUid = () => {
-        if (!preloadData || !preloadData.user || !Object.keys(preloadData.user)[0]) {
-            initData();
-        }
-        return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
+        return illust;
     };
     const observerFactory = function (option) {
         // 初始化 MutationObserver 所需参数
@@ -331,391 +375,13 @@ jQuery($ => {
     const isMemberDynamicPage = () => /.+\/stacc.+/.test(location.href);
     const isMemberPage = () => isMemberIndexPage() || isMemberIllustPage() || isMemberBookmarkPage() || isMemberFriendPage();
     const isSearchPage = () => /.+\/search\.php.*/.test(location.href) || /.+\/tags\/.*\/artworks.*/.test(location.href);
+    const isMoreMode = () => illustApi().pageCount > 1;
+    const isGifMode = () => illustApi().illustType === 2;
+    const isSingleMode = () => (illustApi().illustType === 0 || illustApi().illustType === 1) && illustApi().pageCount === 1;
 
     // 判断是否登录
     if (!isLogin()) {
         alert(i18n('loginWarning'));
-    }
-    /**
-     * [0] => 功能配置
-     * [1] => ob / ob组[ob, ob创建函数，判断是否处于对应页面的函数(可选)]
-     * [2] => 创建ob / ob组的函数
-     * [3] => 判断是否处于对应页面的函数
-     */
-    const observers = [
-        // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
-        ['download_able', null, async () => {
-            // 1. 初始化方法
-            const initDownloadBtn = option => {
-                // 下载按钮, 复制分享按钮并旋转180度
-                const options = $.extend({
-                    $shareButtonContainer: undefined, id: '', text: '', clickFun: () => {
-                    }
-                }, option);
-                const $downloadButtonContainer = options.$shareButtonContainer.clone();
-                $downloadButtonContainer.addClass('ahao-download-btn')
-                    .attr('id', options.id)
-                    .removeClass(options.$shareButtonContainer.attr('class'))
-                    .css('margin-right', '10px')
-                    .css('position', 'relative')
-                    .css('border', '1px solid')
-                    .css('padding', '1px 10px')
-                    .append(`<p style="display: inline">${options.text}</p>`);
-                $downloadButtonContainer.find('button').css('transform', 'rotate(180deg)')
-                    .on('click', options.clickFun);
-                options.$shareButtonContainer.after($downloadButtonContainer);
-                return $downloadButtonContainer;
-            };
-            // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
-            // TODO 多图显示图片尺寸异常 https://www.pixiv.net/artworks/65424837
-            const addImgSize = async option => {
-                // 从 $img 获取图片大小, after 到 $img
-                const options = $.extend({
-                    $img: undefined,
-                    position: 'absolute',
-                }, option);
-                const $img = options.$img;
-                const position = options.position;
-                if ($img.length !== 1) {
-                    return;
-                }
-                GM.getValue(GMkeys.switchImgSize, true).then(open => {
-                    if (!!open) {
-                        // 1. 找到 显示图片大小 的 span, 没有则添加
-                        let $span = $img.next('span');
-                        if ($span.length <= 0) {
-                            // 添加前 去除失去依赖的 span
-                            $('body').find('.ahao-img-size').each(function () {
-                                const $this = $(this);
-                                const $prev = $this.prev('canvas, img');
-                                if ($prev.length <= 0) {
-                                    $this.remove();
-                                }
-                            });
-                            $img.after(`<span class="ahao-img-size" style="position: ${position}; right: 0; top: 28px;
-                    color: #ffffff; font-size: x-large; font-weight: bold; -webkit-text-stroke: 1.0px #000000;"></span>`);
-                            $span = $img.next('span');
-                        }
-                        // 2. 根据标签获取图片大小, 目前只有 canvas 和 img 两种
-                        if ($img.prop('tagName') === 'IMG') {
-                            const img = new Image();
-                            img.src = $img.attr('src');
-                            img.onload = function () {
-                                $span.text(`${this.width}x${this.height}`);
-                            };
-                        } else {
-                            const width = $img.attr('width') || $img.css('width').replace('px', '') || $img.css('max-width').replace('px', '') || 0;
-                            const height = $img.attr('height') || $img.css('height').replace('px', '') || $img.css('max-height').replace('px', '') || 0;
-                            $span.text(`${width}x${height}`);
-                        }
-                    }
-                });
-            };
-            const mimeType = suffix => {
-                const lib = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"};
-                return lib[suffix] || `mimeType[${suffix}] not found`;
-            };
-            const getDownloadName = (name) => {
-                name = name.replace('{pid}', illust().illustId);
-                name = name.replace('{uid}', illust().userId);
-                name = name.replace('{pname}', illust().illustTitle);
-                name = name.replace('{uname}', illust().userName);
-                return name;
-            };
-            const isMoreMode = () => illust().pageCount > 1;
-            const isGifMode = () => illust().illustType === 2;
-            const isSingleMode = () => (illust().illustType === 0 || illust().illustType === 1) && illust().pageCount === 1;
-            const selectorShareBtn = await GM.getValue(GMkeys.selectorShareBtn, '.UXmvz'); // section 下的 div
-
-            // 热修复下载按钮的className
-            const a = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
-                    if ($target.prop('tagName').toLowerCase() !== 'section') continue;
-                    const $section = $target.find('section');
-                    if ($section.length <= 0) continue;
-                    const className = $section.eq(0).children('div').eq(1).attr('class').split(' ')[1];
-                    GM.setValue(GMkeys.selectorShareBtn, `.${className}`);
-                    observer.disconnect();
-                    return;
-                }
-            });
-            // 显示单图、多图原图
-            const b = () => observerFactory({
-                callback(mutations, observer) {
-                    for (let i = 0, len = mutations.length; i < len; i++) {
-                        const mutation = mutations[i];
-                        const $target = $(mutation.target);
-                        const replaceImg = ($target, attr, value) => {
-                            const oldValue = $target.attr(attr);
-                            if (new RegExp(`https?://i(-f|-cf)?\.pximg\.net.*\/${illust().id}_.*`).test(oldValue) &&
-                                !new RegExp(`https?://i(-f|-cf)?\.pximg\.net/img-original.*`).test(oldValue)) {
-                                $target.attr(attr, value).css('filter', 'none');
-                                $target.fitWindow();
-                            }
-                        };
-
-                        // 1. 单图、多图 DOM 结构都为 <a href=""><img/></a>
-                        const $link = $target.find('img[src]');
-                        $link.each(function () {
-                            const $this = $(this);
-                            const href = $this.parent('a').attr('href');
-                            if (!!href && (href.endsWith('jpg') || href.endsWith('png'))) {
-                                if (config.load_origin) {
-                                    replaceImg($this, 'src', href);
-                                }
-                                addImgSize({$img: $this}); // 显示图片大小
-                            }
-                        });
-
-                        // 2. 移除马赛克遮罩, https://www.pixiv.net/member_illust.php?mode=medium&illust_id=50358638
-                        // $('.e2p8rxc2').hide(); // 懒得适配了, 自行去个人资料设置 https://www.pixiv.net/setting_user.php
-                    }
-                },
-                option: {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']}
-            });
-            // 下载动图帧zip, gif图
-            const c = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
-
-                    // 1. 单图、多图、gif图三种模式
-                    const $shareBtn = $target.find(selectorShareBtn);
-
-                    const $canvas = $target.find('canvas');
-                    // 2. 显示图片大小
-                    addImgSize({$img: $canvas})
-                    if (!isGifMode() || mutation.type !== 'childList' ||
-                        $shareBtn.length <= 0 ||
-                        $target.find('#ahao-download-zip').length > 0) {
-                        continue
-                    }
-                    log('下载gif图');
-
-                    // 3. 初始化 下载按钮
-                    const $zipBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-zip',
-                        text: 'zip',
-                    });
-                    const $gifBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-gif',
-                        text: 'gif',
-                        clickFun() {
-                            // 从 pixiv 官方 api 获取 gif 的数据
-                            $.ajax({
-                                url: `/ajax/illust/${illust().illustId}/ugoira_meta`, dataType: 'json',
-                                success: ({body}) => {
-                                    // 1. 初始化 gif 下载按钮 点击事件
-                                    // GIF_worker_URL 来自 https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
-                                    let gifUrl;
-
-                                    const gifFrames = [];
-                                    const gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
-
-                                    for (let frameIdx = 0, frames = body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
-                                        const frame = frames[frameIdx];
-                                        const url = illust().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
-                                        GM.xmlHttpRequest({
-                                            method: 'GET', url: url,
-                                            headers: {referer: 'https://www.pixiv.net/'},
-                                            overrideMimeType: 'text/plain; charset=x-user-defined',
-                                            onload({responseText}) {
-                                                // 2. 转为blob类型
-                                                const r = responseText;
-
-                                                const data = new Uint8Array(r.length);
-                                                let i = 0;
-                                                while (i < r.length) {
-                                                    data[i] = r.charCodeAt(i);
-                                                    i++;
-                                                }
-                                                const suffix = url.split('.').splice(-1);
-                                                const blob = new Blob([data], {type: mimeType(suffix)});
-
-                                                // 3. 压入gifFrames数组中, 手动同步sync
-                                                const img = document.createElement('img');
-                                                img.src = URL.createObjectURL(blob);
-                                                img.width = illust().width;
-                                                img.height = illust().height;
-                                                img.onload = () => {
-                                                    gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
-                                                    if (Object.keys(gifFrames).length >= framesLen) {
-                                                        $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
-                                                        gifFactory.render();
-                                                    }
-                                                };
-                                            }
-                                        });
-                                    }
-                                    gifFactory.on('progress', pct => {
-                                        $gifBtn.find('p').text(`gif ${parseInt(pct * 100)}%`);
-                                    });
-                                    gifFactory.on('finished', blob => {
-                                        gifUrl = URL.createObjectURL(blob);
-                                        GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                            const $a = $(`<a href="${gifUrl}" download="${getDownloadName(name)}"></a>`);
-                                            $gifBtn.find('button').wrap($a);
-                                        });
-
-                                    });
-                                    $gifBtn.find('button').off('click').on('click', () => {
-                                        if (!gifUrl) {
-                                            alert('Gif未加载完毕, 请稍等片刻!');
-                                            return;
-                                        }
-                                        // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
-                                        // window.open(gifUrl);
-                                    });
-                                }
-                            });
-                        }
-                    });
-
-                    // 4. 控制是否预下载, 避免多个页面导致爆内存, 直接下载 zip
-                    $.ajax({
-                        url: `/ajax/illust/${illust().illustId}/ugoira_meta`, dataType: 'json',
-                        success: ({body}) => {
-                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                const $a = $(`<a href="${body.originalSrc}" download="${getDownloadName(name)}"></a>`);
-                                $zipBtn.find('button').wrap($a);
-                            });
-                        }
-                    });
-                    GM.getValue(GMkeys.switchImgPreload, true).then(open => {
-                        if (open) {
-                            $gifBtn.find('button').click();
-                        }
-                    });
-
-                    // 5. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => {
-                        if (!v) observer.disconnect();
-                    });
-                }
-            });
-            // 下载多图zip
-            const d = () => observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    const $target = $(mutation.target);
-
-                    // 1. 单图、多图、gif图三种模式
-                    const $shareBtn = $target.find(selectorShareBtn);
-                    if (!isMoreMode() || mutation.type !== 'childList' || !$shareBtn.length || !!$target.find('#ahao-download-zip').length) {
-                        continue
-                    }
-                    log('下载多图');
-
-                    // 2. 查看全部图片
-                    GM.getValue(GMkeys.switchImgMulti, true).then(open => {
-                        if (open) {
-                            $shareBtn.parent('section').next('button').click();
-                        }
-                    });
-
-                    // 3. 初始化 图片数量, 图片url
-                    const zip = new JSZip();
-                    let downloaded = 0;           // 下载完成数量
-                    const num = illust().pageCount; // 下载目标数量
-                    const url = illust().urls.original;
-                    const imgUrls = Array(parseInt(num)).fill()
-                        .map((value, index) => url.replace(/_p\d\./, `_p${index}.`));
-
-                    // 4. 初始化 下载按钮, 复制分享按钮并旋转180度
-                    const $zipBtn = initDownloadBtn({
-                        $shareButtonContainer: $shareBtn,
-                        id: 'ahao-download-zip',
-                        text: `${i18n('download')}`,
-                        clickFun() {
-                            // 3.1. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
-                            if ($(this).attr('start') !== 'true') {
-                                $(this).attr('start', true);
-                                $.each(imgUrls, (index, url) => {
-                                    GM.xmlHttpRequest({
-                                        method: 'GET', url: url,
-                                        headers: {referer: 'https://www.pixiv.net/'},
-                                        overrideMimeType: 'text/plain; charset=x-user-defined',
-                                        onload({responseText}) {
-                                            // 4.1. 转为blob类型
-                                            const r = responseText;
-
-                                            const data = new Uint8Array(r.length);
-                                            let i = 0;
-                                            while (i < r.length) {
-                                                data[i] = r.charCodeAt(i);
-                                                i++;
-                                            }
-                                            const suffix = url.split('.').splice(-1);
-                                            const blob = new Blob([data], {type: mimeType(suffix)});
-
-                                            // 4.2. 压缩图片
-                                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                                zip.file(`${getDownloadName(name)}_${index}.${suffix}`, blob, {binary: true});
-                                            });
-
-
-                                            // 4.3. 手动sync, 避免下载不完全的情况
-                                            downloaded++;
-                                            $zipBtn.find('p').html(`${i18n('download')}${downloaded}/${num}`);
-                                        }
-                                    });
-                                });
-                                return;
-                            }
-
-                            // 3.2. 手动sync, 避免下载不完全
-                            if (downloaded < num) {
-                                alert(i18n('download_wait'));
-                                return;
-                            }
-                            // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
-                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
-                                zip.generateAsync({type: 'blob', base64: true})
-                                    .then(content => saveAs(content, getDownloadName(name)));
-                            });
-                        }
-                    });
-
-                    // 4. 控制是否预下载, 避免多个页面导致爆内存
-                    GM.getValue(GMkeys.switchImgPreload, true).then(open => {
-                        if (open) {
-                            $zipBtn.find('button').click();
-                        }
-                    });
-
-                    // 5. 取消监听
-                    GM.getValue(GMkeys.MO, true).then(v => {
-                        if (!v) observer.disconnect();
-                    });
-                }
-            });
-
-
-            // 这里的页面判断可以去除, 判断在第1次就结束了
-            return [
-                [a(), a],
-                [b(), b],
-                [c(), c],
-                [d(), d]
-            ];
-        }, () => isArtworkPage()],
-    ];
-    const len = observers.length;
-    // 初始化ob
-    for (let i = 0; i < len; i++) {
-        if (config[observers[i][0]] && observers[i][1] === null) {
-            const _observer = (observers[i][2])();
-            // 有一个ob组特殊处理
-            if (_observer instanceof Promise) {
-                _observer.then(v => observers[i][1] = v);
-            } else {
-                observers[i][1] = _observer;
-            }
-        }
     }
     // 页面跳转不触发脚本重载时，用监听器关闭ob避免页面卡死和cpu占用飙升
     window.navigation.addEventListener('navigate', () => {
@@ -907,6 +573,261 @@ jQuery($ => {
     };
     setTimeout(() => searchPlus(), 1000);
 
+    // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
+    const getDownloadName = (name) => {
+        name = name.replace('{pid}', illustApi().illustId);
+        name = name.replace('{uid}', illustApi().userId);
+        name = name.replace('{pname}', illustApi().illustTitle);
+        name = name.replace('{uname}', illustApi().userName);
+        return name;
+    };
+    const artworkOriginalImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback(mutations, observer) {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        // 单图、多图 DOM 结构都为 <a href=""><img/></a>
+                        let $img = $(addedNode).filter('img[src^="https://i.pximg.net/img-master"]'); // 多图的场景
+                        if ($img.length === 0) {
+                            $img = $(addedNode).find('img[src^="https://i.pximg.net/img-master"]')       // 单图的场景
+                        }
+                        $img.attr('ahao-done', true); // 标记只执行一次
+                        $img.each(function () {
+                            const $this = $(this);
+                            const href = $this.parent('a').attr('href');
+                            const isExpand = $img.parent('a').attr('class') === 'gtm-expand-full-size-illust'; // 多图展开模式有且只有一个class
+                            if (href?.endsWith('jpg') || href?.endsWith('png')) {
+                                $this.attr('src', href).css('filter', 'none');
+                                $this.fitWindow();
+                                addImgSizeSpan({$: $this, position: isExpand ? 'relative' : 'absolute'}); // 显示图片大小
+                            }
+                        });
+                    }
+                }
+            },
+            option: observerOptions
+        })
+    };
+    const artworkDownloadMultiImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for(const addedNode of mutation.addedNodes) {
+                        // 1. 找到分享按钮, 用于复制UI
+                        const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
+
+                        // 2. 初始化 图片数量, 图片url
+                        const zip = new JSZip();
+                        let downloaded = 0;        // 下载完成数量
+                        const illust = illustApi();
+                        const num = illust.pageCount;       // 下载目标数量
+                        const url = illust.urls.original;
+                        const imgUrls = Array(parseInt(num)).fill()
+                            .map((value, index) => url.replace(/_p\d\./, `_p${index}.`));
+
+                        // 3. 初始化 下载按钮, 复制分享按钮并旋转180度
+                        const $zipBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-zip',
+                            text: `${i18n('download')}`,
+                            clickFun() {
+                                // 3.1. 下载图片, https://wiki.greasespot.net/GM.xmlHttpRequest
+                                if ($(this).attr('start') !== 'true') {
+                                    $(this).attr('start', true);
+                                    $.each(imgUrls, (index, url) => {
+                                        GM.xmlHttpRequest({
+                                            method: 'GET', url: url,
+                                            headers: {referer: 'https://www.pixiv.net/'},
+                                            overrideMimeType: 'text/plain; charset=x-user-defined',
+                                            onload({responseText}) {
+                                                // 3.2. 转为blob类型
+                                                const r = responseText;
+
+                                                const data = new Uint8Array(r.length);
+                                                let i = 0;
+                                                while (i < r.length) {
+                                                    data[i] = r.charCodeAt(i);
+                                                    i++;
+                                                }
+                                                const suffix = url.split('.').splice(-1);
+                                                const mimeType = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"}[suffix];
+                                                const blob = new Blob([data], {type: mimeType});
+
+                                                // 3.3. 压缩图片
+                                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                                    zip.file(`${getDownloadName(name)}_${index}.${suffix}`, blob, {binary: true});
+                                                });
+
+
+                                                // 3.4. 手动sync, 避免下载不完全的情况
+                                                downloaded++;
+                                                $zipBtn.find('p').html(`${i18n('download')}${downloaded}/${num}`);
+                                            }
+                                        });
+                                    });
+                                    return;
+                                }
+
+                                // 3.2. 手动sync, 避免下载不完全
+                                if (downloaded < num) {
+                                    alert(i18n('download_wait'));
+                                    return;
+                                }
+                                // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
+                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                    zip.generateAsync({type: 'blob', base64: true})
+                                        .then(content => saveAs(content, getDownloadName(name)));
+                                });
+                            }
+                        });
+
+                        // 4. 控制是否预下载, 避免多个页面导致爆内存 // TODO 统一控制
+                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
+                            if (open) {
+                                // $zipBtn.find('button').click();
+                            }
+                        });
+                    }
+                }
+            },
+            option: observerOptions
+        })
+    };
+    const artworkDownloadGifImage = () => {
+        const observerOptions = {attributes: true, childList: true, subtree: true, attributeFilter: ['src', 'href']};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for(const addedNode of mutation.addedNodes) {
+                        // 1. 显示git尺寸大小
+                        const $canvas = $(addedNode).find('canvas');
+                        if($canvas.length > 0) {
+                            addImgSizeSpan({$: $canvas});
+                        }
+
+                        // 2. 找到分享按钮, 用于复制UI
+                        const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
+
+                        // 3. 初始化 下载按钮
+                        const $zipBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-zip',
+                            text: 'zip',
+                        });
+                        const $gifBtn = addImageDownloadBtn({
+                            $shareButtonContainer: $shareBtn,
+                            id: 'ahao-download-gif',
+                            text: 'gif',
+                            clickFun() {
+                                // 从 pixiv 官方 api 获取 gif 的数据
+                                $.ajax({
+                                    url: `/ajax/illust/${illustApi().illustId}/ugoira_meta`, dataType: 'json',
+                                    success: ({body}) => {
+                                        // 1. 初始化 gif 下载按钮 点击事件
+                                        // GIF_worker_URL 来自 https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
+                                        let gifUrl;
+
+                                        const gifFrames = [];
+                                        const gifFactory = new GIF({workers: 1, quality: 10, workerScript: GIF_worker_URL});
+
+                                        for (let frameIdx = 0, frames = body.frames, framesLen = frames.length; frameIdx < framesLen; frameIdx++) {
+                                            const frame = frames[frameIdx];
+                                            const url = illustApi().urls.original.replace('ugoira0.', `ugoira${frameIdx}.`);
+                                            GM.xmlHttpRequest({
+                                                method: 'GET', url: url,
+                                                headers: {referer: 'https://www.pixiv.net/'},
+                                                overrideMimeType: 'text/plain; charset=x-user-defined',
+                                                onload({responseText}) {
+                                                    // 2. 转为blob类型
+                                                    const r = responseText;
+
+                                                    const data = new Uint8Array(r.length);
+                                                    let i = 0;
+                                                    while (i < r.length) {
+                                                        data[i] = r.charCodeAt(i);
+                                                        i++;
+                                                    }
+                                                    const suffix = url.split('.').splice(-1);
+                                                    const mimeType = {png: "image/png", jpg: "image/jpeg", gif: "image/gif"}[suffix];
+                                                    const blob = new Blob([data], {type: mimeType});
+
+                                                    // 3. 压入gifFrames数组中, 手动同步sync
+                                                    const img = document.createElement('img');
+                                                    img.src = URL.createObjectURL(blob);
+                                                    img.width = illustApi().width;
+                                                    img.height = illustApi().height;
+                                                    img.onload = () => {
+                                                        gifFrames[frameIdx] = {frame: img, option: {delay: frame.delay}};
+                                                        if (Object.keys(gifFrames).length >= framesLen) {
+                                                            $.each(gifFrames, (i, f) => gifFactory.addFrame(f.frame, f.option));
+                                                            gifFactory.render();
+                                                        }
+                                                    };
+                                                }
+                                            });
+                                        }
+                                        gifFactory.on('progress', pct => {
+                                            $gifBtn.find('p').text(`gif ${parseInt(pct * 100)}%`);
+                                        });
+                                        gifFactory.on('finished', blob => {
+                                            gifUrl = URL.createObjectURL(blob);
+                                            GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                                const $a = $(`<a href="${gifUrl}" download="${getDownloadName(name)}"></a>`);
+                                                $gifBtn.find('button').wrap($a);
+                                            });
+
+                                        });
+                                        $gifBtn.find('button').off('click').on('click', () => {
+                                            if (!gifUrl) {
+                                                alert('Gif未加载完毕, 请稍等片刻!');
+                                                return;
+                                            }
+                                            // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
+                                            // window.open(gifUrl);
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                        // 4. 控制是否预下载, 避免多个页面导致爆内存, 直接下载 zip
+                        $.ajax({
+                            url: `/ajax/illust/${illustApi().illustId}/ugoira_meta`, dataType: 'json',
+                            success: ({body}) => {
+                                GM.getValue(GMkeys.downloadName, `{pid}`).then(name => {
+                                    const $a = $(`<a href="${body.originalSrc}" download="${getDownloadName(name)}"></a>`);
+                                    $zipBtn.find('button').wrap($a);
+                                });
+                            }
+                        });
+                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
+                            if (open) {
+                                $gifBtn.find('button').click();
+                            }
+                        });
+                    }
+                }
+            },
+            option: observerOptions
+        })
+    };
+    if (isArtworkPage()) {
+        // https://www.pixiv.net/artworks/65424837#1
+        // https://www.pixiv.net/artworks/71005633
+        // https://www.pixiv.net/artworks/72414258
+        artworkOriginalImage();
+        // https://www.pixiv.net/artworks/65424837
+        if(isMoreMode()) {
+            artworkDownloadMultiImage();
+        }
+        // https://www.pixiv.net/artworks/71005633
+        if(isGifMode()) {
+            artworkDownloadGifImage();
+        }
+    }
+
     // 5. 在画师页面和作品页面显示画师id、画师背景图, 用户头像允许右键保存
     const memberIndexPagePlus = () => {
         const observerOption = {childList: true, subtree: true};
@@ -924,7 +845,7 @@ jQuery($ => {
                     // 2. 显示画师背景图
                     const $bg = $row.clone();
                     $bg.children('a').remove()
-                    const bgUrl = getAuthorDetails(uid)?.background?.url || '';
+                    const bgUrl = userApi(uid)?.background?.url || '';
                     if (bgUrl && bgUrl !== 'none') {
                         $bg.append(`<img src="${bgUrl}" width="30px"><a target="_blank" href="${bgUrl}" style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">${i18n('background')}</a>`);
                     } else {
@@ -967,7 +888,7 @@ jQuery($ => {
 
                     // 2. 显示画师背景图
                     const uid = $row.find('[data-gtm-value]:first').data('gtm-value');
-                    const bgUrl = getAuthorDetails(uid)?.background?.url || '';
+                    const bgUrl = userApi(uid)?.background?.url || '';
                     const $bg = $row.clone();
                     $bg.children('a').remove();
                     $bg.children('div').children('div').remove();
@@ -1013,7 +934,7 @@ jQuery($ => {
                 for (const mutation of mutations) {
                     // 2. 将作者头像由 background 转为 <img>
                     const $target = $(mutation.target);
-                    if($target.find('div.Bxamj').length > 0) {
+                    if ($target.find('div.Bxamj').length > 0) {
                         debugger
                     }
                     $target.find('div[role="img"]').each(function () {
