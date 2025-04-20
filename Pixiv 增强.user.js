@@ -316,53 +316,9 @@ jQuery($ => {
     i18nLib.ja = $.extend({}, i18nLib.en, i18nLib.ja);
     i18nLib.ko = $.extend({}, i18nLib.en, i18nLib.ko);
     const i18n = key => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
+    // ============================ i18n 国际化 ===============================
 
 
-    // ============================ 功能配置 ==============================
-    let menuId = [];
-    const registerMenu = () => {
-        // 用于刷新设置
-        if (menuId.length) {
-            const len = menuId.length;
-            for (let i = 0; i < len; i++) {
-                GM_unregisterMenuCommand(menuId[i]);
-            }
-        }
-        const menu = [
-            ['ad_disable', true],
-            ['search_enhance', true],
-            ['download_able', true],
-            ['artist_info', true],
-            ['comment_load', true],
-            ['artwork_tag', true],
-            ['redirect_cancel', true],
-            ['load_origin', true]
-        ];
-        const len = menu.length;
-        for (let i = 0; i < len; i++) {
-            const item = menu[i][0];
-            menu[i][1] = GM_getValue(item);
-            if (menu[i][1] === null || menu[i][1] === undefined) {
-                GM_setValue(item, true);
-                menu[i][1] = true;
-            }
-            menuId[i] = GM_registerMenuCommand(`${menu[i][1] ? '✅' : '❌'} ${i18n(item)}`, () => {
-                GM_setValue(item, !menu[i][1]);
-                registerMenu();
-            });
-        }
-        return Object.freeze({
-            ad_disable: menu[0][1],
-            search_enhance: menu[1][1],
-            download_able: menu[2][1],
-            artist_info: menu[3][1],
-            comment_load: menu[4][1],
-            artwork_tag: menu[5][1],
-            redirect_cancel: menu[6][1],
-            load_origin: menu[7][1],
-        });
-    };
-    const config = registerMenu();
     // ============================ url 页面判断 ==============================
     const isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
 
@@ -381,70 +337,9 @@ jQuery($ => {
     if (!isLogin()) {
         alert(i18n('loginWarning'));
     }
-    // 页面跳转不触发脚本重载时，用监听器关闭ob避免页面卡死和cpu占用飙升
-    window.navigation.addEventListener('navigate', () => {
-        for (let i = 0; i < len; i++) {
-            // 功能设置没开启，关闭对应ob
-            if (!config[observers[i][0]]) {
-                // ob已创建
-                if (observers[i][1] !== null) {
-                    // ob组处理
-                    if (observers[i][1] instanceof Array) {
-                        const _len = observers[i][1];
-                        for (let j = 0; j < _len; j++) {
-                            const v = observers[i][1][j];
-                            if (v[0] !== null) {
-                                v[0].disconnect();
-                                v[0] = null;
-                            }
-                        }
-                    } else {
-                        observers[i][1].disconnect();
-                        observers[i][1] = null
-                    }
-                }
-            } else {
-                // 不处于功能对应页面
-                if (!(observers[i][3])()) {
-                    if (observers[i][1] !== null) {
-                        if (observers[i][1] instanceof Array) {
-                            const _len = observers[i][1];
-                            for (let j = 0; j < _len; j++) {
-                                const v = observers[i][1][j];
-                                v[0].disconnect();
-                                v[0] = null
-                            }
-                        } else {
-                            observers[i][1].disconnect();
-                            observers[i][1] = null;
-                        }
-                    }
-                } else {
-                    // 如果没有直接重新创建
-                    if (observers[i][1] instanceof Array) {
-                        // ob组特殊处理
-                        const _len = observers[i][1];
-                        for (let j = 0; j < _len; j++) {
-                            const v = observers[i][1][j];
-                            if (!(v[2])()) {
-                                if ([0] !== null) {
-                                    v[0].disconnect();
-                                    v[0] = null;
-                                }
-                            } else if (v[0] === null) {
-                                v[0] = (v[1])();
-                            }
-                        }
-                    } else if (observers[i][1] === null) {
-                        observers[i][1] = (observers[i][2])();
-                    }
-                }
-            }
-        }
-    });
 
     // 1. 屏蔽广告, 全局进行css处理
-    const adPlus = () => {
+    const adDisable = () => {
         // 1. 删除静态添加的广告
         $('.ad').remove();
         $('._premium-lead-tag-search-bar').hide();
@@ -468,7 +363,6 @@ jQuery($ => {
             }
         });
     };
-    adPlus();
 
     // 2. 搜索增强
     const searchPlus = () => {
@@ -1215,5 +1109,34 @@ jQuery($ => {
 
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
+
+    // ============================ 主函数 ==============================
+    const features = {
+        adDisable: {i18n: i18n('ad_disable'), isEnable: () => GM_getValue('ad_disable', true)},
+        search_enhance: {i18n: i18n('search_enhance'), isEnable: () => GM_getValue('search_enhance', true)},
+        download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
+        artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
+        comment_load: {i18n: i18n('comment_load'), isEnable: () => GM_getValue('comment_load', true)},
+        artwork_tag: {i18n: i18n('artwork_tag'), isEnable: () => GM_getValue('artwork_tag', true)},
+        redirect_cancel: {i18n: i18n('redirect_cancel'), isEnable: () => GM_getValue('redirect_cancel', true)},
+        load_origin: {i18n: i18n('load_origin'), isEnable: () => GM_getValue('load_origin', true)},
+    };
+    const menuId = [];
+    const registerMenu = () => {
+        // 用于刷新设置
+        if (menuId.length > 0) {
+            menuId.forEach(id => GM_unregisterMenuCommand(id));
+            menuId.length = 0; // 清空数组
+        }
+        for (const key in features) {
+            const feature = features[key];
+            const value = GM_getValue(key, true);
+            menuId.push(GM_registerMenuCommand(`${value ? '✅' : '❌'} ${feature.i18n}`, () => {
+                GM_setValue(key, !value);
+                registerMenu();
+            }));
+        }
+    };
+    registerMenu();
 });
 
