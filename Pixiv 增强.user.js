@@ -150,19 +150,17 @@ jQuery($ => {
         return user;
     }
     const illustApi = () => {
-        // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
-        const key = 'ahao_illust';
-        const preIllustId = $('body').attr(key);
         const urlIllustId = location.href.match(/artworks\/(\d*)(#\d*)?$/)?.[1] || '';
 
+        // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
+        const key = 'ahao_illust';
         const illust = JSON.parse(localStorage.getItem(key) || '{}');
-        if (!illust || String(preIllustId) !== String(urlIllustId)) {
+        if (!illust || String(illust?.illustId) !== String(urlIllustId)) {
             $.ajax({
                 url: `/ajax/illust/${urlIllustId}`,
                 dataType: 'json',
                 async: false,
                 success: ({body}) => {
-                    $('body').attr(key, urlIllustId);
                     localStorage.setItem(key, JSON.stringify(body));
                 },
             });
