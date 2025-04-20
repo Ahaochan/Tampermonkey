@@ -101,7 +101,7 @@ jQuery($ => {
     const illust = () => {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         const preIllustId = $('body').attr('ahao_illust_id');
-        const paramRegex = location.href.match(/artworks\/(\d*)/);
+        const paramRegex = location.href.match(/artworks\/(\d*)(#\d*)?$/);
         const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : '';
         // 2. 如果illust_id没变, 则不更新json
         if (parseInt(preIllustId) === parseInt(urlIllustId)) {
