@@ -869,49 +869,6 @@ jQuery($ => {
                 [c(), c, () => true]
             ]
         }, () => true],
-        // 7. 对主页动态中的图片标记作品类型
-        ['artwork_tag', null, () => {
-            log('标记作品 初始化');
-            const illustTitleSelector = '.stacc_ref_illust_title';
-            return observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    const $title = $(mutation.target).find(illustTitleSelector);
-                    if (mutation.type !== 'childList' || !$title.length) {
-                        continue;
-                    }
-
-                    $title.each(function () {
-                        const $a = $(this).find('a');
-                        // 1. 已经添加过标记的就不再添加
-                        if (!!$a.attr('ahao-illust-id')) {
-                            return;
-                        }
-                        // 2. 获取pid, 设置标记避免二次生成
-                        const illustId = new URL(`${location.origin}/${$a.attr('href')}`).searchParams.get('illust_id');
-                        $a.attr('ahao-illust-id', illustId);
-                        // 3. 调用官方api, 判断作品类型
-                        $.ajax({
-                            url: `/ajax/illust/${illustId}`, dataType: 'json',
-                            success: ({ body }) => {
-                                const illustType = parseInt(body.illustType);
-                                const isMultiPic = parseInt(body.pageCount) > 1;
-                                switch (illustType) {
-                                    case 0:
-                                    case 1:
-                                        $a.after(`<p>${isMultiPic ? i18n('illust_type_multiple') : i18n('illust_type_single')}</p>`);
-                                        break;
-                                    case 2:
-                                        $a.after(`<p>${i18n('illust_type_gif')}</p>`);
-                                        break;
-                                }
-                            }
-                        });
-                    })
-                }
-            });
-        }, () => isMemberDynamicPage()],
     ];
     const len = observers.length;
     // 初始化ob
@@ -1142,6 +1099,51 @@ jQuery($ => {
         }
         commentAutoLoad();
     });
+
+    // 7. 对主页动态中的图片标记作品类型
+    const artworkTag = () => {
+        log('标记作品 初始化');
+        const observerOption = {childList: true};
+        return observerFactory({
+            callback: (mutations, observer) => {
+                for(const mutation of mutations) {
+                    // 1. 判断是否改变节点
+                    const $title = $(mutation.target).find('.stacc_ref_illust_title');
+                    $title.each(function () {
+                        const $a = $(this).find('a');
+                        // 1. 已经添加过标记的就不再添加
+                        if (!!$a.attr('ahao-illust-id')) {
+                            return;
+                        }
+                        // 2. 获取pid, 设置标记避免二次生成
+                        const illustId = new URL(`${location.origin}/${$a.attr('href')}`).searchParams.get('illust_id');
+                        $a.attr('ahao-illust-id', illustId);
+                        // 3. 调用官方api, 判断作品类型
+                        $.ajax({
+                            url: `/ajax/illust/${illustId}`, dataType: 'json',
+                            success: ({ body }) => {
+                                const illustType = parseInt(body.illustType);
+                                const isMultiPic = parseInt(body.pageCount) > 1;
+                                switch (illustType) {
+                                    case 0:
+                                    case 1:
+                                        $a.after(`<p>${isMultiPic ? i18n('illust_type_multiple') : i18n('illust_type_single')}</p>`);
+                                        break;
+                                    case 2:
+                                        $a.after(`<p>${i18n('illust_type_gif')}</p>`);
+                                        break;
+                                }
+                            }
+                        });
+                    })
+                }
+            }
+        }, observerOption);
+    };
+    // 测试链接：https://www.pixiv.net/stacc?mode=unify
+    if(/.+\/stacc.+/.test(location.href)) {
+        artworkTag();
+    }
 
     // 8. 对jump.php取消重定向
     const redirectPlus = () => {
