@@ -182,7 +182,7 @@ jQuery($ => {
         } else {
             options = Object.assign({}, defaults, option);
             // 确保最终 node 值为有效 DOM 节点
-            options.node = options.node || document.body;
+            options.node = options.node || document.body; // TODO 性能优化，最少限度监听节点
         }
         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
