@@ -417,11 +417,12 @@ jQuery($ => {
                                     return;
                                 }
                                 // 2.2. 新窗口打开url
+                                let url;
                                 if (options.searchType == idSearch){
-                                    const url = option.url + val;
+                                    url = option.url + val;
                                 }
                                 if (options.searchType == otherSearch){
-                                    const url = option.url + val + '&s_mode=s_usr';
+                                    url = option.url + val + '&s_mode=s_usr';
                                 }
                                 window.open(url);
                                 // 2.3. 清空input等待下次输入
