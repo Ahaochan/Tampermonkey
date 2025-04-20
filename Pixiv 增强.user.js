@@ -907,7 +907,8 @@ jQuery($ => {
                     }
                 }
             },
-            option: observerOption
+            option: observerOption,
+            node: document.querySelector('main')[0]
         });
     };
 
