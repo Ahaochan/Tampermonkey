@@ -896,46 +896,6 @@ jQuery($ => {
                 [c(), c, () => true]
             ]
         }, () => true],
-        // 6. 自动加载评论
-        ['comment_load', null, () => {
-            let t = null;
-            log('加载评论 初始化');
-            GM.getValue(GMkeys.switchComment, true).then(open => {
-                const skipButton = i18n('watchlist');
-                const moreReplaySelector = '._28zR1MQ';
-                t = observerFactory((mutations, observer) => {
-                    if (!open || !isArtworkPage()) {
-                        return;
-                    }
-                    for (let i = 0, len = mutations.length; i < len; i++) {
-                        const mutation = mutations[i];
-                        // 1. 判断是否改变节点
-                        if (mutation.type !== 'childList') {
-                            continue;
-                        }
-
-                        // 2. 模拟点击加载按钮
-                        const $moreCommentBtns = $("div > div:eq(2) > div div[role='button']");
-                        let $moreCommentBtn = $moreCommentBtns[0];
-
-                        if ($moreCommentBtn) {
-                            if ($moreCommentBtn.textContent === skipButton) {
-                                if ($moreCommentBtns.length > 1) {
-                                    $moreCommentBtn = $moreCommentBtns[1];
-                                    $moreCommentBtn.click();
-                                }
-                            } else {
-                                $moreCommentBtn.click();
-                            }
-                        }
-
-                        const $moreReplayBtn = $(mutation.target).find(moreReplaySelector);
-                        $moreReplayBtn.click();
-                    }
-                });
-            });
-            return t;
-        }, () => true],
         // 7. 对主页动态中的图片标记作品类型
         ['artwork_tag', null, () => {
             log('标记作品 初始化');
@@ -1158,21 +1118,23 @@ jQuery($ => {
 
     // 6. 自动加载评论
     const commentAutoLoad = () => {
-        const observerOption = {childList: true};
+        const observerOption = {childList: true, subtree: true};
         observerFactory({
             callback: (mutations, observer) => {
                 for (const mutation of mutations) {
                     for (const addedNode of mutation.addedNodes) {
-                        // 模拟点击加载评论按钮
-                        const $moreCommentBtn = $(addedNode).filter('[class^="CommentList_buttonArea"]').find("div[role='button']");
-                        $moreCommentBtn.click();
+                        // 第一次加载【浏览更多】按钮的场景
+                        $(addedNode).filter('[class^="CommentList_buttonArea"]').find("div[role='button']").click();
+                        // 第二次加载【浏览更多】按钮的场景
+                        $(mutation.target).filter('[class^="CommentList_buttonArea"]').find("div[role='button']").click();
 
                         const $moreReplayBtn = $(mutation.target).find('._28zR1MQ');
                         $moreReplayBtn.click();
                     }
                 }
-            }
-        }, observerOption);
+            },
+            option: observerOption
+        });
     };
     GM.getValue(GMkeys.switchComment, true).then(open => {
         if (!open || !isArtworkPage()) {
