@@ -252,10 +252,9 @@ jQuery($ => {
     };
     const features = {
         adDisable: {i18n: i18n('ad_disable'), isEnable: () => GM_getValue('adDisable', true)},
-        searchUid: {i18n: i18n('search_uid'), isEnable: () => GM_getValue('searchUid', true)},
-        searchPid: {i18n: i18n('search_pid'), isEnable: () => GM_getValue('searchPid', true)},
-        searchAuthor: {i18n: i18n('search_author'), isEnable: () => GM_getValue('searchAuthor', true)},
-        searchFavorites: {i18n: i18n('search_favorites'), isEnable: () => GM_getValue('searchFavorites', true)},
+        searchEnhance: {i18n: i18n('search_enhance'), isEnable: () => GM_getValue('searchEnhance', true)},
+
+
         download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
         artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
         comment_load: {i18n: i18n('comment_load'), isEnable: () => GM_getValue('comment_load', true)},
@@ -375,10 +374,9 @@ jQuery($ => {
             }
         });
     };
-    features.adDisable.isEnable() && adDisable();
 
     // 2. 搜索增强
-    const searchPlus = () => {
+    const searchEnhance = () => {
         // 1. 找到基础的form表单
         log("搜索增强 初始化");
         let $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
@@ -432,15 +430,14 @@ jQuery($ => {
                 $input.val('');
             });
         };
-        features.searchUid.isEnable() && initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true});
-        features.searchPid.isEnable() && initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
+        initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true});
+        initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-        features.searchAuthor.isEnable() && initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
+        initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
         // 4. 搜索条件
-        if(features.searchFavorites.isEnable()) {
-            const label = i18n('favorites'); // users入り
-            const $input = $form.find('input[type="text"]:first');
-            const $select = $(`
+        const label = i18n('favorites'); // users入り
+        const $input = $form.find('input[type="text"]:first');
+        const $select = $(`
                     <select id="select-ahao-favorites">
                         <option value=""></option>
                         <option value="50000users入り">50000users入り</option>
@@ -454,38 +451,38 @@ jQuery($ => {
                         <option value="100users入り"  >  100users入り</option>
                         <option value="50users入り"   >   50users入り</option>
                     </select>`);
-            $select.on('change', () => {
-                if (!!$input.val()) {
-                    $form.submit();
-                }
-            });
-            $form.parent().after($select);
-            $form.submit(e => {
-                // 阻止默认的表单提交
-                e.preventDefault();
+        $select.on('change', () => {
+            if (!!$input.val()) {
+                $form.submit();
+            }
+        });
+        $form.parent().after($select);
+        $form.submit(e => {
+            // 阻止默认的表单提交
+            e.preventDefault();
 
-                // 重写表单提交逻辑
-                if (!!$select.val()) {
-                    // 去除旧的搜索选项
-                    $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
-                    // 添加新的搜索选项
-                    $input.val((index, val) => `${val} ${$select.val()}`);
-                }
-                const value = encodeURIComponent($input.val());
-                if (!!value) {
-                    location.href = location.href.replace(/tags\/(.*?)\/artworks/g, `tags/${value}/artworks`);
-                }
-            });
-        }
+            // 重写表单提交逻辑
+            if (!!$select.val()) {
+                // 去除旧的搜索选项
+                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                // 添加新的搜索选项
+                $input.val((index, val) => `${val} ${$select.val()}`);
+            }
+            const value = encodeURIComponent($input.val());
+            if (!!value) {
+                location.href = location.href.replace(/tags\/(.*?)\/artworks/g, `tags/${value}/artworks`);
+            }
+        });
+
     };
-    setTimeout(() => searchPlus(), 1000);
 
     // 4. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
     const getDownloadName = (name) => {
-        name = name.replace('{pid}', illustApi().illustId);
-        name = name.replace('{uid}', illustApi().userId);
-        name = name.replace('{pname}', illustApi().illustTitle);
-        name = name.replace('{uname}', illustApi().userName);
+        const illust = illustApi();
+        name = name.replace('{pid}', illust.illustId);
+        name = name.replace('{uid}', illust.userId);
+        name = name.replace('{pname}', illust.illustTitle);
+        name = name.replace('{uname}', illust.userName);
         return name;
     };
     const artworkOriginalImage = () => {
@@ -1143,5 +1140,8 @@ jQuery($ => {
         }
     };
     registerMenu();
+
+    features.adDisable.isEnable() && adDisable();
+    features.searchEnhance.isEnable() && searchEnhance();
 });
 
