@@ -979,27 +979,6 @@ jQuery($ => {
                 }
             });
         }, () => isMemberDynamicPage()],
-        // 8. 对jump.php取消重定向
-        ['redirect_cancel', null, () => {
-            const jumpSelector = 'a[href*="jump.php"]';
-
-            return observerFactory((mutations, observer) => {
-                for (let i = 0, len = mutations.length; i < len; i++) {
-                    const mutation = mutations[i];
-                    // 1. 判断是否改变节点
-                    if (mutation.type !== 'childList') {
-                        continue;
-                    }
-                    // 2. 修改href
-                    const $jump = $(mutation.target).find(jumpSelector);
-                    $jump.each(function () {
-                        const $this = $(this);
-                        const url = $this.attr('href').match(/jump\.php\?(url=)?(.*)$/)[2];
-                        $this.attr('href', decodeURIComponent(url));
-                    });
-                }
-            });
-        }, () => true]
     ];
     const len = observers.length;
     // 初始化ob
@@ -1195,6 +1174,27 @@ jQuery($ => {
         }
         commentAutoLoad();
     });
+
+    // 8. 对jump.php取消重定向
+    const redirectPlus = () => {
+        const observerOption = {childList: true, subtree: true};
+        observerFactory({
+            callback: (mutations, observer) => {
+                for (const mutation of mutations) {
+                    for (const addedNode of mutation.addedNodes) {
+                        const jumpSelector = 'a[href*="jump.php"]';
+                        const $jump = $(addedNode).find(jumpSelector);
+                        $jump.each(function (i, e) {
+                            const $this = $(this);
+                            const url = $this.attr('href').match(/jump\.php\?(url=)?(.*)$/)[2];
+                            $this.attr('href', decodeURIComponent(url));
+                        });
+                    }
+                }
+            }
+        }, observerOption);
+    }
+    redirectPlus();
 
     // 9. 单页排序
     (() => {
