@@ -1054,7 +1054,7 @@ jQuery($ => {
     registerMenu();
 
     features.adDisable.isEnable() && adDisable();
-    features.searchEnhance.isEnable() && searchEnhance();
+    features.searchEnhance.isEnable() && setTimeout(() => searchEnhance(), 1000);
 
 
 
