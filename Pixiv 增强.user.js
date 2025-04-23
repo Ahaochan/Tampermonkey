@@ -29,9 +29,9 @@
 // @grant       GM_setClipboard
 // @grant       GM_setValue
 // @grant       GM_getValue
-// @require     https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4/jquery.min.js
-// @require     https://cdn.bootcss.com/jszip/3.1.4/jszip.min.js
-// @require     https://cdn.bootcss.com/FileSaver.js/1.3.2/FileSaver.min.js
+// @require     https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/2.2.4/jquery.min.js
+// @require     https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jszip/3.1.4/jszip.min.js
+// @require     https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/FileSaver.js/1.3.2/FileSaver.min.js
 // @require     https://greasyfork.org/scripts/2963-gif-js/code/gifjs.js?version=8596
 // @require     https://greasyfork.org/scripts/375359-gm4-polyfill-1-0-1/code/gm4-polyfill-101.js?version=652238
 // @run-at      document-end
@@ -336,7 +336,7 @@ jQuery($ => {
         }
 
         // 2. 修改父级grid布局
-        $form.parent().parent().css('grid-template-columns', '1fr minmax(100px, auto) minmax(100px, auto) 2fr 2fr 1fr 2fr');
+        $form.parent().parent().css({ 'grid-template-columns': '1fr repeat(5, minmax(80px, max-content)) 1fr auto', 'gap': '8px' });
 
         // 3. 搜索UID，PID和作者
         const initSearch = option => {
@@ -985,6 +985,28 @@ jQuery($ => {
         }, observerOption);
     }
 
+    // 8. 动态隐藏（去除）顶栏LOGO右侧占位空白（始终启用）
+    const hideTopBarBlank = {
+        init() {
+            this.checkUrlAndToggleElement();
+            this.setupObserver();
+        },
+        checkUrlAndToggleElement() {			
+	        // keywords：判断需要隐藏的条件的 URL 关键字。$target：要操作的对象选择器
+            const keywords = ['artworks', 'novel/show.php', 'bookmark_new_illust', 'user'];
+            const $target = $('.group\\/logo .flex.gap-8.items-center .ml-8.size-\\[50px\\]');
+            const shouldHide = keywords.some(keyword => location.href.includes(keyword));
+            $target.toggle(!shouldHide);
+        },
+        setupObserver() {
+            observerFactory({
+                callback: () => this.checkUrlAndToggleElement(),
+                node: document.body,
+                option: { childList: true, subtree: true }
+            });
+        }
+    };
+        
     // 11. 控制面板
     (() => {
         // 关闭此功能
