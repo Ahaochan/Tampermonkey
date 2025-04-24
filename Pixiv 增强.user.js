@@ -5,10 +5,10 @@
 // @namespace   https://github.com/Ahaochan/Tampermonkey
 // @version     0.9.1
 // @icon        https://www.pixiv.net/favicon.ico
-// @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid and uid 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https:/ /github.com/Ahaochan/Tampermonkey, welcome to star and fork.
-// @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pidとuid 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https：/ /github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
-// @description:zh-CN 专注沉浸式体验，1.屏蔽广告,直接访问热门图片 2.使用users入り的方式搜索 3.搜索pid和uid 4.显示原图及尺寸，图片重命名，下载原图|gif图|动图帧zip|多图zip 5.显示画师id、画师背景图 6.自动加载评论 7.对动态标记作品类型 8.去除重定向 9.单页排序 10.控制面板选择想要的功能 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
-// @description:zh-TW 專注沉浸式體驗，1.屏蔽廣告,直接訪問熱門圖片2.使用users入り的方式搜索3.搜索pid和uid 4.顯示原圖及尺寸，圖片重命名，下載原圖|gif圖|動圖幀zip|多圖zip 5.顯示畫師id、畫師背景圖6.自動加載評論7.對動態標記作品類型8.去除重定向9.單頁排序10.控制面板選擇想要的功能github:https:/ /github.com/Ahaochan/Tampermonkey，歡迎star和fork。
+// @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid , uid and author 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https://github.com/Ahaochan/Tampermonkey, welcome to star and fork.
+// @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pid uid と創作家 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https://github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
+// @description:zh-CN 专注沉浸式体验，1.屏蔽广告,直接访问热门图片 2.使用users入り的方式搜索 3.搜索pid、uid和作者 4.显示原图及尺寸，图片重命名，下载原图|gif图|动图帧zip|多图zip 5.显示画师id、画师背景图 6.自动加载评论 7.对动态标记作品类型 8.去除重定向 9.单页排序 10.控制面板选择想要的功能 github:https://github.com/Ahaochan/Tampermonkey，欢迎star和fork。
+// @description:zh-TW 專注沉浸式體驗，1.屏蔽廣告,直接訪問熱門圖片2.使用users入り的方式搜索3.搜索pid、uid和作者 4.顯示原圖及尺寸，圖片重命名，下載原圖|gif圖|動圖幀zip|多圖zip 5.顯示畫師id、畫師背景圖6.自動加載評論7.對動態標記作品類型8.去除重定向9.單頁排序10.控制面板選擇想要的功能github:https://github.com/Ahaochan/Tampermonkey，歡迎star和fork。
 // @author      Ahaochan
 // @include     http*://www.pixiv.net*
 // @match       http://www.pixiv.net/
@@ -335,8 +335,15 @@ jQuery($ => {
             );
         }
 
-        // 2. 修改父级grid布局
-        $form.parent().parent().css({ 'grid-template-columns': '1fr repeat(5, minmax(80px, max-content)) 1fr auto', 'gap': '8px' });
+        // 2. 修改父级grid布局 
+        // 2.1 查找新版本的表单数量并进行判断当前页面是否为新 UI 搜索栏表单
+        const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
+        // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
+        if (isNewVersion) {
+            $form.parent().parent().css({ 'grid-template-columns': '1fr minmax(0px, 319px) minmax(0px, 319px) minmax(0px, 438px) minmax(0px, 438px) minmax(0px, 219px) 2fr', 'gap': '10px' });
+        } else {
+            $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
+        }
 
         // 3. 搜索UID，PID和作者
         const initSearch = option => {
@@ -991,14 +998,16 @@ jQuery($ => {
             this.checkUrlAndToggleElement();
             this.setupObserver();
         },
-        checkUrlAndToggleElement() {			
-	        // keywords：判断需要隐藏的条件的 URL 关键字。$target：要操作的对象选择器
-            const keywords = ['artworks', 'novel/show.php', 'bookmark_new_illust', 'user'];
+        checkUrlAndToggleElement() {
+            // keywords：判断需要隐藏的条件的 URL 关键字。$target：要操作的对象选择器
+            const keywords = ['/artworks', 'novel/show.php', 'bookmark_new_illust', '/users', '/tag', '/discovery', '/dashboard', '/manage', '/settings'];
             const $target = $('.group\\/logo .flex.gap-8.items-center .ml-8.size-\\[50px\\]');
+            // 判断并执行目标对象的显示或隐藏（去除）操作
             const shouldHide = keywords.some(keyword => location.href.includes(keyword));
             $target.toggle(!shouldHide);
         },
         setupObserver() {
+            // 复用主脚本的 observerFactory 统一管理监听器
             observerFactory({
                 callback: () => this.checkUrlAndToggleElement(),
                 node: document.body,
@@ -1006,6 +1015,7 @@ jQuery($ => {
             });
         }
     };
+    hideTopBarBlank.init(); // 功能 8 的核心触发器，没它此功能将无法运作！
         
     // 11. 控制面板
     (() => {
