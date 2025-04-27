@@ -171,34 +171,31 @@ jQuery($ => {
         searchAuthor: {type: 'checkbox'},
         searchFavourite: {type: 'checkbox'},
     };
+    let user = {};
     const userApi = (userId) => {
-        const key = 'ahao_user';
-        const user = JSON.parse(localStorage.getItem(key) || '{}');
         if (!user || String(user.userId) !== String(userId)) {
             $.ajax({
                 url: `/ajax/user/${userId}`,
                 dataType: 'json',
                 async: false,
                 success: ({body}) => {
-                    localStorage.setItem(key, JSON.stringify(body));
+                    user = body;
                 },
             });
         }
         return user;
     }
+    let illust = {};
     const illustApi = () => {
         const urlIllustId = location.href.match(/artworks\/(\d*)(#\d*)?$/)?.[1] || '';
-
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
-        const key = 'ahao_illust';
-        const illust = JSON.parse(localStorage.getItem(key) || '{}');
         if (!illust || String(illust?.illustId) !== String(urlIllustId)) {
             $.ajax({
                 url: `/ajax/illust/${urlIllustId}`,
                 dataType: 'json',
                 async: false,
                 success: ({body}) => {
-                    localStorage.setItem(key, JSON.stringify(body));
+                    illust = body;
                 },
             });
         }
