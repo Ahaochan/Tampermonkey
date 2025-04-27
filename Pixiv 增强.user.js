@@ -79,27 +79,12 @@ jQuery($ => {
     // ============================ i18n 国际化 ===============================
     const i18nLib = {
         ja: {
-            load_origin: 'load_origin',
-            ad_disable: 'ad_disable',
-            search_enhance: 'search_enhance',
-            download_able: 'download_able',
-            artist_info: 'artist_info',
-            comment_load: 'comment_load',
-            artwork_tag: 'artwork_tag',
-            redirect_cancel: 'redirect_cancel',
+
             watchlist: 'ウォッチリストに追加',
             favorites: 'users入り',
             author: '創作家',
         },
         en: {
-            load_origin: 'load_origin',
-            ad_disable: 'ad_disable',
-            search_enhance: 'search_enhance',
-            download_able: 'download_able',
-            artist_info: 'artist_info',
-            comment_load: 'comment_load',
-            artwork_tag: 'artwork_tag',
-            redirect_cancel: 'redirect_cancel',
             watchlist: 'Add to Watchlist',
             favorites: 'favorites',
             author: 'Author',
@@ -113,32 +98,27 @@ jQuery($ => {
             illust_type_single: '[single pic]',
             illust_type_multiple: '[multiple pic]',
             illust_type_gif: '[gif pic]',
-            sort_by_popularity: 'Sort_by_popularity(single page)'
         },
         ko: {},
         zh: {
-            load_origin: '加载原图',
-            ad_disable: '屏蔽广告',
-            search_enhance: '搜索增强',
-            download_able: '开启下载',
-            artist_info: '显示作者信息',
-            comment_load: '加载评论',
-            artwork_tag: '作品标记',
-            redirect_cancel: '取消重定向',
-            watchlist: '加入追更列表',
-            favorites: '收藏人数',
             author: '作者',
-            illegal: '不合法',
-            download: '下载',
-            download_wait: '请等待下载完成',
-            copy_to_clipboard: '已复制到剪贴板',
             background: '背景图',
             background_not_found: '无背景图',
-            loginWarning: 'Pixiv增强 脚本警告! 请登录Pixiv获得更好的体验! 未登录可能产生不可预料的bug!',
+            copy_to_clipboard: '已复制到剪贴板',
+            download: '下载',
+            download_wait: '请等待下载完成',
+            illegal: '不合法',
             illust_type_single: '[单图]',
             illust_type_multiple: '[多图]',
             illust_type_gif: '[gif图]',
-            sort_by_popularity: '按收藏数搜索(单页)'
+            loginWarning: 'Pixiv增强 脚本警告! 请登录Pixiv获得更好的体验! 未登录可能产生不可预料的bug!',
+            switch_antiAd: '禁用广告',
+            switch_antiRedirect: '取消重定向',
+            switch_commentLoad: '加载评论',
+            switch_searchUid: '搜索uid',
+            switch_searchPid: '搜索pid',
+            switch_searchAuthor: '搜索作者',
+            switch_searchFavourite: '搜索users入り',
         },
         'zh-cn': {},
         'zh-tw': {
@@ -163,13 +143,13 @@ jQuery($ => {
             illust_type_single: '[單圖]',
             illust_type_multiple: '[多圖]',
             illust_type_gif: '[gif圖]',
-            sort_by_popularity: '按收藏數搜索(單頁)'
         }
     };
     i18nLib['zh-cn'] = Object.assign({}, i18nLib.zh);
     // TODO 待翻译
     i18nLib.ja = Object.assign({}, i18nLib.en, i18nLib.ja);
     i18nLib.ko = Object.assign({}, i18nLib.en, i18nLib.ko);
+    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
     const i18n = key => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
     // ============================ i18n 国际化 ===============================
 
@@ -178,7 +158,15 @@ jQuery($ => {
     const [log, error] = [debug ? console.log : () => {
     }, console.error];
 
-    const lang = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
+    const features = {
+        antiAd: {type: 'checkbox'},
+        antiRedirect: {type: 'checkbox'},
+        commentLoad: {type: 'checkbox'},
+        searchUid: {type: 'checkbox'},
+        searchPid: {type: 'checkbox'},
+        searchAuthor: {type: 'checkbox'},
+        searchFavourite: {type: 'checkbox'},
+    };
     const userApi = (userId) => {
         const key = 'ahao_user';
         const user = JSON.parse(localStorage.getItem(key) || '{}');
@@ -243,19 +231,6 @@ jQuery($ => {
             throw new Error('MutationObserver 初始化失败');
         }
         return observer;
-    };
-    const features = {
-        adDisable: {i18n: i18n('ad_disable'), isEnable: () => GM_getValue('adDisable', true)},
-        searchEnhance: {i18n: i18n('search_enhance'), isEnable: () => GM_getValue('searchEnhance', true)},
-
-        commentLoad: {i18n: i18n('comment_load'), isEnable: () => GM_getValue('commentLoad', true)},
-
-        // TODO 功能开关改造
-        // download_able: {i18n: i18n('download_able'), isEnable: () => GM_getValue('download_able', true)},
-        // artist_info: {i18n: i18n('artist_info'), isEnable: () => GM_getValue('ad_disable', true)},
-        // artwork_tag: {i18n: i18n('artwork_tag'), isEnable: () => GM_getValue('artwork_tag', true)},
-        // redirect_cancel: {i18n: i18n('redirect_cancel'), isEnable: () => GM_getValue('redirect_cancel', true)},
-        // load_origin: {i18n: i18n('load_origin'), isEnable: () => GM_getValue('load_origin', true)},
     };
 
     // ============================ 配置信息 ====================================
@@ -330,12 +305,10 @@ jQuery($ => {
         let $form = $('form:not([action]) > div.charcoal-text-field-root').parent('form');
         if (!$form.length) {
             // 新版本的 Pixiv 搜索栏表单不存在，查找旧版本的 Pixiv 搜索栏表单
-            $form = $(
-                '#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])'
-            );
+            $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
         }
 
-        // 2. 修改父级grid布局 
+        // 2. 修改父级grid布局
         // 2.1 查找新版本的表单数量并进行判断当前页面是否为新 UI 搜索栏表单
         const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
         // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
@@ -385,14 +358,14 @@ jQuery($ => {
                 $input.val('');
             });
         };
-        initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true});
-        initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
+        features.searchUid.isEnable() && initSearch({$form, field: 'UID', placeholder: 'UID', template: 'https://www.pixiv.net/users/***', validNumber: true});
+        features.searchPid.isEnable() &&  initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
-        initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
+        features.searchAuthor.isEnable() && initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
         // 4. 搜索条件
-        const label = i18n('favorites'); // users入り
-        const $input = $form.find('input[type="text"]:first');
-        const $select = $(`
+        if(features.searchFavourite.isEnable()) {
+            const $input = $form.find('input[type="text"]:first');
+            const $select = $(`
                     <select id="select-ahao-favorites">
                         <option value=""></option>
                         <option value="50000users入り">50000users入り</option>
@@ -406,33 +379,33 @@ jQuery($ => {
                         <option value="100users入り"  >  100users入り</option>
                         <option value="50users入り"   >   50users入り</option>
                     </select>`);
-        $select.on('change', () => {
-            if (!!$input.val()) {
-                $form.submit();
-            }
-        });
-        $form.parent().after($select);
-        $form.submit(e => {
-            // 阻止默认的表单提交
-            e.preventDefault();
-
-            // 重写表单提交逻辑
-            if (!!$select.val()) {
-                // 去除旧的搜索选项
-                $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
-                // 添加新的搜索选项
-                $input.val((index, val) => `${val} ${$select.val()}`);
-            }
-            const value = encodeURIComponent($input.val());
-            if (!!value) {
-                if(/\/tags\/(.*?)\/artworks/.test(location.href)) {
-                    location.href = location.href.replace(/\/tags\/(.*?)\/artworks/g, `/tags/${value}/artworks`);
-                } else {
-                    location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`
+            $select.on('change', () => {
+                if (!!$input.val()) {
+                    $form.submit();
                 }
-            }
-        });
+            });
+            $form.parent().after($select);
+            $form.submit(e => {
+                // 阻止默认的表单提交
+                e.preventDefault();
 
+                // 重写表单提交逻辑
+                if (!!$select.val()) {
+                    // 去除旧的搜索选项
+                    $input.val((index, val) => val.split(' ').filter((tag) => !!tag && !/users入り$/.test(tag)).join(' '));
+                    // 添加新的搜索选项
+                    $input.val((index, val) => `${val} ${$select.val()}`);
+                }
+                const value = encodeURIComponent($input.val());
+                if (!!value) {
+                    if (/\/tags\/(.*?)\/artworks/.test(location.href)) {
+                        location.href = location.href.replace(/\/tags\/(.*?)\/artworks/g, `/tags/${value}/artworks`);
+                    } else {
+                        location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`
+                    }
+                }
+            });
+        }
     };
 
     // 3. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
@@ -527,7 +500,7 @@ jQuery($ => {
         observerFactory({
             callback: (mutations, observer) => {
                 for (const mutation of mutations) {
-                    for(const addedNode of mutation.addedNodes) {
+                    for (const addedNode of mutation.addedNodes) {
                         // 1. 找到分享按钮, 用于复制UI
                         const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
 
@@ -613,10 +586,10 @@ jQuery($ => {
         observerFactory({
             callback: (mutations, observer) => {
                 for (const mutation of mutations) {
-                    for(const addedNode of mutation.addedNodes) {
+                    for (const addedNode of mutation.addedNodes) {
                         // 1. 显示git尺寸大小
                         const $canvas = $(addedNode).find('canvas');
-                        if($canvas.length > 0) {
+                        if ($canvas.length > 0) {
                             addImgSizeSpan({$: $canvas});
                         }
 
@@ -732,11 +705,11 @@ jQuery($ => {
         // https://www.pixiv.net/artworks/72414258
         artworkOriginalImage();
         // https://www.pixiv.net/artworks/65424837
-        if(isMoreMode()) {
+        if (isMoreMode()) {
             artworkDownloadMultiImage();
         }
         // https://www.pixiv.net/artworks/71005633
-        if(isGifMode()) {
+        if (isGifMode()) {
             artworkDownloadGifImage();
         }
     }
@@ -900,7 +873,7 @@ jQuery($ => {
     // 5. 自动加载评论
     // https://www.pixiv.net/artworks/72414258
     const commentAutoLoad = () => {
-        if(!isArtworkPage()) {
+        if (!isArtworkPage()) {
             return;
         }
         const observerOption = {childList: true, subtree: true};
@@ -1016,7 +989,7 @@ jQuery($ => {
         }
     };
     hideTopBarBlank.init(); // 功能 8 的核心触发器，没它此功能将无法运作！
-        
+
     // 11. 控制面板
     (() => {
         // 关闭此功能
@@ -1070,32 +1043,59 @@ jQuery($ => {
     //TODO 日语化
 
     // ============================ 主函数 ==============================
-    // TODO 改造为 https://wiki.greasespot.net/GM_config
-    const menuId = [];
-    const registerMenu = () => {
-        // 用于刷新设置
-        if (menuId.length > 0) {
-            menuId.forEach(id => GM_unregisterMenuCommand(id));
-            menuId.length = 0; // 清空数组
+    for (const key in features) {
+        const feature = features[key];
+        if(feature.type === 'checkbox') {
+            feature.isEnable = () => GM_getValue(key, true);
         }
+    }
+    GM_registerMenuCommand(`控制面板`, () => {
+        const controlPanelId = 'myControlPanel';
+        // 创建控制面板的容器和按钮
+        const $control = $(`<div id="${controlPanelId}" style="position: fixed; top: 20px; left: 20px; background-color: #fff; border: 1px solid #ddd; padding: 15px; z-index: 1000; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); border-radius: 5px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px;"></div>`);
+        $('body').append($control);
+
+        // 动态初始化配置项
         for (const key in features) {
             const feature = features[key];
-            const value = GM_getValue(key, true);
-            menuId.push(GM_registerMenuCommand(`${value ? '✅' : '❌'} ${feature.i18n}`, () => {
-                GM_setValue(key, !value);
-                registerMenu();
-            }));
+            if(feature.type === 'checkbox') {
+                const value = GM_getValue(key, true);
+                const $row = $('<div style="display: flex; align-items: center; gap: 10px;"></div>');
+                const $label = $('<label style="color: #333;"></label>').text(i18n(`switch_${key}`));
+                const $checkbox = $('<input type="checkbox">').prop('checked', value);
+                $checkbox.on('change', function() {
+                    GM_setValue(key, $(this).prop('checked'));
+                });
+                $row.append($checkbox, $label);
+                $control.append($row);
+            }
         }
-    };
-    registerMenu();
 
-    features.adDisable.isEnable() && adDisable();
-    features.searchEnhance.isEnable() && setTimeout(() => searchEnhance(), 1000);
+        // 初始化按钮
+        const $reset = $('<button style="padding: 8px 15px; border: none; border-radius: 3px; cursor: pointer; font-size: 1rem; background-color: #007bff; color: white; transition: background-color 0.3s ease; margin-top: 10px;">重置默认值</button>');
+        const $close = $('<button style="padding: 8px 15px; border: none; border-radius: 3px; cursor: pointer; font-size: 1rem; background-color: #6c757d; color: white; transition: background-color 0.3s ease;">关闭</button>');
+        $control.append($reset, $close);
+        $reset.on('click', function() {
+            for (const key in features) {
+                const feature = features[key];
+                if(feature.type === 'checkbox') {
+                    GM_setValue(key, feature.default || true);
+                } else {
+                    GM_setValue(key, feature.default);
+                }
+            }
+            alert('所有配置已重置为默认值。');
+            window.location.reload();
+        });
+        $close.on('click', function() {
+            $control.remove();
+        });
+    })
 
-
-
+    features.antiAd.isEnable() && adDisable();
+    setTimeout(() => searchEnhance(), 1000);
     features.commentLoad.isEnable() && commentAutoLoad();
+    features.antiRedirect.isEnable() && antiRedirect();
     artworkTag();
-    antiRedirect();
 });
 
