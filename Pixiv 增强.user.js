@@ -115,6 +115,8 @@ jQuery($ => {
             switch_antiAd: '禁用广告',
             switch_antiRedirect: '取消重定向',
             switch_commentLoad: '加载评论',
+            switch_imageSize: '显示图片尺寸',
+            switch_preDownload: '预下载图片',
             switch_searchUid: '搜索uid',
             switch_searchPid: '搜索pid',
             switch_searchAuthor: '搜索作者',
@@ -162,6 +164,8 @@ jQuery($ => {
         antiAd: {type: 'checkbox'},
         antiRedirect: {type: 'checkbox'},
         commentLoad: {type: 'checkbox'},
+        imageSize: {type: 'checkbox'},
+        preDownload: {type: 'checkbox'},
         searchUid: {type: 'checkbox'},
         searchPid: {type: 'checkbox'},
         searchAuthor: {type: 'checkbox'},
@@ -235,16 +239,6 @@ jQuery($ => {
 
     // ============================ 配置信息 ====================================
     const GMkeys = {
-        MO: 'MO',                                   // MutationObserver 的开关
-        selectorShareBtn: 'selectorShareBtn',       // 下载按钮的selector
-        selectorRightColumn: 'selectorRightColumn', // 作品页面的作者信息selector
-
-        switchImgSize: 'switch-img-size',              // 是否显示图片大小的开关
-        switchImgPreload: 'switch-img-preload',         // 是否预下载的开关
-        switchComment: 'switch-comment',                // 是否自动加载评论的开关
-        switchImgMulti: 'switchImgMulti',               // 是否自动加载多图的开关
-        switchOrderByPopular: 'switch-order-by-popular',// 是否按收藏数排序的开关(单页排序)
-
         downloadName: 'download-name',  // 下载名pattern
     };
 
@@ -411,6 +405,9 @@ jQuery($ => {
     // 3. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
     // TODO 解耦ImgSize和原图显示功能 https://www.pixiv.net/artworks/112167219
     const addImgSizeSpan = (option) => {
+        if(!features.imageSize.isEnable()) {
+            return;
+        }
         // 从 $ 获取图片大小, after 到 $
         const options = Object.assign({$: undefined, position: 'relative',}, option);
         const $img = options.$;
@@ -569,12 +566,10 @@ jQuery($ => {
                             }
                         });
 
-                        // 4. 控制是否预下载, 避免多个页面导致爆内存 // TODO 统一控制
-                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
-                            if (open) {
-                                // $zipBtn.find('button').click();
-                            }
-                        });
+                        // 4. 控制是否预下载, 避免多个页面导致爆内存
+                        if(features.preDownload.isEnable()) {
+                            $zipBtn.find('button').click();
+                        }
                     }
                 }
             },
@@ -688,11 +683,9 @@ jQuery($ => {
                                 });
                             }
                         });
-                        GM.getValue(GMkeys.switchImgPreload, true).then(open => {
-                            if (open) {
-                                $gifBtn.find('button').click();
-                            }
-                        });
+                        if(features.preDownload.isEnable()) {
+                            $gifBtn.find('button').click();
+                        }
                     }
                 }
             },
@@ -989,55 +982,6 @@ jQuery($ => {
         }
     };
     hideTopBarBlank.init(); // 功能 8 的核心触发器，没它此功能将无法运作！
-
-    // 11. 控制面板
-    (() => {
-        // 关闭此功能
-        return;
-        if (!/.+setting_user\.php.*/.test(location.href)) {
-            return;
-        }
-
-        const $table = $(`<table style="width: 700px;">
-            <tbody>
-                <tr><th width="185">Pixiv增强配置</th><td width="500">
-                    <label><input type="checkbox" name="${GMkeys.MO}">兼容PJAX(推荐)</label><br/>
-                    <label><input type="checkbox" name="${GMkeys.switchComment}">自动加载评论</label><br/>
-                    <label><input type="checkbox" name="${GMkeys.switchImgMulti}">自动加载多图</label><br/>
-                    <label><input type="checkbox" name="${GMkeys.switchImgSize}">显示图片尺寸大小</label><br/>
-                    <label><input type="checkbox" name="${GMkeys.switchImgPreload}">预下载Gif、Zip(耗流量)</label><br/>
-
-                    <label>下载文件名: <input type="text" name="${GMkeys.downloadName}" placeholder="{pid}-{uid}-{pname}-{uname}"></label>
-                    <a>保存</a>
-                    <a onclick="alert('{pid}是作品id--------{uid}是画师id\\n{pname}是作品名--------{uname}是画师名\\n注意, 多图情况下, 会自动填充index索引编号\\n目前只支持GIF和多图的重命名');">说明</a>
-                </td></tr>
-            </tbody>
-        </table>`);
-        $('.settingContent table:first').after($table);
-
-        $table.find('input[type="checkbox"]').each(function () {
-            const $checkbox = $(this);
-            const name = $checkbox.attr('name');
-            GM.getValue(name, true).then(value => {
-                $checkbox.prop('checked', value);
-            });
-            $checkbox.on('change', () => {
-                const checked = $checkbox.prop('checked');
-                $checkbox.prop(checked, checked);
-                GM.setValue(name, checked);
-            });
-        });
-        $table.find('input[type="text"]').each(function () {
-            const $input = $(this);
-            const name = $input.attr('name');
-            GM.getValue(name).then(value => {
-                $input.val(value);
-            });
-            $input.on('change', () => {
-                GM.setValue(name, $input.val());
-            });
-        });
-    })();
 
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
