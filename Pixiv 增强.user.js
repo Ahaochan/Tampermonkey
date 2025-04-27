@@ -500,6 +500,9 @@ jQuery($ => {
                     for (const addedNode of mutation.addedNodes) {
                         // 1. 找到分享按钮, 用于复制UI
                         const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
+                        if($shareBtn.length <= 0) {
+                            continue;
+                        }
 
                         // 2. 初始化 图片数量, 图片url
                         const zip = new JSZip();
@@ -590,6 +593,9 @@ jQuery($ => {
 
                         // 2. 找到分享按钮, 用于复制UI
                         const $shareBtn = $(addedNode).find('div:has(> button[class^="style_transparentButton"]):eq(1)');
+                        if($shareBtn.length <= 0) {
+                            continue;
+                        }
 
                         // 3. 初始化 下载按钮
                         const $zipBtn = addImageDownloadBtn({
