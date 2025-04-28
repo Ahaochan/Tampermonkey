@@ -317,17 +317,7 @@ jQuery($ => {
             $form = $('#js-mount-point-header form:not([action]), #root div[style="position: static; z-index: auto;"] form:not([action])');
         }
 
-        // 2. 修改父级grid布局
-        // 2.1 查找新版本的表单数量并进行判断当前页面是否为新 UI 搜索栏表单
-        const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
-        // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
-        if (isNewVersion) {
-            $form.parent().parent().css({ 'grid-template-columns': '1fr minmax(0px, 319px) minmax(0px, 319px) minmax(0px, 438px) minmax(0px, 438px) minmax(0px, 219px) 2fr', 'gap': '10px' });
-        } else {
-            $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
-        }
-
-        // 3. 搜索UID，PID和作者
+        // 2. 搜索UID，PID和作者
         const initSearch = option => {
             const options = Object.assign({
                 $form: null, field: '搜索字段', placeholder: '请输入', template: '***', validNumber: false,
@@ -371,7 +361,7 @@ jQuery($ => {
         features.searchPid.isEnable() &&  initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
         features.searchAuthor.isEnable() && initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
-        // 4. 搜索条件
+        // 3. 搜索条件
         if(features.searchFavourite.isEnable()) {
             const $input = $form.find('input[type="text"]:first');
             const $select = $(`
@@ -415,6 +405,52 @@ jQuery($ => {
                 }
             });
         }
+
+        // 4. 修改父级grid布局
+        // 统计启用的搜索功能数量
+        const cnt = ['searchUid', 'searchPid', 'searchAuthor', 'searchFavourite']
+            .filter(key => features[key]?.isEnable?.()).length;
+        // 判断是否为新版UI
+        const $parent = $form.parent().parent();
+        const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0; 
+        // 定义不同 cnt 下的布局模板（根据实际需求调整数值）
+        const getGridTemplate = (cnt, isNew) => {
+            // 新版UI的布局规则（含 gap 属性）
+            if (isNew) {
+                switch (cnt) {
+                    case 0: // 无功能启用，相当于未启用搜索增强，那么就保持原站默认布局，不额外设置新的布局
+                        return { 'grid-template-columns': '' };
+                    case 1: // 启用1个功能（如UID搜索）
+                        return { 'grid-template-columns': '1fr minmax(0px, 1334px) minmax(0px, 1334px) minmax(0px, 1334px) 2fr' };
+                    case 2: // 启用2个功能（如UID+PID）
+                        return { 'grid-template-columns': '1fr minmax(0px, 667px) minmax(0px, 667px) minmax(0px, 667px) 2fr', 'gap': '10px' };
+                    case 3: // 启用3个功能（如UID+PID+作者）
+                        return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr', 'gap': '10px' };
+                    default: // 启用4个功能（全部启用）
+                        return { 'grid-template-columns': '1fr minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) 2fr', 'gap': '10px' };
+                }
+            }
+            // 旧版UI的布局规则（无 gap 属性）
+            else {
+                switch (cnt) {
+                    case 0:
+                        return { 'grid-template-columns': '' };
+                    case 1:
+                        return { 'grid-template-columns': '1fr minmax(0px, 1334px) minmax(0px, 1334px) minmax(0px, 1334px) 2fr' };
+                    case 2:
+                        return { 'grid-template-columns': '1fr minmax(0px, 667px) minmax(0px, 667px) minmax(0px, 667px) 2fr' };
+                    case 3:
+                        return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr' };
+                    default:
+                        return { 'grid-template-columns': '1fr minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 200px) 2fr' };
+                }
+            }
+        };
+        // 应用布局
+        const gridStyle = getGridTemplate(cnt, isNewVersion);
+        $parent.css(gridStyle);
+
+
     };
 
     // 3. 单张图片替换为原图格式. 追加下载按钮, 下载gif图、gif的帧压缩包、多图
