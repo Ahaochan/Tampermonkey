@@ -420,10 +420,10 @@ jQuery($ => {
                 switch (cnt) {
                     case 0: // 无功能启用，相当于未启用搜索增强，那么就保持原站默认布局，不额外设置新的布局
                         return { 'grid-template-columns': '' };
-                    case 1: // 启用1个功能（如UID搜索）
-                        return { 'grid-template-columns': '1fr minmax(0px, 1334px) minmax(0px, 1334px) minmax(0px, 1334px) 2fr' };
+                    case 1: // 启用1个功能（如PID搜索）
+                        return { 'grid-template-columns': '1fr minmax(0px, 700px) minmax(0px, 700px) 2fr', 'gap': '10px' };
                     case 2: // 启用2个功能（如UID+PID）
-                        return { 'grid-template-columns': '1fr minmax(0px, 667px) minmax(0px, 667px) minmax(0px, 667px) 2fr', 'gap': '10px' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 600px) minmax(0px, 600px) minmax(0px, 600px) 2fr', 'gap': '10px' };
                     case 3: // 启用3个功能（如UID+PID+作者）
                         return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr', 'gap': '10px' };
                     default: // 启用4个功能（全部启用）
@@ -436,9 +436,9 @@ jQuery($ => {
                     case 0:
                         return { 'grid-template-columns': '' };
                     case 1:
-                        return { 'grid-template-columns': '1fr minmax(0px, 1334px) minmax(0px, 1334px) minmax(0px, 1334px) 2fr' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 700px) minmax(0px, 700px) 2fr' };
                     case 2:
-                        return { 'grid-template-columns': '1fr minmax(0px, 667px) minmax(0px, 667px) minmax(0px, 667px) 2fr' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 600px) minmax(0px, 600px) minmax(0px, 600px) 2fr' };
                     case 3:
                         return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr' };
                     default:
