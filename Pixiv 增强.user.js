@@ -326,7 +326,7 @@ jQuery($ => {
                 error(`搜索组件[${options.field}]初始化失败, form元素获取失败`);
             }
 
-            // 1. 初始化表单UI
+            // 3. 初始化表单UI
             const $parent = options.$form.parent().clone();
             const $form = $parent.find('form');
             $form.children('div').eq(1).remove();
@@ -337,7 +337,7 @@ jQuery($ => {
             $input.attr('value', '');
             $input.val('');
 
-            // 2. 绑定submit事件
+            // 4. 绑定submit事件
             $form.submit(e => {
                 // 阻止默认的表单提交
                 e.preventDefault();
@@ -361,7 +361,7 @@ jQuery($ => {
         features.searchPid.isEnable() &&  initSearch({$form, field: 'PID', placeholder: 'PID', template: 'https://www.pixiv.net/artworks/***', validNumber: true});
         // TODO UI错乱: https://www.pixiv.net/stacc/mdnk
         features.searchAuthor.isEnable() && initSearch({$form, field: i18n('author'), placeholder: i18n('author'), template: "https://www.pixiv.net/search_user.php?nick=***&s_mode=s_usr", validNumber: false});
-        // 3. 搜索条件
+        // 5. 搜索条件
         if(features.searchFavourite.isEnable()) {
             const $input = $form.find('input[type="text"]:first');
             const $select = $(`
@@ -406,7 +406,7 @@ jQuery($ => {
             });
         }
 
-        // 4. 修改父级grid布局
+        // 6. 修改父级grid布局
         // 统计启用的搜索功能数量
         const cnt = ['searchUid', 'searchPid', 'searchAuthor', 'searchFavourite']
             .filter(key => features[key]?.isEnable?.()).length;
@@ -425,9 +425,9 @@ jQuery($ => {
                     case 2: // 启用2个功能（如UID+PID）
                         return { 'grid-template-columns': '1fr minmax(0px, 600px) minmax(0px, 600px) minmax(0px, 600px) 2fr', 'gap': '10px' };
                     case 3: // 启用3个功能（如UID+PID+作者）
-                        return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr', 'gap': '10px' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 450px) minmax(0px, 450px) minmax(0px, 450px) minmax(0px, 450px) 2fr', 'gap': '10px' };
                     default: // 启用4个功能（全部启用）
-                        return { 'grid-template-columns': '1fr minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) 2fr', 'gap': '10px' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 200px) 2fr', 'gap': '10px' };
                 }
             }
             // 旧版UI的布局规则（无 gap 属性）
@@ -440,7 +440,7 @@ jQuery($ => {
                     case 2:
                         return { 'grid-template-columns': '1fr minmax(0px, 600px) minmax(0px, 600px) minmax(0px, 600px) 2fr' };
                     case 3:
-                        return { 'grid-template-columns': '1fr minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) minmax(0px, 500px) 2fr' };
+                        return { 'grid-template-columns': '1fr minmax(0px, 450px) minmax(0px, 450px) minmax(0px, 450px) minmax(0px, 450px) 2fr' };
                     default:
                         return { 'grid-template-columns': '1fr minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 400px) minmax(0px, 200px) 2fr' };
                 }
