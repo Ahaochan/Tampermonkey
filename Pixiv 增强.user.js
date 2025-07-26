@@ -409,6 +409,7 @@ jQuery($ => {
                 if (!!value) {
                     const url = new URL(location.href);
                     const searchParams = url.searchParams;
+                    searchParams.set('p', '1');
                     searchParams.set('s_mode', 's_tag');
                     location.href = `https://www.pixiv.net/tags/${value}/artworks?${searchParams.toString()}`;
                 }
