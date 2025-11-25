@@ -407,11 +407,11 @@ jQuery($ => {
                 }
                 const value = encodeURIComponent($input.val());
                 if (!!value) {
-                    if (/\/tags\/(.*?)\/artworks/.test(location.href)) {
-                        location.href = location.href.replace(/\/tags\/(.*?)\/artworks/g, `/tags/${value}/artworks`);
-                    } else {
-                        location.href = `https://www.pixiv.net/tags/${value}/artworks?s_mode=s_tag`
-                    }
+                    const url = new URL(location.href);
+                    const searchParams = url.searchParams;
+                    searchParams.set('p', '1');
+                    searchParams.set('s_mode', 's_tag');
+                    location.href = `https://www.pixiv.net/tags/${value}/artworks?${searchParams.toString()}`;
                 }
             });
         }
