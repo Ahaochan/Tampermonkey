@@ -3,7 +3,7 @@
 // @name:zh-CN  Pixiv 增强
 // @name:zh-TW  Pixiv 增強
 // @namespace   https://github.com/Ahaochan/Tampermonkey
-// @version     0.9.3
+// @version     0.9.4
 // @icon        https://www.pixiv.net/favicon.ico
 // @description Focus on immersive experience, 1. Block ads, directly access popular pictures 2. Use user to enter the way to search 3. Search pid , uid and author 4. Display original image and size, picture rename, download original image | gif map | Zip|multiple map zip 5. display artist id, artist background image 6. auto load comment 7. dynamic markup work type 8. remove redirection 9. single page sort 10. control panel select desired function github: https://github.com/Ahaochan/Tampermonkey, welcome to star and fork.
 // @description:ja    没入型体験に焦点を当てる、1.人気の写真に直接アクセスする広告をブロックする2.検索する方法を入力するためにユーザーを使用する3.検索pid uid と創作家 4.元の画像とサイズを表示する Zip | multiple map zip 5.アーティストID、アーティストの背景画像を表示します。6.自動ロードコメントを追加します。7.動的マークアップ作業タイプを指定します。8.リダイレクトを削除します。9.シングルページソート10.コントロールパネルを選択します。github：https://github.com/Ahaochan/Tampermonkey、スターとフォークへようこそ。
@@ -322,10 +322,11 @@ jQuery($ => {
         const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
         // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
         if (isNewVersion) {
-            $form.parent().parent().css({ 'grid-template-columns': '1fr minmax(0px, 319px) minmax(0px, 319px) minmax(0px, 438px) minmax(0px, 438px) minmax(0px, 219px) 2fr', 'gap': '10px' });
+            $form.parent().parent().css({ 'grid-template-columns': '1fr 1fr 1fr 1fr 1fr', 'gap': '10px' });
         } else {
             $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
         }
+        $form.parent().parent().parent().css('grid-template-columns', '1fr 2fr 1fr');
 
         // 3. 搜索UID，PID和作者
         const initSearch = option => {
