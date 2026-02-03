@@ -322,7 +322,7 @@ jQuery($ => {
         const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
         // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
         if (isNewVersion) {
-            $form.parent().parent().css({ 'grid-template-columns': '1fr 1fr 1fr 1fr 1fr', 'gap': '10px' });
+            $form.parent().parent().css({ 'grid-template-columns': '1fr 1fr 1fr 1fr 1fr 1fr 1fr', 'gap': '10px' });
         } else {
             $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
         }
