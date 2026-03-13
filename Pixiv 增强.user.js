@@ -328,6 +328,10 @@ jQuery($ => {
         }
         $form.parent().parent().parent().css('grid-template-columns', '1fr 2fr 1fr');
 
+        // 设置官方原生搜索框的最小宽度
+        const $formInput = $form.find('input[type="text"]:first');
+        $formInput.css('min-width', '120px');
+
         // 3. 搜索UID，PID和作者
         const initSearch = option => {
             const options = Object.assign({
@@ -343,10 +347,16 @@ jQuery($ => {
             $form.children('div').eq(1).remove();
             $form.attr('class', `ahao-search-${options.field}`);
             options.$form.parent().before($parent);
+
             const $input = $form.find('input[type="text"]:first');
+            $input.css('min-width', '40px');
             $input.attr('placeholder', options.placeholder);
             $input.attr('value', '');
             $input.val('');
+
+            // 移除克隆输入框后面的类型选择器
+            const $inputSuffix = $form.find('div.charcoal-text-field-suffix');
+            $inputSuffix.remove();
 
             // 2. 绑定submit事件
             $form.submit(e => {
