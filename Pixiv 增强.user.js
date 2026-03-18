@@ -388,6 +388,9 @@ jQuery($ => {
                         <option value="300users入り"  >  300users入り</option>
                         <option value="100users入り"  >  100users入り</option>
                         <option value="50users入り"   >   50users入り</option>
+                        <option value="0000users入り" >&gt;=10000users入り</option>
+                        <option value="000users入り"  > &gt;=1000users入り</option>
+                        <option value="00users入り"   >  &gt;=100users入り</option>
                     </select>`);
             $select.on('change', () => {
                 if (!!$input.val()) {
