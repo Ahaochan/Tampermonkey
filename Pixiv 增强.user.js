@@ -419,13 +419,17 @@ jQuery($ => {
                     // 添加新的搜索选项
                     $input.val((index, val) => `${val} ${$select.val()}`);
                 }
-                const value = encodeURIComponent($input.val());
+                const value = $input.val();
                 if (!!value) {
                     const url = new URL(location.href);
                     const searchParams = url.searchParams;
+                    searchParams.delete('q');
                     searchParams.set('p', '1');
-                    searchParams.set('s_mode', 's_tag');
-                    location.href = `https://www.pixiv.net/tags/${value}/artworks?${searchParams.toString()}`;
+                    searchParams.set('s_mode', 'tag');
+                    if (!searchParams.get('type')) {
+                        searchParams.set('type', 'illust_ugoira');
+                    }
+                    location.href = `https://www.pixiv.net/search?q=${encodeURIComponent(value)}&${searchParams.toString()}`;
                 }
             });
         }
