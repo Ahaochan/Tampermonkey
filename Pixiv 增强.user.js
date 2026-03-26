@@ -328,6 +328,19 @@ jQuery($ => {
         }
         $form.parent().parent().parent().css('grid-template-columns', '1fr 2fr 1fr');
 
+        // 动态处理某些页面 LOGO 右侧 50px 空白占位符
+        const hideKeywords = ['/artworks', 'novel/show.php', 'bookmark_new_illust', '/users', '/tag', '/discovery', '/dashboard', '/manage', '/settings'];
+        const shouldHideSpacer = hideKeywords.some(keyword => location.href.includes(keyword));
+
+        // 查找 Logo 旁边的占位符
+        const $spacer = $('.new-header-logo').closest('div.flex').find('div[class*="size-[50px]"], div.ml-8');
+
+        if (shouldHideSpacer) {
+            $spacer.hide();
+        } else {
+            $spacer.show();
+        }
+
         // 设置官方原生搜索框的最小宽度
         const $formInput = $form.find('input[type="text"]:first');
         $formInput.css('min-width', '120px');
@@ -386,8 +399,8 @@ jQuery($ => {
         if(features.searchFavourite.isEnable()) {
             const $input = $form.find('input[type="text"]:first');
             const $select = $(`
-                    <select id="select-ahao-favorites">
-                        <option value=""></option>
+                    <select id="select-ahao-favorites" style="height: 32px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.16); padding: 0 8px; width: 100%; min-width: 150px">
+                        <option value="">筛选收藏</option>
                         <option value="50000users入り">50000users入り</option>
                         <option value="30000users入り">30000users入り</option>
                         <option value="20000users入り">20000users入り</option>
@@ -996,31 +1009,6 @@ jQuery($ => {
             }
         }, observerOption);
     }
-
-    // 8. 动态隐藏（去除）顶栏LOGO右侧占位空白（始终启用）
-    const hideTopBarBlank = {
-        init() {
-            this.checkUrlAndToggleElement();
-            this.setupObserver();
-        },
-        checkUrlAndToggleElement() {
-            // keywords：判断需要隐藏的条件的 URL 关键字。$target：要操作的对象选择器
-            const keywords = ['/artworks', 'novel/show.php', 'bookmark_new_illust', '/users', '/tag', '/discovery', '/dashboard', '/manage', '/settings'];
-            const $target = $('.group\\/logo .flex.gap-8.items-center .ml-8.size-\\[50px\\]');
-            // 判断并执行目标对象的显示或隐藏（去除）操作
-            const shouldHide = keywords.some(keyword => location.href.includes(keyword));
-            $target.toggle(!shouldHide);
-        },
-        setupObserver() {
-            // 复用主脚本的 observerFactory 统一管理监听器
-            observerFactory({
-                callback: () => this.checkUrlAndToggleElement(),
-                node: document.body,
-                option: { childList: true, subtree: true }
-            });
-        }
-    };
-    hideTopBarBlank.init(); // 功能 8 的核心触发器，没它此功能将无法运作！
 
     //TODO 增强新页面fanbox https://www.pixiv.net/fanbox/creator/22926661?utm_campaign=www_profile&utm_medium=site_flow&utm_source=pixiv
     //TODO 日语化
