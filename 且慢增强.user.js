@@ -43,7 +43,7 @@ jQuery(($) => {
                     .text(' [复制时间] ')
                     .css({ cursor: 'pointer', color: '#eb7350', marginLeft: '8px' })
                     .on('click', function() {
-                        GM_setClipboard(`[${time}](${location.href})`);
+                        GM_setClipboard(`[${time}](${location.href})【且慢】`);
                         $(this).text(' ✔ 已复制！').css('color', '#52c41a');
                         setTimeout(() => $(this).text(' [复制时间] ').css('color', '#eb7350'), 1500);
                     })
