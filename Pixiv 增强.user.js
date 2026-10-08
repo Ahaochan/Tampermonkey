@@ -322,15 +322,15 @@ jQuery($ => {
         const isNewVersion = $form.find('div.charcoal-text-field-root').length > 0;
         // 2.2 根据上面的判断来应用哪套布局：真，走适配新版本样式。假，走适配老版本样式
         if (isNewVersion) {
-            $form.parent().parent().css({ 'grid-template-columns': '1fr 1fr 1fr 1fr 1fr 1fr 1fr', 'gap': '10px' });
+            $form.parent().parent().css({ 'grid-template-columns': 'auto auto auto 1fr auto auto', 'gap': '10px', 'width': '100%', 'align-items': 'center'});
         } else {
             $form.parent().parent().css('grid-template-columns', '1fr minmax(0px, 219px) minmax(0px, 219px) minmax(0px, 538px) minmax(0px, 538px) minmax(0px, 219px) 2fr');
         }
-        $form.parent().parent().parent().css('grid-template-columns', '1fr 2fr 1fr');
+        $form.parent().parent().parent().css('grid-template-columns', 'auto 1fr auto');
 
         // 设置官方原生搜索框的最小宽度
         const $formInput = $form.find('input[type="text"]:first');
-        $formInput.css('min-width', '120px');
+        $formInput.css('min-width', '115px');
 
         // 3. 搜索UID，PID和作者
         const initSearch = option => {
@@ -386,8 +386,8 @@ jQuery($ => {
         if(features.searchFavourite.isEnable()) {
             const $input = $form.find('input[type="text"]:first');
             const $select = $(`
-                    <select id="select-ahao-favorites">
-                        <option value=""></option>
+                    <select id="select-ahao-favorites" style="height: 32px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.16); padding: 0 8px; width: 100%; min-width: 120px">
+                        <option value="">筛选收藏</option>
                         <option value="50000users入り">50000users入り</option>
                         <option value="30000users入り">30000users入り</option>
                         <option value="20000users入り">20000users入り</option>
