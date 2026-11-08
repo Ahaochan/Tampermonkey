@@ -362,15 +362,16 @@ jQuery($ => {
             $form.submit(e => {
                 // 阻止默认的表单提交
                 e.preventDefault();
-
+                
+                // 过滤非法字符：只保留 0-9
+                if (options.validNumber) {
+                    const filtered = $input.val().replace(/[^0-9]/g, '');
+                    $input.val(filtered);
+                    // 过滤后为空则不提交（按需保留）
+                    if (filtered === '') return;
+                }
                 // 重写表单提交逻辑
                 const val = encodeURIComponent($input.val());
-                // 输入校验
-                if (options.validNumber && !/^[0-9]+$/.test(val)) {
-                    const label = options.placeholder + i18n('illegal');
-                    alert(label);
-                    return;
-                }
                 // 新窗口打开url
                 const url = options.template.replaceAll('***', val);
                 window.open(url);
